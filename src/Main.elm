@@ -2,11 +2,9 @@ module Main exposing (..)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
-import Chat exposing (unfoldMessageReceived)
 import Credentials
     exposing
         ( Session
-        , SocketMessageData
         , UserId
         , VerificationString
         , decodeToSession
@@ -14,14 +12,12 @@ import Credentials
         , fromSessionToToken
         , fromTokenToString
         , logout
-        , socketMessageChanges
         , subscriptionChanges
         , userIdParser
         , userIdToString
         , verifictionStringParser
         )
 import Home
-import Html.Lazy exposing (lazy)
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (classList, href, src, style, width)
 import Html.Styled.Events exposing (onClick)
@@ -30,7 +26,6 @@ import Jwt
 import Login
 import Profile
 import Signup
-import Svg exposing (svg)
 import Svg.Attributes as SvgAttr exposing (path)
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
@@ -56,7 +51,6 @@ type Page
     | SignupPage Signup.Model
     | ProfilePage Profile.Model
     | HomePage Home.Model
-    | ChatPage Chat.Model
     | VerificationPage Verification.Model
     | NotFoundPage
 
@@ -66,7 +60,6 @@ type Route
     | Signup
     | Profile UserId
     | Home
-    | Chat
     | Verification VerificationString
     | NotFound
 
@@ -78,13 +71,10 @@ type Msg
     | GotLoginMsg Login.Msg
     | GotProfileMsg Profile.Msg
     | GotHomeMsg Home.Msg
-    | GotChatMsg Chat.Msg
     | GotVerificationMsg Verification.Msg
     | GotSubscriptionChangeMsg Session
-    | GotSubscriptionSocketMsg SocketMessageData
     | GetLogout
     | OpenDropdown
-    | ChatNewMessage
     | GotTime Time.Posix
     | CheckSessionExpired ( Session, Maybe Time.Posix )
 
@@ -108,10 +98,6 @@ content model =
             HomePage _ ->
                 Home.view
                     |> Html.map GotHomeMsg
-
-            ChatPage chatModel ->
-                Chat.view chatModel
-                    |> Html.map GotChatMsg
 
             VerificationPage verificationModel ->
                 Verification.view verificationModel
@@ -247,14 +233,6 @@ viewLoggedInHeader { page, token, openDropdown } =
             Err err ->
                 Html.li [] [ text (Debug.toString err) ]
         , Html.li
-            [ classList
-                [ ( "active"
-                  , isActive { link = Chat, page = page }
-                  )
-                ]
-            ]
-            [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/chat" ] [ text "Chat" ] ]
-        , Html.li
             []
             [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/", onClick GetLogout ] [ text "logout" ] ]
         ]
@@ -287,12 +265,6 @@ isActive { link, page } =
         ( Home, _ ) ->
             False
 
-        ( Chat, ChatPage _ ) ->
-            True
-
-        ( Chat, _ ) ->
-            False
-
         ( Verification _, VerificationPage _ ) ->
             True
 
@@ -312,16 +284,8 @@ update msg model =
                     ( model, Nav.load href )
 
                 Browser.Internal url ->
-                    let
-                        urlPath =
-                            url.path
-                    in
                     ( model
-                    , if urlPath == "/chat" then
-                        Cmd.batch [ Nav.reload, Nav.pushUrl model.key (Url.toString url) ]
-
-                      else
-                        Nav.pushUrl model.key (Url.toString url)
+                    , Nav.pushUrl model.key (Url.toString url)
                     )
 
         ChangedUrl url ->
@@ -406,33 +370,6 @@ update msg model =
                     Nav.pushUrl model.key "/login"
             )
 
-        GotSubscriptionSocketMsg socketMsgObj ->
-            case model.page of
-                ChatPage chatModel ->
-                    let
-                        chatMsg =
-                            unfoldMessageReceived socketMsgObj
-
-                        ( chatModelFromChat, chatMsgFromChat ) =
-                            Chat.update chatMsg chatModel
-                    in
-                    ( { model | page = ChatPage chatModelFromChat }, Cmd.map GotChatMsg chatMsgFromChat )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        GotChatMsg chatMsg ->
-            case model.page of
-                ChatPage chatModel ->
-                    let
-                        ( chatModelFromChat, chatMsgFromChat ) =
-                            Chat.update chatMsg chatModel
-                    in
-                    ( { model | page = ChatPage chatModelFromChat }, Cmd.map GotChatMsg chatMsgFromChat )
-
-                _ ->
-                    ( model, Cmd.none )
-
         CheckSessionExpired ( session, maybeTime ) ->
             case ( maybeTime, fromSessionToToken session ) of
                 ( Just time, Just token ) ->
@@ -443,14 +380,10 @@ update msg model =
                     case Jwt.isExpired time tokenString of
                         Ok isExpired ->
                             if isExpired then
-                                ( model
-                                , logout
-                                )
+                                ( model, logout )
 
                             else
-                                ( model
-                                , Cmd.none
-                                )
+                                ( model, Cmd.none )
 
                         Err _ ->
                             ( model, Cmd.none )
@@ -460,9 +393,6 @@ update msg model =
 
         GetLogout ->
             ( model, logout )
-
-        ChatNewMessage ->
-            ( model, Cmd.none )
 
         GotTime time ->
             ( { model | time = Just time }, Cmd.none )
@@ -478,7 +408,6 @@ matchRoute =
         , Parser.map Login (s "login")
         , Parser.map Profile (s "profile" </> userIdParser)
         , Parser.map Signup (s "signup")
-        , Parser.map Chat (s "chat")
         , Parser.map Verification (s "verify-email" </> verifictionStringParser)
         ]
 
@@ -513,13 +442,6 @@ urlToPage url session =
 
             else
                 VerificationPage (Tuple.first (Verification.init session url.path))
-
-        Just Chat ->
-            if fromSessionToToken session == Nothing then
-                NotFoundPage
-
-            else
-                ChatPage (Tuple.first (Chat.init session))
 
         Just Home ->
             HomePage (Tuple.first (Home.init ()))
@@ -560,13 +482,6 @@ initCurrentPage ( url, model, existingCmds ) =
             in
             ( { model | page = HomePage pageModel }, Cmd.batch [ Cmd.map GotHomeMsg pageCmds, existingCmds ] )
 
-        ChatPage _ ->
-            let
-                ( pageModel, pageCmds ) =
-                    Chat.init model.session
-            in
-            ( { model | page = ChatPage pageModel }, Cmd.batch [ Cmd.map GotChatMsg pageCmds, existingCmds ] )
-
         VerificationPage _ ->
             let
                 ( pageModel, pageCmds ) =
@@ -601,10 +516,7 @@ init flags url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ subscriptionChanges GotSubscriptionChangeMsg model.key
-        , socketMessageChanges GotSubscriptionSocketMsg model.key
-        ]
+    subscriptionChanges GotSubscriptionChangeMsg model.key
 
 
 main : Program Value Model Msg

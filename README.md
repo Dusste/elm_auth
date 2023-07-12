@@ -4,3 +4,4 @@
 - Private and Public pages
 - Session via JWT token
 - Vanilla style with TailwindCSS
+ npx http-server -p 9999

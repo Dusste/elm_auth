@@ -4588,6 +4588,69 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 
 
 
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2($elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = $elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = $elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
+
+
+function _Url_percentEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function _Url_percentDecode(string)
+{
+	try
+	{
+		return $elm$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch (e)
+	{
+		return $elm$core$Maybe$Nothing;
+	}
+}
+
+
 // SEND REQUEST
 
 var _Http_toTask = F3(function(router, toTask, request)
@@ -4760,69 +4823,6 @@ function _Http_track(router, xhr, tracker)
 			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
-}
-
-
-function _Time_now(millisToPosix)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		callback(_Scheduler_succeed(millisToPosix(Date.now())));
-	});
-}
-
-var _Time_setInterval = F2(function(interval, task)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
-		return function() { clearInterval(id); };
-	});
-});
-
-function _Time_here()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		callback(_Scheduler_succeed(
-			A2($elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
-		));
-	});
-}
-
-
-function _Time_getZoneName()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		try
-		{
-			var name = $elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
-		}
-		catch (e)
-		{
-			var name = $elm$time$Time$Offset(new Date().getTimezoneOffset());
-		}
-		callback(_Scheduler_succeed(name));
-	});
-}
-
-
-function _Url_percentEncode(string)
-{
-	return encodeURIComponent(string);
-}
-
-function _Url_percentDecode(string)
-{
-	try
-	{
-		return $elm$core$Maybe$Just(decodeURIComponent(string));
-	}
-	catch (e)
-	{
-		return $elm$core$Maybe$Nothing;
-	}
 }
 
 // CREATE
@@ -5956,12 +5956,6 @@ var $author$project$Credentials$decodeToSession = F2(
 			return $author$project$Credentials$Guest;
 		}
 	});
-var $author$project$Main$ChatPage = function (a) {
-	return {$: 'ChatPage', a: a};
-};
-var $author$project$Main$GotChatMsg = function (a) {
-	return {$: 'GotChatMsg', a: a};
-};
 var $author$project$Main$GotHomeMsg = function (a) {
 	return {$: 'GotHomeMsg', a: a};
 };
@@ -5994,34 +5988,21 @@ var $author$project$Main$VerificationPage = function (a) {
 	return {$: 'VerificationPage', a: a};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
+var $author$project$Home$initialModel = {};
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Home$init = function (_v0) {
+	return _Utils_Tuple2($author$project$Home$initialModel, $elm$core$Platform$Cmd$none);
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Credentials$addUserToRoom = _Platform_outgoingPort(
-	'addUserToRoom',
-	function ($) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'userId',
-					$elm$json$Json$Encode$string($.userId)),
-					_Utils_Tuple2(
-					'userName',
-					$elm$json$Json$Encode$string($.userName))
-				]));
-	});
+var $author$project$Login$Initial = {$: 'Initial'};
+var $author$project$Login$initialModel = {formState: $author$project$Login$Initial, storeEmail: '', storePassword: ''};
+var $author$project$Login$init = function (_v0) {
+	return _Utils_Tuple2($author$project$Login$initialModel, $elm$core$Platform$Cmd$none);
+};
+var $author$project$Profile$Intruder = {$: 'Intruder'};
+var $author$project$Profile$NotVerified = {$: 'NotVerified'};
+var $author$project$Profile$Verified = function (a) {
+	return {$: 'Verified', a: a};
+};
 var $simonh1000$elm_jwt$Jwt$TokenDecodeError = function (a) {
 	return {$: 'TokenDecodeError', a: a};
 };
@@ -6654,76 +6635,467 @@ var $author$project$Credentials$decodeTokenData = A7(
 		_List_fromArray(
 			['profilepicurl']),
 		$elm$json$Json$Decode$string));
-var $author$project$Chat$ChatMessages = function (a) {
-	return {$: 'ChatMessages', a: a};
-};
-var $author$project$Credentials$SocketMessageData = F6(
-	function (name, id, clientId, connectionId, timestamp, data) {
-		return {clientId: clientId, connectionId: connectionId, data: data, id: id, name: name, timestamp: timestamp};
-	});
-var $author$project$Credentials$DataMessage = function (message) {
-	return {message: message};
-};
-var $author$project$Credentials$decodeMessage = A3(
-	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-	'message',
-	$elm$json$Json$Decode$string,
-	$elm$json$Json$Decode$succeed($author$project$Credentials$DataMessage));
-var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $author$project$Credentials$decodeSocketMessage = A3(
-	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-	'data',
-	$author$project$Credentials$decodeMessage,
-	A3(
-		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-		'timestamp',
-		$elm$json$Json$Decode$int,
-		A3(
-			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-			'connectionId',
-			$elm$json$Json$Decode$string,
-			A3(
-				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-				'clientId',
-				$elm$json$Json$Decode$string,
-				A3(
-					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-					'id',
-					$elm$json$Json$Decode$string,
-					A3(
-						$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-						'name',
-						$elm$json$Json$Decode$string,
-						$elm$json$Json$Decode$succeed($author$project$Credentials$SocketMessageData)))))));
-var $elm$http$Http$BadStatus_ = F2(
-	function (a, b) {
-		return {$: 'BadStatus_', a: a, b: b};
-	});
-var $elm$http$Http$BadUrl_ = function (a) {
-	return {$: 'BadUrl_', a: a};
-};
-var $elm$http$Http$GoodStatus_ = F2(
-	function (a, b) {
-		return {$: 'GoodStatus_', a: a, b: b};
-	});
-var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
-var $elm$http$Http$Receiving = function (a) {
-	return {$: 'Receiving', a: a};
-};
-var $elm$http$Http$Sending = function (a) {
-	return {$: 'Sending', a: a};
-};
-var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $elm$core$Maybe$isJust = function (maybe) {
-	if (maybe.$ === 'Just') {
-		return true;
+var $author$project$Credentials$fromSessionToToken = function (session) {
+	if (session.$ === 'LoggedIn') {
+		var token = session.a;
+		return $elm$core$Maybe$Just(token);
 	} else {
-		return false;
+		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $author$project$Credentials$fromTokenToString = function (_v0) {
+	var string = _v0.a;
+	return string;
+};
+var $author$project$Profile$Initial = {$: 'Initial'};
+var $author$project$Profile$initialModel = {formState: $author$project$Profile$Initial, profilePic: $elm$core$Maybe$Nothing, storeName: '', userState: $author$project$Profile$NotVerified};
+var $author$project$Profile$init = function (session) {
+	var _v0 = $author$project$Credentials$fromSessionToToken(session);
+	if (_v0.$ === 'Just') {
+		var token = _v0.a;
+		var _v1 = A2(
+			$simonh1000$elm_jwt$Jwt$decodeToken,
+			$author$project$Credentials$decodeTokenData,
+			$author$project$Credentials$fromTokenToString(token));
+		if (_v1.$ === 'Ok') {
+			var userDataFromToken = _v1.a;
+			return _Utils_Tuple2(
+				_Utils_update(
+					$author$project$Profile$initialModel,
+					{
+						storeName: userDataFromToken.firstname,
+						userState: userDataFromToken.isverified ? $author$project$Profile$Verified(session) : $author$project$Profile$NotVerified
+					}),
+				$elm$core$Platform$Cmd$none);
+		} else {
+			return _Utils_Tuple2(
+				_Utils_update(
+					$author$project$Profile$initialModel,
+					{userState: $author$project$Profile$Intruder}),
+				$elm$core$Platform$Cmd$none);
+		}
+	} else {
+		return _Utils_Tuple2(
+			_Utils_update(
+				$author$project$Profile$initialModel,
+				{userState: $author$project$Profile$Intruder}),
+			$elm$core$Platform$Cmd$none);
+	}
+};
+var $author$project$Signup$Initial = {$: 'Initial'};
+var $author$project$Signup$initialModel = {formState: $author$project$Signup$Initial, storeConfirmPassword: '', storeEmail: '', storePassword: ''};
+var $author$project$Signup$init = function (_v0) {
+	return _Utils_Tuple2($author$project$Signup$initialModel, $elm$core$Platform$Cmd$none);
+};
+var $author$project$Verification$Sessionless = {$: 'Sessionless'};
+var $author$project$Verification$VerificationFail = {$: 'VerificationFail'};
+var $author$project$Verification$VerificationPending = {$: 'VerificationPending'};
+var $author$project$Verification$Verified = {$: 'Verified'};
+var $author$project$Verification$VerifyApiCallStart = function (a) {
+	return {$: 'VerifyApiCallStart', a: a};
+};
+var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$Verification$apiCallAfterSomeTime = F2(
+	function (session, toMsg) {
+		return A2(
+			$elm$core$Task$perform,
+			function (_v0) {
+				return toMsg(session);
+			},
+			$elm$core$Process$sleep(5000));
+	});
+var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Credentials$verificationToString = function (_v0) {
+	var verificationString = _v0.a;
+	return verificationString;
+};
+var $author$project$Verification$init = F2(
+	function (session, verificationParam) {
+		var _v0 = $author$project$Credentials$fromSessionToToken(session);
+		if (_v0.$ === 'Just') {
+			var token = _v0.a;
+			var _v1 = A2(
+				$simonh1000$elm_jwt$Jwt$decodeToken,
+				$author$project$Credentials$decodeTokenData,
+				$author$project$Credentials$fromTokenToString(token));
+			if (_v1.$ === 'Ok') {
+				var resultTokenRecord = _v1.a;
+				return (!_Utils_eq(
+					verificationParam,
+					'/verify-email/' + $author$project$Credentials$verificationToString(resultTokenRecord.verificationstring))) ? _Utils_Tuple2(
+					{userState: $author$project$Verification$VerificationFail},
+					$elm$core$Platform$Cmd$none) : ((!resultTokenRecord.isverified) ? _Utils_Tuple2(
+					{userState: $author$project$Verification$VerificationPending},
+					A2($author$project$Verification$apiCallAfterSomeTime, session, $author$project$Verification$VerifyApiCallStart)) : _Utils_Tuple2(
+					{userState: $author$project$Verification$Verified},
+					$elm$core$Platform$Cmd$none));
+			} else {
+				return _Utils_Tuple2(
+					{userState: $author$project$Verification$Sessionless},
+					$elm$core$Platform$Cmd$none);
+			}
+		} else {
+			return _Utils_Tuple2(
+				{userState: $author$project$Verification$Sessionless},
+				$elm$core$Platform$Cmd$none);
+		}
+	});
+var $elm$core$Platform$Cmd$map = _Platform_map;
+var $author$project$Main$initCurrentPage = function (_v0) {
+	var url = _v0.a;
+	var model = _v0.b;
+	var existingCmds = _v0.c;
+	var _v1 = model.page;
+	switch (_v1.$) {
+		case 'NotFoundPage':
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{page: $author$project$Main$NotFoundPage}),
+				$elm$core$Platform$Cmd$none);
+		case 'LoginPage':
+			var _v2 = $author$project$Login$init(_Utils_Tuple0);
+			var pageModel = _v2.a;
+			var pageCmds = _v2.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						page: $author$project$Main$LoginPage(pageModel)
+					}),
+				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotLoginMsg, pageCmds));
+		case 'SignupPage':
+			var _v3 = $author$project$Signup$init(_Utils_Tuple0);
+			var pageModel = _v3.a;
+			var pageCmds = _v3.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						page: $author$project$Main$SignupPage(pageModel)
+					}),
+				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSignupMsg, pageCmds));
+		case 'HomePage':
+			var _v4 = $author$project$Home$init(_Utils_Tuple0);
+			var pageModel = _v4.a;
+			var pageCmds = _v4.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						page: $author$project$Main$HomePage(pageModel)
+					}),
+				$elm$core$Platform$Cmd$batch(
+					_List_fromArray(
+						[
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$GotHomeMsg, pageCmds),
+							existingCmds
+						])));
+		case 'VerificationPage':
+			var _v5 = A2($author$project$Verification$init, model.session, url.path);
+			var pageModel = _v5.a;
+			var pageCmds = _v5.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						page: $author$project$Main$VerificationPage(pageModel)
+					}),
+				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotVerificationMsg, pageCmds));
+		default:
+			var _v6 = $author$project$Profile$init(model.session);
+			var pageModel = _v6.a;
+			var pageCmds = _v6.b;
+			return _Utils_Tuple2(
+				_Utils_update(
+					model,
+					{
+						page: $author$project$Main$ProfilePage(pageModel)
+					}),
+				$elm$core$Platform$Cmd$batch(
+					_List_fromArray(
+						[
+							A2($elm$core$Platform$Cmd$map, $author$project$Main$GotProfileMsg, pageCmds),
+							existingCmds
+						])));
+	}
+};
+var $elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var $elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var $elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var $elm$time$Time$customZone = $elm$time$Time$Zone;
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
+var $author$project$Main$Home = {$: 'Home'};
+var $author$project$Main$Login = {$: 'Login'};
+var $author$project$Main$Profile = function (a) {
+	return {$: 'Profile', a: a};
+};
+var $author$project$Main$Signup = {$: 'Signup'};
+var $author$project$Main$Verification = function (a) {
+	return {$: 'Verification', a: a};
+};
+var $elm$url$Url$Parser$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$url$Url$Parser$State = F5(
+	function (visited, unvisited, params, frag, value) {
+		return {frag: frag, params: params, unvisited: unvisited, value: value, visited: visited};
+	});
+var $elm$url$Url$Parser$mapState = F2(
+	function (func, _v0) {
+		var value = _v0.value;
+		var frag = _v0.frag;
+		var params = _v0.params;
+		var unvisited = _v0.unvisited;
+		var visited = _v0.visited;
+		return A5(
+			$elm$url$Url$Parser$State,
+			visited,
+			unvisited,
+			params,
+			frag,
+			func(value));
+	});
+var $elm$url$Url$Parser$map = F2(
+	function (subValue, _v0) {
+		var parseArg = _v0.a;
+		return $elm$url$Url$Parser$Parser(
+			function (_v1) {
+				var value = _v1.value;
+				var frag = _v1.frag;
+				var params = _v1.params;
+				var unvisited = _v1.unvisited;
+				var visited = _v1.visited;
+				return A2(
+					$elm$core$List$map,
+					$elm$url$Url$Parser$mapState(value),
+					parseArg(
+						A5($elm$url$Url$Parser$State, visited, unvisited, params, frag, subValue)));
+			});
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$url$Url$Parser$oneOf = function (parsers) {
+	return $elm$url$Url$Parser$Parser(
+		function (state) {
+			return A2(
+				$elm$core$List$concatMap,
+				function (_v0) {
+					var parser = _v0.a;
+					return parser(state);
+				},
+				parsers);
+		});
+};
+var $elm$url$Url$Parser$s = function (str) {
+	return $elm$url$Url$Parser$Parser(
+		function (_v0) {
+			var value = _v0.value;
+			var frag = _v0.frag;
+			var params = _v0.params;
+			var unvisited = _v0.unvisited;
+			var visited = _v0.visited;
+			if (!unvisited.b) {
+				return _List_Nil;
+			} else {
+				var next = unvisited.a;
+				var rest = unvisited.b;
+				return _Utils_eq(next, str) ? _List_fromArray(
+					[
+						A5(
+						$elm$url$Url$Parser$State,
+						A2($elm$core$List$cons, next, visited),
+						rest,
+						params,
+						frag,
+						value)
+					]) : _List_Nil;
+			}
+		});
+};
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
+var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
+	function (state) {
+		return _List_fromArray(
+			[state]);
+	});
+var $elm$url$Url$Parser$custom = F2(
+	function (tipe, stringToSomething) {
+		return $elm$url$Url$Parser$Parser(
+			function (_v0) {
+				var value = _v0.value;
+				var frag = _v0.frag;
+				var params = _v0.params;
+				var unvisited = _v0.unvisited;
+				var visited = _v0.visited;
+				if (!unvisited.b) {
+					return _List_Nil;
+				} else {
+					var next = unvisited.a;
+					var rest = unvisited.b;
+					var _v2 = stringToSomething(next);
+					if (_v2.$ === 'Just') {
+						var nextValue = _v2.a;
+						return _List_fromArray(
+							[
+								A5(
+								$elm$url$Url$Parser$State,
+								A2($elm$core$List$cons, next, visited),
+								rest,
+								params,
+								frag,
+								value(nextValue))
+							]);
+					} else {
+						return _List_Nil;
+					}
+				}
+			});
+	});
+var $author$project$Credentials$userIdParser = A2(
+	$elm$url$Url$Parser$custom,
+	'USERID',
+	function (userId) {
+		return A2(
+			$elm$core$Maybe$map,
+			$author$project$Credentials$UserId,
+			$elm$core$Maybe$Just(userId));
+	});
+var $author$project$Credentials$verifictionStringParser = A2(
+	$elm$url$Url$Parser$custom,
+	'VERIFICATIONSTRING',
+	function (verificationString) {
+		return A2(
+			$elm$core$Maybe$map,
+			$author$project$Credentials$VerificationString,
+			$elm$core$Maybe$Just(verificationString));
+	});
+var $author$project$Main$matchRoute = $elm$url$Url$Parser$oneOf(
+	_List_fromArray(
+		[
+			A2($elm$url$Url$Parser$map, $author$project$Main$Home, $elm$url$Url$Parser$top),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Main$Login,
+			$elm$url$Url$Parser$s('login')),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Main$Profile,
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('profile'),
+				$author$project$Credentials$userIdParser)),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Main$Signup,
+			$elm$url$Url$Parser$s('signup')),
+			A2(
+			$elm$url$Url$Parser$map,
+			$author$project$Main$Verification,
+			A2(
+				$elm$url$Url$Parser$slash,
+				$elm$url$Url$Parser$s('verify-email'),
+				$author$project$Credentials$verifictionStringParser))
+		]));
+var $elm$url$Url$Parser$getFirstMatch = function (states) {
+	getFirstMatch:
+	while (true) {
+		if (!states.b) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var state = states.a;
+			var rest = states.b;
+			var _v1 = state.unvisited;
+			if (!_v1.b) {
+				return $elm$core$Maybe$Just(state.value);
+			} else {
+				if ((_v1.a === '') && (!_v1.b.b)) {
+					return $elm$core$Maybe$Just(state.value);
+				} else {
+					var $temp$states = rest;
+					states = $temp$states;
+					continue getFirstMatch;
+				}
+			}
+		}
+	}
+};
+var $elm$url$Url$Parser$removeFinalEmpty = function (segments) {
+	if (!segments.b) {
+		return _List_Nil;
+	} else {
+		if ((segments.a === '') && (!segments.b.b)) {
+			return _List_Nil;
+		} else {
+			var segment = segments.a;
+			var rest = segments.b;
+			return A2(
+				$elm$core$List$cons,
+				segment,
+				$elm$url$Url$Parser$removeFinalEmpty(rest));
+		}
+	}
+};
+var $elm$url$Url$Parser$preparePath = function (path) {
+	var _v0 = A2($elm$core$String$split, '/', path);
+	if (_v0.b && (_v0.a === '')) {
+		var segments = _v0.b;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	} else {
+		var segments = _v0;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	}
+};
+var $elm$url$Url$Parser$addToParametersHelp = F2(
+	function (value, maybeList) {
+		if (maybeList.$ === 'Nothing') {
+			return $elm$core$Maybe$Just(
+				_List_fromArray(
+					[value]));
+		} else {
+			var list = maybeList.a;
+			return $elm$core$Maybe$Just(
+				A2($elm$core$List$cons, value, list));
+		}
+	});
+var $elm$url$Url$percentDecode = _Url_percentDecode;
 var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
@@ -6761,6 +7133,7 @@ var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
 		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
 	});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$Red = {$: 'Red'};
 var $elm$core$Dict$balance = F5(
 	function (color, key, value, left, right) {
@@ -7237,6 +7610,332 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
+var $elm$url$Url$Parser$addParam = F2(
+	function (segment, dict) {
+		var _v0 = A2($elm$core$String$split, '=', segment);
+		if ((_v0.b && _v0.b.b) && (!_v0.b.b.b)) {
+			var rawKey = _v0.a;
+			var _v1 = _v0.b;
+			var rawValue = _v1.a;
+			var _v2 = $elm$url$Url$percentDecode(rawKey);
+			if (_v2.$ === 'Nothing') {
+				return dict;
+			} else {
+				var key = _v2.a;
+				var _v3 = $elm$url$Url$percentDecode(rawValue);
+				if (_v3.$ === 'Nothing') {
+					return dict;
+				} else {
+					var value = _v3.a;
+					return A3(
+						$elm$core$Dict$update,
+						key,
+						$elm$url$Url$Parser$addToParametersHelp(value),
+						dict);
+				}
+			}
+		} else {
+			return dict;
+		}
+	});
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$url$Url$Parser$prepareQuery = function (maybeQuery) {
+	if (maybeQuery.$ === 'Nothing') {
+		return $elm$core$Dict$empty;
+	} else {
+		var qry = maybeQuery.a;
+		return A3(
+			$elm$core$List$foldr,
+			$elm$url$Url$Parser$addParam,
+			$elm$core$Dict$empty,
+			A2($elm$core$String$split, '&', qry));
+	}
+};
+var $elm$url$Url$Parser$parse = F2(
+	function (_v0, url) {
+		var parser = _v0.a;
+		return $elm$url$Url$Parser$getFirstMatch(
+			parser(
+				A5(
+					$elm$url$Url$Parser$State,
+					_List_Nil,
+					$elm$url$Url$Parser$preparePath(url.path),
+					$elm$url$Url$Parser$prepareQuery(url.query),
+					url.fragment,
+					$elm$core$Basics$identity)));
+	});
+var $author$project$Main$urlToPage = F2(
+	function (url, session) {
+		var _v0 = A2($elm$url$Url$Parser$parse, $author$project$Main$matchRoute, url);
+		if (_v0.$ === 'Just') {
+			switch (_v0.a.$) {
+				case 'Login':
+					var _v1 = _v0.a;
+					return _Utils_eq(
+						$author$project$Credentials$fromSessionToToken(session),
+						$elm$core$Maybe$Nothing) ? $author$project$Main$LoginPage(
+						$author$project$Login$init(_Utils_Tuple0).a) : $author$project$Main$NotFoundPage;
+				case 'Signup':
+					var _v2 = _v0.a;
+					return _Utils_eq(
+						$author$project$Credentials$fromSessionToToken(session),
+						$elm$core$Maybe$Nothing) ? $author$project$Main$SignupPage(
+						$author$project$Signup$init(_Utils_Tuple0).a) : $author$project$Main$NotFoundPage;
+				case 'Profile':
+					return _Utils_eq(
+						$author$project$Credentials$fromSessionToToken(session),
+						$elm$core$Maybe$Nothing) ? $author$project$Main$NotFoundPage : $author$project$Main$ProfilePage(
+						$author$project$Profile$init(session).a);
+				case 'Verification':
+					return _Utils_eq(
+						$author$project$Credentials$fromSessionToToken(session),
+						$elm$core$Maybe$Nothing) ? $author$project$Main$NotFoundPage : $author$project$Main$VerificationPage(
+						A2($author$project$Verification$init, session, url.path).a);
+				case 'Home':
+					var _v3 = _v0.a;
+					return $author$project$Main$HomePage(
+						$author$project$Home$init(_Utils_Tuple0).a);
+				default:
+					var _v4 = _v0.a;
+					return $author$project$Main$NotFoundPage;
+			}
+		} else {
+			return $author$project$Main$NotFoundPage;
+		}
+	});
+var $author$project$Main$init = F3(
+	function (flags, url, key) {
+		var session = A2($author$project$Credentials$decodeToSession, key, flags);
+		var model = {
+			key: key,
+			openDropdown: false,
+			page: A2($author$project$Main$urlToPage, url, session),
+			session: session,
+			time: $elm$core$Maybe$Nothing
+		};
+		return $author$project$Main$initCurrentPage(
+			_Utils_Tuple3(
+				url,
+				model,
+				A2($elm$core$Task$perform, $author$project$Main$GotTime, $elm$time$Time$now)));
+	});
+var $author$project$Main$GotSubscriptionChangeMsg = function (a) {
+	return {$: 'GotSubscriptionChangeMsg', a: a};
+};
+var $author$project$Credentials$onSessionChange = _Platform_incomingPort('onSessionChange', $elm$json$Json$Decode$value);
+var $author$project$Credentials$subscriptionChanges = F2(
+	function (toMsg, key) {
+		return $author$project$Credentials$onSessionChange(
+			function (val) {
+				return toMsg(
+					A2($author$project$Credentials$decodeToSession, key, val));
+			});
+	});
+var $author$project$Main$subscriptions = function (model) {
+	return A2($author$project$Credentials$subscriptionChanges, $author$project$Main$GotSubscriptionChangeMsg, model.key);
+};
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$core$Basics$round = _Basics_round;
+var $simonh1000$elm_jwt$Jwt$getTokenExpirationMillis = function (token) {
+	var decodeExp = $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$elm$json$Json$Decode$int,
+				A2($elm$json$Json$Decode$map, $elm$core$Basics$round, $elm$json$Json$Decode$float)
+			]));
+	return A2(
+		$elm$core$Result$map,
+		function (exp) {
+			return 1000 * exp;
+		},
+		A2(
+			$simonh1000$elm_jwt$Jwt$decodeToken,
+			A2($elm$json$Json$Decode$field, 'exp', decodeExp),
+			token));
+};
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $simonh1000$elm_jwt$Jwt$isExpired = F2(
+	function (now, token) {
+		return A2(
+			$elm$core$Result$map,
+			function (millis) {
+				return _Utils_cmp(
+					$elm$time$Time$posixToMillis(now),
+					millis) > 0;
+			},
+			$simonh1000$elm_jwt$Jwt$getTokenExpirationMillis(token));
+	});
+var $elm$browser$Browser$Navigation$load = _Browser_load;
+var $elm$core$Maybe$destruct = F3(
+	function (_default, func, maybe) {
+		if (maybe.$ === 'Just') {
+			var a = maybe.a;
+			return func(a);
+		} else {
+			return _default;
+		}
+	});
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Credentials$storeSession = _Platform_outgoingPort(
+	'storeSession',
+	function ($) {
+		return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
+	});
+var $author$project$Credentials$logout = $author$project$Credentials$storeSession($elm$core$Maybe$Nothing);
+var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var $elm$url$Url$addPort = F2(
+	function (maybePort, starter) {
+		if (maybePort.$ === 'Nothing') {
+			return starter;
+		} else {
+			var port_ = maybePort.a;
+			return starter + (':' + $elm$core$String$fromInt(port_));
+		}
+	});
+var $elm$url$Url$addPrefixed = F3(
+	function (prefix, maybeSegment, starter) {
+		if (maybeSegment.$ === 'Nothing') {
+			return starter;
+		} else {
+			var segment = maybeSegment.a;
+			return _Utils_ap(
+				starter,
+				_Utils_ap(prefix, segment));
+		}
+	});
+var $elm$url$Url$toString = function (url) {
+	var http = function () {
+		var _v0 = url.protocol;
+		if (_v0.$ === 'Http') {
+			return 'http://';
+		} else {
+			return 'https://';
+		}
+	}();
+	return A3(
+		$elm$url$Url$addPrefixed,
+		'#',
+		url.fragment,
+		A3(
+			$elm$url$Url$addPrefixed,
+			'?',
+			url.query,
+			_Utils_ap(
+				A2(
+					$elm$url$Url$addPort,
+					url.port_,
+					_Utils_ap(http, url.host)),
+				url.path)));
+};
+var $author$project$Home$update = F2(
+	function (msg, model) {
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+	});
+var $author$project$Login$Error = function (a) {
+	return {$: 'Error', a: a};
+};
+var $author$project$Login$HideError = {$: 'HideError'};
+var $author$project$Login$Loading = {$: 'Loading'};
+var $author$project$Helpers$buildErrorMessage = function (httpError) {
+	switch (httpError.$) {
+		case 'BadUrl':
+			var message = httpError.a;
+			return message;
+		case 'Timeout':
+			return 'Server is taking too long to respond. Please try again later.';
+		case 'NetworkError':
+			return 'Unable to reach server.';
+		case 'BadStatus':
+			var statusCode = httpError.a;
+			return 'Request failed with status code: ' + $elm$core$String$fromInt(statusCode);
+		default:
+			var message = httpError.a;
+			return message;
+	}
+};
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $author$project$Credentials$encodeToken = function (_v0) {
+	var token = _v0.a;
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'token',
+				$elm$json$Json$Encode$string(token))
+			]));
+};
+var $author$project$Login$LoginDone = function (a) {
+	return {$: 'LoginDone', a: a};
+};
+var $author$project$User$fromEmailToString = function (_v0) {
+	var validEmail = _v0.a;
+	return validEmail;
+};
+var $author$project$User$fromPasswordToString = function (_v0) {
+	var validPassword = _v0.a;
+	return validPassword;
+};
+var $author$project$User$credentialsEncoder = function (_v0) {
+	var email = _v0.email;
+	var password = _v0.password;
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'email',
+				$elm$json$Json$Encode$string(
+					$author$project$User$fromEmailToString(email))),
+				_Utils_Tuple2(
+				'password',
+				$elm$json$Json$Encode$string(
+					$author$project$User$fromPasswordToString(password)))
+			]));
+};
+var $elm$http$Http$BadStatus_ = F2(
+	function (a, b) {
+		return {$: 'BadStatus_', a: a, b: b};
+	});
+var $elm$http$Http$BadUrl_ = function (a) {
+	return {$: 'BadUrl_', a: a};
+};
+var $elm$http$Http$GoodStatus_ = F2(
+	function (a, b) {
+		return {$: 'GoodStatus_', a: a, b: b};
+	});
+var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
+var $elm$http$Http$Receiving = function (a) {
+	return {$: 'Receiving', a: a};
+};
+var $elm$http$Http$Sending = function (a) {
+	return {$: 'Sending', a: a};
+};
+var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
+var $elm$core$Maybe$isJust = function (maybe) {
+	if (maybe.$ === 'Just') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$http$Http$expectStringResponse = F2(
 	function (toMsg, toResult) {
 		return A3(
@@ -7292,7 +7991,12 @@ var $elm$http$Http$expectJson = F2(
 						A2($elm$json$Json$Decode$decodeString, decoder, string));
 				}));
 	});
-var $elm$http$Http$emptyBody = _Http_emptyBody;
+var $elm$http$Http$jsonBody = function (value) {
+	return A2(
+		_Http_pair,
+		'application/json',
+		A2($elm$json$Json$Encode$encode, 0, value));
+};
 var $elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
 };
@@ -7460,986 +8164,6 @@ var $elm$http$Http$request = function (r) {
 	return $elm$http$Http$command(
 		$elm$http$Http$Request(
 			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
-};
-var $elm$http$Http$get = function (r) {
-	return $elm$http$Http$request(
-		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
-};
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Chat$fetchChatMessages = $elm$http$Http$get(
-	{
-		expect: A2(
-			$elm$http$Http$expectJson,
-			$author$project$Chat$ChatMessages,
-			$elm$json$Json$Decode$list($author$project$Credentials$decodeSocketMessage)),
-		url: '/api/messages'
-	});
-var $author$project$Chat$FetchUsers = function (a) {
-	return {$: 'FetchUsers', a: a};
-};
-var $author$project$Chat$User = F2(
-	function (firstname, email) {
-		return {email: email, firstname: firstname};
-	});
-var $author$project$Chat$userDecoder = A3(
-	$elm$json$Json$Decode$map2,
-	$author$project$Chat$User,
-	A2($elm$json$Json$Decode$field, 'firstname', $elm$json$Json$Decode$string),
-	A2($elm$json$Json$Decode$field, 'email', $elm$json$Json$Decode$string));
-var $author$project$Chat$usersDecoder = $elm$json$Json$Decode$list($author$project$Chat$userDecoder);
-var $author$project$Chat$fetchUsers = $elm$http$Http$get(
-	{
-		expect: A2($elm$http$Http$expectJson, $author$project$Chat$FetchUsers, $author$project$Chat$usersDecoder),
-		url: '/api/socket?roomId=123'
-	});
-var $author$project$Credentials$fromSessionToToken = function (session) {
-	if (session.$ === 'LoggedIn') {
-		var token = session.a;
-		return $elm$core$Maybe$Just(token);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $author$project$Credentials$fromTokenToString = function (_v0) {
-	var string = _v0.a;
-	return string;
-};
-var $author$project$Chat$initialModel = {error: $elm$core$Maybe$Nothing, message: '', receivedMessages: _List_Nil, users: _List_Nil};
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Chat$takeNameOrEmail = function (_v0) {
-	var firstname = _v0.firstname;
-	var email = _v0.email;
-	return $elm$core$String$isEmpty(firstname) ? email : firstname;
-};
-var $author$project$Credentials$userIdToString = function (_v0) {
-	var id = _v0.a;
-	return id;
-};
-var $author$project$Chat$init = function (session) {
-	var _v0 = $author$project$Credentials$fromSessionToToken(session);
-	if (_v0.$ === 'Just') {
-		var token = _v0.a;
-		var _v1 = A2(
-			$simonh1000$elm_jwt$Jwt$decodeToken,
-			$author$project$Credentials$decodeTokenData,
-			$author$project$Credentials$fromTokenToString(token));
-		if (_v1.$ === 'Ok') {
-			var resultTokenRecord = _v1.a;
-			return _Utils_Tuple2(
-				$author$project$Chat$initialModel,
-				$elm$core$Platform$Cmd$batch(
-					_List_fromArray(
-						[
-							$author$project$Chat$fetchUsers,
-							$author$project$Credentials$addUserToRoom(
-							{
-								userId: $author$project$Credentials$userIdToString(resultTokenRecord.id),
-								userName: $author$project$Chat$takeNameOrEmail(
-									{email: resultTokenRecord.email, firstname: resultTokenRecord.firstname})
-							}),
-							$author$project$Chat$fetchChatMessages
-						])));
-		} else {
-			return _Utils_Tuple2($author$project$Chat$initialModel, $elm$core$Platform$Cmd$none);
-		}
-	} else {
-		return _Utils_Tuple2($author$project$Chat$initialModel, $elm$core$Platform$Cmd$none);
-	}
-};
-var $author$project$Home$initialModel = {};
-var $author$project$Home$init = function (_v0) {
-	return _Utils_Tuple2($author$project$Home$initialModel, $elm$core$Platform$Cmd$none);
-};
-var $author$project$Login$Initial = {$: 'Initial'};
-var $author$project$Login$initialModel = {formState: $author$project$Login$Initial, storeEmail: '', storePassword: ''};
-var $author$project$Login$init = function (_v0) {
-	return _Utils_Tuple2($author$project$Login$initialModel, $elm$core$Platform$Cmd$none);
-};
-var $author$project$Profile$Intruder = {$: 'Intruder'};
-var $author$project$Profile$NotVerified = {$: 'NotVerified'};
-var $author$project$Profile$Verified = function (a) {
-	return {$: 'Verified', a: a};
-};
-var $author$project$Profile$Initial = {$: 'Initial'};
-var $author$project$Profile$initialModel = {formState: $author$project$Profile$Initial, profilePic: $elm$core$Maybe$Nothing, storeName: '', userState: $author$project$Profile$NotVerified};
-var $author$project$Profile$init = function (session) {
-	var _v0 = $author$project$Credentials$fromSessionToToken(session);
-	if (_v0.$ === 'Just') {
-		var token = _v0.a;
-		var _v1 = A2(
-			$simonh1000$elm_jwt$Jwt$decodeToken,
-			$author$project$Credentials$decodeTokenData,
-			$author$project$Credentials$fromTokenToString(token));
-		if (_v1.$ === 'Ok') {
-			var userDataFromToken = _v1.a;
-			return _Utils_Tuple2(
-				_Utils_update(
-					$author$project$Profile$initialModel,
-					{
-						storeName: userDataFromToken.firstname,
-						userState: userDataFromToken.isverified ? $author$project$Profile$Verified(session) : $author$project$Profile$NotVerified
-					}),
-				$elm$core$Platform$Cmd$none);
-		} else {
-			return _Utils_Tuple2(
-				_Utils_update(
-					$author$project$Profile$initialModel,
-					{userState: $author$project$Profile$Intruder}),
-				$elm$core$Platform$Cmd$none);
-		}
-	} else {
-		return _Utils_Tuple2(
-			_Utils_update(
-				$author$project$Profile$initialModel,
-				{userState: $author$project$Profile$Intruder}),
-			$elm$core$Platform$Cmd$none);
-	}
-};
-var $author$project$Signup$Initial = {$: 'Initial'};
-var $author$project$Signup$initialModel = {formState: $author$project$Signup$Initial, storeConfirmPassword: '', storeEmail: '', storePassword: ''};
-var $author$project$Signup$init = function (_v0) {
-	return _Utils_Tuple2($author$project$Signup$initialModel, $elm$core$Platform$Cmd$none);
-};
-var $author$project$Verification$Sessionless = {$: 'Sessionless'};
-var $author$project$Verification$VerificationFail = {$: 'VerificationFail'};
-var $author$project$Verification$VerificationPending = {$: 'VerificationPending'};
-var $author$project$Verification$Verified = {$: 'Verified'};
-var $author$project$Verification$VerifyApiCallStart = function (a) {
-	return {$: 'VerifyApiCallStart', a: a};
-};
-var $elm$core$Process$sleep = _Process_sleep;
-var $author$project$Verification$apiCallAfterSomeTime = F2(
-	function (session, toMsg) {
-		return A2(
-			$elm$core$Task$perform,
-			function (_v0) {
-				return toMsg(session);
-			},
-			$elm$core$Process$sleep(5000));
-	});
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Credentials$verificationToString = function (_v0) {
-	var verificationString = _v0.a;
-	return verificationString;
-};
-var $author$project$Verification$init = F2(
-	function (session, verificationParam) {
-		var _v0 = $author$project$Credentials$fromSessionToToken(session);
-		if (_v0.$ === 'Just') {
-			var token = _v0.a;
-			var _v1 = A2(
-				$simonh1000$elm_jwt$Jwt$decodeToken,
-				$author$project$Credentials$decodeTokenData,
-				$author$project$Credentials$fromTokenToString(token));
-			if (_v1.$ === 'Ok') {
-				var resultTokenRecord = _v1.a;
-				return (!_Utils_eq(
-					verificationParam,
-					'/verify-email/' + $author$project$Credentials$verificationToString(resultTokenRecord.verificationstring))) ? _Utils_Tuple2(
-					{userState: $author$project$Verification$VerificationFail},
-					$elm$core$Platform$Cmd$none) : ((!resultTokenRecord.isverified) ? _Utils_Tuple2(
-					{userState: $author$project$Verification$VerificationPending},
-					A2($author$project$Verification$apiCallAfterSomeTime, session, $author$project$Verification$VerifyApiCallStart)) : _Utils_Tuple2(
-					{userState: $author$project$Verification$Verified},
-					$elm$core$Platform$Cmd$none));
-			} else {
-				return _Utils_Tuple2(
-					{userState: $author$project$Verification$Sessionless},
-					$elm$core$Platform$Cmd$none);
-			}
-		} else {
-			return _Utils_Tuple2(
-				{userState: $author$project$Verification$Sessionless},
-				$elm$core$Platform$Cmd$none);
-		}
-	});
-var $elm$core$Platform$Cmd$map = _Platform_map;
-var $author$project$Main$initCurrentPage = function (_v0) {
-	var url = _v0.a;
-	var model = _v0.b;
-	var existingCmds = _v0.c;
-	var _v1 = model.page;
-	switch (_v1.$) {
-		case 'NotFoundPage':
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{page: $author$project$Main$NotFoundPage}),
-				$elm$core$Platform$Cmd$none);
-		case 'LoginPage':
-			var _v2 = $author$project$Login$init(_Utils_Tuple0);
-			var pageModel = _v2.a;
-			var pageCmds = _v2.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$LoginPage(pageModel)
-					}),
-				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotLoginMsg, pageCmds));
-		case 'SignupPage':
-			var _v3 = $author$project$Signup$init(_Utils_Tuple0);
-			var pageModel = _v3.a;
-			var pageCmds = _v3.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$SignupPage(pageModel)
-					}),
-				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSignupMsg, pageCmds));
-		case 'HomePage':
-			var _v4 = $author$project$Home$init(_Utils_Tuple0);
-			var pageModel = _v4.a;
-			var pageCmds = _v4.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$HomePage(pageModel)
-					}),
-				$elm$core$Platform$Cmd$batch(
-					_List_fromArray(
-						[
-							A2($elm$core$Platform$Cmd$map, $author$project$Main$GotHomeMsg, pageCmds),
-							existingCmds
-						])));
-		case 'ChatPage':
-			var _v5 = $author$project$Chat$init(model.session);
-			var pageModel = _v5.a;
-			var pageCmds = _v5.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$ChatPage(pageModel)
-					}),
-				$elm$core$Platform$Cmd$batch(
-					_List_fromArray(
-						[
-							A2($elm$core$Platform$Cmd$map, $author$project$Main$GotChatMsg, pageCmds),
-							existingCmds
-						])));
-		case 'VerificationPage':
-			var _v6 = A2($author$project$Verification$init, model.session, url.path);
-			var pageModel = _v6.a;
-			var pageCmds = _v6.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$VerificationPage(pageModel)
-					}),
-				A2($elm$core$Platform$Cmd$map, $author$project$Main$GotVerificationMsg, pageCmds));
-		default:
-			var _v7 = $author$project$Profile$init(model.session);
-			var pageModel = _v7.a;
-			var pageCmds = _v7.b;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						page: $author$project$Main$ProfilePage(pageModel)
-					}),
-				$elm$core$Platform$Cmd$batch(
-					_List_fromArray(
-						[
-							A2($elm$core$Platform$Cmd$map, $author$project$Main$GotProfileMsg, pageCmds),
-							existingCmds
-						])));
-	}
-};
-var $elm$time$Time$Name = function (a) {
-	return {$: 'Name', a: a};
-};
-var $elm$time$Time$Offset = function (a) {
-	return {$: 'Offset', a: a};
-};
-var $elm$time$Time$Zone = F2(
-	function (a, b) {
-		return {$: 'Zone', a: a, b: b};
-	});
-var $elm$time$Time$customZone = $elm$time$Time$Zone;
-var $elm$time$Time$Posix = function (a) {
-	return {$: 'Posix', a: a};
-};
-var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
-var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
-var $author$project$Main$Chat = {$: 'Chat'};
-var $author$project$Main$Home = {$: 'Home'};
-var $author$project$Main$Login = {$: 'Login'};
-var $author$project$Main$Profile = function (a) {
-	return {$: 'Profile', a: a};
-};
-var $author$project$Main$Signup = {$: 'Signup'};
-var $author$project$Main$Verification = function (a) {
-	return {$: 'Verification', a: a};
-};
-var $elm$url$Url$Parser$Parser = function (a) {
-	return {$: 'Parser', a: a};
-};
-var $elm$url$Url$Parser$State = F5(
-	function (visited, unvisited, params, frag, value) {
-		return {frag: frag, params: params, unvisited: unvisited, value: value, visited: visited};
-	});
-var $elm$url$Url$Parser$mapState = F2(
-	function (func, _v0) {
-		var value = _v0.value;
-		var frag = _v0.frag;
-		var params = _v0.params;
-		var unvisited = _v0.unvisited;
-		var visited = _v0.visited;
-		return A5(
-			$elm$url$Url$Parser$State,
-			visited,
-			unvisited,
-			params,
-			frag,
-			func(value));
-	});
-var $elm$url$Url$Parser$map = F2(
-	function (subValue, _v0) {
-		var parseArg = _v0.a;
-		return $elm$url$Url$Parser$Parser(
-			function (_v1) {
-				var value = _v1.value;
-				var frag = _v1.frag;
-				var params = _v1.params;
-				var unvisited = _v1.unvisited;
-				var visited = _v1.visited;
-				return A2(
-					$elm$core$List$map,
-					$elm$url$Url$Parser$mapState(value),
-					parseArg(
-						A5($elm$url$Url$Parser$State, visited, unvisited, params, frag, subValue)));
-			});
-	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $elm$url$Url$Parser$oneOf = function (parsers) {
-	return $elm$url$Url$Parser$Parser(
-		function (state) {
-			return A2(
-				$elm$core$List$concatMap,
-				function (_v0) {
-					var parser = _v0.a;
-					return parser(state);
-				},
-				parsers);
-		});
-};
-var $elm$url$Url$Parser$s = function (str) {
-	return $elm$url$Url$Parser$Parser(
-		function (_v0) {
-			var value = _v0.value;
-			var frag = _v0.frag;
-			var params = _v0.params;
-			var unvisited = _v0.unvisited;
-			var visited = _v0.visited;
-			if (!unvisited.b) {
-				return _List_Nil;
-			} else {
-				var next = unvisited.a;
-				var rest = unvisited.b;
-				return _Utils_eq(next, str) ? _List_fromArray(
-					[
-						A5(
-						$elm$url$Url$Parser$State,
-						A2($elm$core$List$cons, next, visited),
-						rest,
-						params,
-						frag,
-						value)
-					]) : _List_Nil;
-			}
-		});
-};
-var $elm$url$Url$Parser$slash = F2(
-	function (_v0, _v1) {
-		var parseBefore = _v0.a;
-		var parseAfter = _v1.a;
-		return $elm$url$Url$Parser$Parser(
-			function (state) {
-				return A2(
-					$elm$core$List$concatMap,
-					parseAfter,
-					parseBefore(state));
-			});
-	});
-var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
-	function (state) {
-		return _List_fromArray(
-			[state]);
-	});
-var $elm$url$Url$Parser$custom = F2(
-	function (tipe, stringToSomething) {
-		return $elm$url$Url$Parser$Parser(
-			function (_v0) {
-				var value = _v0.value;
-				var frag = _v0.frag;
-				var params = _v0.params;
-				var unvisited = _v0.unvisited;
-				var visited = _v0.visited;
-				if (!unvisited.b) {
-					return _List_Nil;
-				} else {
-					var next = unvisited.a;
-					var rest = unvisited.b;
-					var _v2 = stringToSomething(next);
-					if (_v2.$ === 'Just') {
-						var nextValue = _v2.a;
-						return _List_fromArray(
-							[
-								A5(
-								$elm$url$Url$Parser$State,
-								A2($elm$core$List$cons, next, visited),
-								rest,
-								params,
-								frag,
-								value(nextValue))
-							]);
-					} else {
-						return _List_Nil;
-					}
-				}
-			});
-	});
-var $author$project$Credentials$userIdParser = A2(
-	$elm$url$Url$Parser$custom,
-	'USERID',
-	function (userId) {
-		return A2(
-			$elm$core$Maybe$map,
-			$author$project$Credentials$UserId,
-			$elm$core$Maybe$Just(userId));
-	});
-var $author$project$Credentials$verifictionStringParser = A2(
-	$elm$url$Url$Parser$custom,
-	'VERIFICATIONSTRING',
-	function (verificationString) {
-		return A2(
-			$elm$core$Maybe$map,
-			$author$project$Credentials$VerificationString,
-			$elm$core$Maybe$Just(verificationString));
-	});
-var $author$project$Main$matchRoute = $elm$url$Url$Parser$oneOf(
-	_List_fromArray(
-		[
-			A2($elm$url$Url$Parser$map, $author$project$Main$Home, $elm$url$Url$Parser$top),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$Login,
-			$elm$url$Url$Parser$s('login')),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$Profile,
-			A2(
-				$elm$url$Url$Parser$slash,
-				$elm$url$Url$Parser$s('profile'),
-				$author$project$Credentials$userIdParser)),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$Signup,
-			$elm$url$Url$Parser$s('signup')),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$Chat,
-			$elm$url$Url$Parser$s('chat')),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$Verification,
-			A2(
-				$elm$url$Url$Parser$slash,
-				$elm$url$Url$Parser$s('verify-email'),
-				$author$project$Credentials$verifictionStringParser))
-		]));
-var $elm$url$Url$Parser$getFirstMatch = function (states) {
-	getFirstMatch:
-	while (true) {
-		if (!states.b) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var state = states.a;
-			var rest = states.b;
-			var _v1 = state.unvisited;
-			if (!_v1.b) {
-				return $elm$core$Maybe$Just(state.value);
-			} else {
-				if ((_v1.a === '') && (!_v1.b.b)) {
-					return $elm$core$Maybe$Just(state.value);
-				} else {
-					var $temp$states = rest;
-					states = $temp$states;
-					continue getFirstMatch;
-				}
-			}
-		}
-	}
-};
-var $elm$url$Url$Parser$removeFinalEmpty = function (segments) {
-	if (!segments.b) {
-		return _List_Nil;
-	} else {
-		if ((segments.a === '') && (!segments.b.b)) {
-			return _List_Nil;
-		} else {
-			var segment = segments.a;
-			var rest = segments.b;
-			return A2(
-				$elm$core$List$cons,
-				segment,
-				$elm$url$Url$Parser$removeFinalEmpty(rest));
-		}
-	}
-};
-var $elm$url$Url$Parser$preparePath = function (path) {
-	var _v0 = A2($elm$core$String$split, '/', path);
-	if (_v0.b && (_v0.a === '')) {
-		var segments = _v0.b;
-		return $elm$url$Url$Parser$removeFinalEmpty(segments);
-	} else {
-		var segments = _v0;
-		return $elm$url$Url$Parser$removeFinalEmpty(segments);
-	}
-};
-var $elm$url$Url$Parser$addToParametersHelp = F2(
-	function (value, maybeList) {
-		if (maybeList.$ === 'Nothing') {
-			return $elm$core$Maybe$Just(
-				_List_fromArray(
-					[value]));
-		} else {
-			var list = maybeList.a;
-			return $elm$core$Maybe$Just(
-				A2($elm$core$List$cons, value, list));
-		}
-	});
-var $elm$url$Url$percentDecode = _Url_percentDecode;
-var $elm$url$Url$Parser$addParam = F2(
-	function (segment, dict) {
-		var _v0 = A2($elm$core$String$split, '=', segment);
-		if ((_v0.b && _v0.b.b) && (!_v0.b.b.b)) {
-			var rawKey = _v0.a;
-			var _v1 = _v0.b;
-			var rawValue = _v1.a;
-			var _v2 = $elm$url$Url$percentDecode(rawKey);
-			if (_v2.$ === 'Nothing') {
-				return dict;
-			} else {
-				var key = _v2.a;
-				var _v3 = $elm$url$Url$percentDecode(rawValue);
-				if (_v3.$ === 'Nothing') {
-					return dict;
-				} else {
-					var value = _v3.a;
-					return A3(
-						$elm$core$Dict$update,
-						key,
-						$elm$url$Url$Parser$addToParametersHelp(value),
-						dict);
-				}
-			}
-		} else {
-			return dict;
-		}
-	});
-var $elm$url$Url$Parser$prepareQuery = function (maybeQuery) {
-	if (maybeQuery.$ === 'Nothing') {
-		return $elm$core$Dict$empty;
-	} else {
-		var qry = maybeQuery.a;
-		return A3(
-			$elm$core$List$foldr,
-			$elm$url$Url$Parser$addParam,
-			$elm$core$Dict$empty,
-			A2($elm$core$String$split, '&', qry));
-	}
-};
-var $elm$url$Url$Parser$parse = F2(
-	function (_v0, url) {
-		var parser = _v0.a;
-		return $elm$url$Url$Parser$getFirstMatch(
-			parser(
-				A5(
-					$elm$url$Url$Parser$State,
-					_List_Nil,
-					$elm$url$Url$Parser$preparePath(url.path),
-					$elm$url$Url$Parser$prepareQuery(url.query),
-					url.fragment,
-					$elm$core$Basics$identity)));
-	});
-var $author$project$Main$urlToPage = F2(
-	function (url, session) {
-		var _v0 = A2($elm$url$Url$Parser$parse, $author$project$Main$matchRoute, url);
-		if (_v0.$ === 'Just') {
-			switch (_v0.a.$) {
-				case 'Login':
-					var _v1 = _v0.a;
-					return _Utils_eq(
-						$author$project$Credentials$fromSessionToToken(session),
-						$elm$core$Maybe$Nothing) ? $author$project$Main$LoginPage(
-						$author$project$Login$init(_Utils_Tuple0).a) : $author$project$Main$NotFoundPage;
-				case 'Signup':
-					var _v2 = _v0.a;
-					return _Utils_eq(
-						$author$project$Credentials$fromSessionToToken(session),
-						$elm$core$Maybe$Nothing) ? $author$project$Main$SignupPage(
-						$author$project$Signup$init(_Utils_Tuple0).a) : $author$project$Main$NotFoundPage;
-				case 'Profile':
-					return _Utils_eq(
-						$author$project$Credentials$fromSessionToToken(session),
-						$elm$core$Maybe$Nothing) ? $author$project$Main$NotFoundPage : $author$project$Main$ProfilePage(
-						$author$project$Profile$init(session).a);
-				case 'Verification':
-					return _Utils_eq(
-						$author$project$Credentials$fromSessionToToken(session),
-						$elm$core$Maybe$Nothing) ? $author$project$Main$NotFoundPage : $author$project$Main$VerificationPage(
-						A2($author$project$Verification$init, session, url.path).a);
-				case 'Chat':
-					var _v3 = _v0.a;
-					return _Utils_eq(
-						$author$project$Credentials$fromSessionToToken(session),
-						$elm$core$Maybe$Nothing) ? $author$project$Main$NotFoundPage : $author$project$Main$ChatPage(
-						$author$project$Chat$init(session).a);
-				case 'Home':
-					var _v4 = _v0.a;
-					return $author$project$Main$HomePage(
-						$author$project$Home$init(_Utils_Tuple0).a);
-				default:
-					var _v5 = _v0.a;
-					return $author$project$Main$NotFoundPage;
-			}
-		} else {
-			return $author$project$Main$NotFoundPage;
-		}
-	});
-var $author$project$Main$init = F3(
-	function (flags, url, key) {
-		var session = A2($author$project$Credentials$decodeToSession, key, flags);
-		var model = {
-			key: key,
-			openDropdown: false,
-			page: A2($author$project$Main$urlToPage, url, session),
-			session: session,
-			time: $elm$core$Maybe$Nothing
-		};
-		return $author$project$Main$initCurrentPage(
-			_Utils_Tuple3(
-				url,
-				model,
-				A2($elm$core$Task$perform, $author$project$Main$GotTime, $elm$time$Time$now)));
-	});
-var $author$project$Main$GotSubscriptionChangeMsg = function (a) {
-	return {$: 'GotSubscriptionChangeMsg', a: a};
-};
-var $author$project$Main$GotSubscriptionSocketMsg = function (a) {
-	return {$: 'GotSubscriptionSocketMsg', a: a};
-};
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Debug$toString = _Debug_toString;
-var $author$project$Credentials$decodeToSocket = F2(
-	function (key, value) {
-		var result = A2($elm$json$Json$Decode$decodeValue, $author$project$Credentials$decodeSocketMessage, value);
-		if (result.$ === 'Ok') {
-			var obj = result.a;
-			return obj;
-		} else {
-			var err = result.a;
-			return {
-				clientId: '',
-				connectionId: '',
-				data: {message: ''},
-				id: '',
-				name: $elm$core$Debug$toString(err),
-				timestamp: 0
-			};
-		}
-	});
-var $author$project$Credentials$listenSocketMessage = _Platform_incomingPort('listenSocketMessage', $elm$json$Json$Decode$value);
-var $author$project$Credentials$socketMessageChanges = F2(
-	function (toMsg, key) {
-		return $author$project$Credentials$listenSocketMessage(
-			function (val) {
-				return toMsg(
-					A2($author$project$Credentials$decodeToSocket, key, val));
-			});
-	});
-var $author$project$Credentials$onSessionChange = _Platform_incomingPort('onSessionChange', $elm$json$Json$Decode$value);
-var $author$project$Credentials$subscriptionChanges = F2(
-	function (toMsg, key) {
-		return $author$project$Credentials$onSessionChange(
-			function (val) {
-				return toMsg(
-					A2($author$project$Credentials$decodeToSession, key, val));
-			});
-	});
-var $author$project$Main$subscriptions = function (model) {
-	return $elm$core$Platform$Sub$batch(
-		_List_fromArray(
-			[
-				A2($author$project$Credentials$subscriptionChanges, $author$project$Main$GotSubscriptionChangeMsg, model.key),
-				A2($author$project$Credentials$socketMessageChanges, $author$project$Main$GotSubscriptionSocketMsg, model.key)
-			]));
-};
-var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
-var $elm$core$Basics$round = _Basics_round;
-var $simonh1000$elm_jwt$Jwt$getTokenExpirationMillis = function (token) {
-	var decodeExp = $elm$json$Json$Decode$oneOf(
-		_List_fromArray(
-			[
-				$elm$json$Json$Decode$int,
-				A2($elm$json$Json$Decode$map, $elm$core$Basics$round, $elm$json$Json$Decode$float)
-			]));
-	return A2(
-		$elm$core$Result$map,
-		function (exp) {
-			return 1000 * exp;
-		},
-		A2(
-			$simonh1000$elm_jwt$Jwt$decodeToken,
-			A2($elm$json$Json$Decode$field, 'exp', decodeExp),
-			token));
-};
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
-};
-var $simonh1000$elm_jwt$Jwt$isExpired = F2(
-	function (now, token) {
-		return A2(
-			$elm$core$Result$map,
-			function (millis) {
-				return _Utils_cmp(
-					$elm$time$Time$posixToMillis(now),
-					millis) > 0;
-			},
-			$simonh1000$elm_jwt$Jwt$getTokenExpirationMillis(token));
-	});
-var $elm$browser$Browser$Navigation$load = _Browser_load;
-var $elm$core$Maybe$destruct = F3(
-	function (_default, func, maybe) {
-		if (maybe.$ === 'Just') {
-			var a = maybe.a;
-			return func(a);
-		} else {
-			return _default;
-		}
-	});
-var $elm$json$Json$Encode$null = _Json_encodeNull;
-var $author$project$Credentials$storeSession = _Platform_outgoingPort(
-	'storeSession',
-	function ($) {
-		return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$json$Json$Encode$string, $);
-	});
-var $author$project$Credentials$logout = $author$project$Credentials$storeSession($elm$core$Maybe$Nothing);
-var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
-var $elm$browser$Browser$Navigation$reload = _Browser_reload(false);
-var $elm$url$Url$addPort = F2(
-	function (maybePort, starter) {
-		if (maybePort.$ === 'Nothing') {
-			return starter;
-		} else {
-			var port_ = maybePort.a;
-			return starter + (':' + $elm$core$String$fromInt(port_));
-		}
-	});
-var $elm$url$Url$addPrefixed = F3(
-	function (prefix, maybeSegment, starter) {
-		if (maybeSegment.$ === 'Nothing') {
-			return starter;
-		} else {
-			var segment = maybeSegment.a;
-			return _Utils_ap(
-				starter,
-				_Utils_ap(prefix, segment));
-		}
-	});
-var $elm$url$Url$toString = function (url) {
-	var http = function () {
-		var _v0 = url.protocol;
-		if (_v0.$ === 'Http') {
-			return 'http://';
-		} else {
-			return 'https://';
-		}
-	}();
-	return A3(
-		$elm$url$Url$addPrefixed,
-		'#',
-		url.fragment,
-		A3(
-			$elm$url$Url$addPrefixed,
-			'?',
-			url.query,
-			_Utils_ap(
-				A2(
-					$elm$url$Url$addPort,
-					url.port_,
-					_Utils_ap(http, url.host)),
-				url.path)));
-};
-var $author$project$Chat$MessageReceived = function (a) {
-	return {$: 'MessageReceived', a: a};
-};
-var $author$project$Chat$unfoldMessageReceived = function (socketData) {
-	return $author$project$Chat$MessageReceived(socketData);
-};
-var $author$project$Helpers$buildErrorMessage = function (httpError) {
-	switch (httpError.$) {
-		case 'BadUrl':
-			var message = httpError.a;
-			return message;
-		case 'Timeout':
-			return 'Server is taking too long to respond. Please try again later.';
-		case 'NetworkError':
-			return 'Unable to reach server.';
-		case 'BadStatus':
-			var statusCode = httpError.a;
-			return 'Request failed with status code: ' + $elm$core$String$fromInt(statusCode);
-		default:
-			var message = httpError.a;
-			return message;
-	}
-};
-var $author$project$Credentials$emitTyping = _Platform_outgoingPort('emitTyping', $elm$json$Json$Encode$string);
-var $author$project$Credentials$sendMessageToSocket = _Platform_outgoingPort('sendMessageToSocket', $elm$json$Json$Encode$string);
-var $author$project$Chat$update = F2(
-	function (msg, model) {
-		switch (msg.$) {
-			case 'StoreMessage':
-				var message = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{message: message}),
-					$author$project$Credentials$emitTyping(message));
-			case 'MessageSubmit':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{message: ''}),
-					$author$project$Credentials$sendMessageToSocket(model.message));
-			case 'MessageReceived':
-				var message = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							receivedMessages: _Utils_ap(
-								model.receivedMessages,
-								_List_fromArray(
-									[message]))
-						}),
-					$elm$core$Platform$Cmd$none);
-			case 'FetchUsers':
-				if (msg.a.$ === 'Ok') {
-					var users = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{users: users}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var err = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								error: $elm$core$Maybe$Just(
-									$author$project$Helpers$buildErrorMessage(err))
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-			default:
-				if (msg.a.$ === 'Ok') {
-					var messages = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								receivedMessages: _Utils_ap(model.receivedMessages, messages)
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var err = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								error: $elm$core$Maybe$Just(
-									$author$project$Helpers$buildErrorMessage(err))
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-		}
-	});
-var $author$project$Home$update = F2(
-	function (msg, model) {
-		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-	});
-var $author$project$Login$Error = function (a) {
-	return {$: 'Error', a: a};
-};
-var $author$project$Login$HideError = {$: 'HideError'};
-var $author$project$Login$Loading = {$: 'Loading'};
-var $author$project$Credentials$encodeToken = function (_v0) {
-	var token = _v0.a;
-	return $elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'token',
-				$elm$json$Json$Encode$string(token))
-			]));
-};
-var $author$project$Login$LoginDone = function (a) {
-	return {$: 'LoginDone', a: a};
-};
-var $author$project$User$fromEmailToString = function (_v0) {
-	var validEmail = _v0.a;
-	return validEmail;
-};
-var $author$project$User$fromPasswordToString = function (_v0) {
-	var validPassword = _v0.a;
-	return validPassword;
-};
-var $author$project$User$credentialsEncoder = function (_v0) {
-	var email = _v0.email;
-	var password = _v0.password;
-	return $elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'email',
-				$elm$json$Json$Encode$string(
-					$author$project$User$fromEmailToString(email))),
-				_Utils_Tuple2(
-				'password',
-				$elm$json$Json$Encode$string(
-					$author$project$User$fromPasswordToString(password)))
-			]));
-};
-var $elm$http$Http$jsonBody = function (value) {
-	return A2(
-		_Http_pair,
-		'application/json',
-		A2($elm$json$Json$Encode$encode, 0, value));
 };
 var $elm$http$Http$post = function (r) {
 	return $elm$http$Http$request(
@@ -8901,6 +8625,7 @@ var $author$project$Verification$VerificationDone = {$: 'VerificationDone'};
 var $author$project$Verification$VerifyDone = function (a) {
 	return {$: 'VerifyDone', a: a};
 };
+var $elm$http$Http$emptyBody = _Http_emptyBody;
 var $author$project$Verification$apiCallToVerify = function (session) {
 	var _v0 = $author$project$Credentials$fromSessionToToken(session);
 	if (_v0.$ === 'Just') {
@@ -8960,6 +8685,10 @@ var $author$project$Verification$update = F2(
 							A2($elm$json$Json$Encode$encode, 0, tokenValue))));
 		}
 	});
+var $author$project$Credentials$userIdToString = function (_v0) {
+	var id = _v0.a;
+	return id;
+};
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -8972,18 +8701,9 @@ var $author$project$Main$update = F2(
 						$elm$browser$Browser$Navigation$load(href));
 				} else {
 					var url = urlRequest.a;
-					var urlPath = url.path;
 					return _Utils_Tuple2(
 						model,
-						(urlPath === '/chat') ? $elm$core$Platform$Cmd$batch(
-							_List_fromArray(
-								[
-									$elm$browser$Browser$Navigation$reload,
-									A2(
-									$elm$browser$Browser$Navigation$pushUrl,
-									model.key,
-									$elm$url$Url$toString(url))
-								])) : A2(
+						A2(
 							$elm$browser$Browser$Navigation$pushUrl,
 							model.key,
 							$elm$url$Url$toString(url)));
@@ -9115,57 +8835,20 @@ var $author$project$Main$update = F2(
 							return A2($elm$browser$Browser$Navigation$pushUrl, model.key, '/login');
 						}
 					}());
-			case 'GotSubscriptionSocketMsg':
-				var socketMsgObj = msg.a;
-				var _v14 = model.page;
-				if (_v14.$ === 'ChatPage') {
-					var chatModel = _v14.a;
-					var chatMsg = $author$project$Chat$unfoldMessageReceived(socketMsgObj);
-					var _v15 = A2($author$project$Chat$update, chatMsg, chatModel);
-					var chatModelFromChat = _v15.a;
-					var chatMsgFromChat = _v15.b;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								page: $author$project$Main$ChatPage(chatModelFromChat)
-							}),
-						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotChatMsg, chatMsgFromChat));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'GotChatMsg':
-				var chatMsg = msg.a;
-				var _v16 = model.page;
-				if (_v16.$ === 'ChatPage') {
-					var chatModel = _v16.a;
-					var _v17 = A2($author$project$Chat$update, chatMsg, chatModel);
-					var chatModelFromChat = _v17.a;
-					var chatMsgFromChat = _v17.b;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								page: $author$project$Main$ChatPage(chatModelFromChat)
-							}),
-						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotChatMsg, chatMsgFromChat));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
 			case 'CheckSessionExpired':
-				var _v18 = msg.a;
-				var session = _v18.a;
-				var maybeTime = _v18.b;
-				var _v19 = _Utils_Tuple2(
+				var _v14 = msg.a;
+				var session = _v14.a;
+				var maybeTime = _v14.b;
+				var _v15 = _Utils_Tuple2(
 					maybeTime,
 					$author$project$Credentials$fromSessionToToken(session));
-				if ((_v19.a.$ === 'Just') && (_v19.b.$ === 'Just')) {
-					var time = _v19.a.a;
-					var token = _v19.b.a;
+				if ((_v15.a.$ === 'Just') && (_v15.b.$ === 'Just')) {
+					var time = _v15.a.a;
+					var token = _v15.b.a;
 					var tokenString = $author$project$Credentials$fromTokenToString(token);
-					var _v20 = A2($simonh1000$elm_jwt$Jwt$isExpired, time, tokenString);
-					if (_v20.$ === 'Ok') {
-						var isExpired = _v20.a;
+					var _v16 = A2($simonh1000$elm_jwt$Jwt$isExpired, time, tokenString);
+					if (_v16.$ === 'Ok') {
+						var isExpired = _v16.a;
 						return isExpired ? _Utils_Tuple2(model, $author$project$Credentials$logout) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -9175,8 +8858,6 @@ var $author$project$Main$update = F2(
 				}
 			case 'GetLogout':
 				return _Utils_Tuple2(model, $author$project$Credentials$logout);
-			case 'ChatNewMessage':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'GotTime':
 				var time = msg.a;
 				return _Utils_Tuple2(
@@ -9329,199 +9010,6 @@ var $rtfeldman$elm_css$VirtualDom$Styled$text = function (str) {
 		$elm$virtual_dom$VirtualDom$text(str));
 };
 var $rtfeldman$elm_css$Html$Styled$text = $rtfeldman$elm_css$VirtualDom$Styled$text;
-var $author$project$Chat$MessageSubmit = {$: 'MessageSubmit'};
-var $author$project$Chat$StoreMessage = function (a) {
-	return {$: 'StoreMessage', a: a};
-};
-var $rtfeldman$elm_css$Css$Preprocess$ApplyStyles = function (a) {
-	return {$: 'ApplyStyles', a: a};
-};
-var $rtfeldman$elm_css$Css$batch = $rtfeldman$elm_css$Css$Preprocess$ApplyStyles;
-var $rtfeldman$elm_css$Css$Preprocess$AppendProperty = function (a) {
-	return {$: 'AppendProperty', a: a};
-};
-var $rtfeldman$elm_css$Css$Structure$Property = function (a) {
-	return {$: 'Property', a: a};
-};
-var $rtfeldman$elm_css$Css$property = F2(
-	function (key, value) {
-		return $rtfeldman$elm_css$Css$Preprocess$AppendProperty(
-			$rtfeldman$elm_css$Css$Structure$Property(key + (':' + value)));
-	});
-var $matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor = F4(
-	function (property, embedColor, opacityVarName, color) {
-		if (color.$ === 'Color') {
-			var mode = color.a;
-			var r = color.b;
-			var g = color.c;
-			var b = color.d;
-			var opacity = color.e;
-			var _v1 = _Utils_Tuple2(opacity, opacityVarName);
-			if (_v1.a.$ === 'Opacity') {
-				var op = _v1.a.a;
-				return A2(
-					$rtfeldman$elm_css$Css$property,
-					property,
-					embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + (' / ' + (op + ')'))))))))));
-			} else {
-				if (_v1.b.$ === 'Just') {
-					var _v2 = _v1.a;
-					var varName = _v1.b.a;
-					return $rtfeldman$elm_css$Css$batch(
-						_List_fromArray(
-							[
-								A2($rtfeldman$elm_css$Css$property, varName, '1'),
-								A2(
-								$rtfeldman$elm_css$Css$property,
-								property,
-								embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + (' / var(' + (varName + '))'))))))))))
-							]));
-				} else {
-					var _v3 = _v1.a;
-					var _v4 = _v1.b;
-					return A2(
-						$rtfeldman$elm_css$Css$property,
-						property,
-						embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + ' / 1.0)'))))))));
-				}
-			}
-		} else {
-			var keyword = color.a;
-			return A2($rtfeldman$elm_css$Css$property, property, keyword);
-		}
-	});
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color = function (color) {
-	return A4(
-		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
-		'background-color',
-		function (c) {
-			return c;
-		},
-		$elm$core$Maybe$Just('--tw-bg-opacity'),
-		color);
-};
-var $rtfeldman$elm_css$Html$Styled$button = $rtfeldman$elm_css$Html$Styled$node('button');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border = A2($rtfeldman$elm_css$Css$property, 'border-width', '1px');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color = function (color) {
-	return A4(
-		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
-		'border-color',
-		function (c) {
-			return c;
-		},
-		$elm$core$Maybe$Just('--tw-border-opacity'),
-		color);
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$cursor_pointer = A2($rtfeldman$elm_css$Css$property, 'cursor', 'pointer');
-var $rtfeldman$elm_css$Css$Preprocess$ExtendSelector = F2(
-	function (a, b) {
-		return {$: 'ExtendSelector', a: a, b: b};
-	});
-var $rtfeldman$elm_css$Css$Structure$PseudoClassSelector = function (a) {
-	return {$: 'PseudoClassSelector', a: a};
-};
-var $rtfeldman$elm_css$Css$pseudoClass = function (_class) {
-	return $rtfeldman$elm_css$Css$Preprocess$ExtendSelector(
-		$rtfeldman$elm_css$Css$Structure$PseudoClassSelector(_class));
-};
-var $rtfeldman$elm_css$Css$hover = $rtfeldman$elm_css$Css$pseudoClass('hover');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$px_4 = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'padding-left', '1rem'),
-			A2($rtfeldman$elm_css$Css$property, 'padding-right', '1rem')
-		]));
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_1 = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'padding-top', '0.25rem'),
-			A2($rtfeldman$elm_css$Css$property, 'padding-bottom', '0.25rem')
-		]));
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded = A2($rtfeldman$elm_css$Css$property, 'border-radius', '0.25rem');
-var $matheus23$elm_tailwind_modules_base$Tailwind$Color$Color = F5(
-	function (a, b, c, d, e) {
-		return {$: 'Color', a: a, b: b, c: c, d: d, e: e};
-	});
-var $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable = {$: 'ViaVariable'};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '56', '189', '248', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '12', '74', '110', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color = function (color) {
-	return A4(
-		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
-		'color',
-		function (c) {
-			return c;
-		},
-		$elm$core$Maybe$Just('--tw-text-opacity'),
-		color);
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_xl = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'font-size', '1.25rem'),
-			A2($rtfeldman$elm_css$Css$property, 'line-height', '1.75rem')
-		]));
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$transition_all = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'transition-property', 'all'),
-			A2($rtfeldman$elm_css$Css$property, 'transition-timing-function', 'cubic-bezier(0.4, 0, 0.2, 1)'),
-			A2($rtfeldman$elm_css$Css$property, 'transition-duration', '150ms')
-		]));
-var $matheus23$elm_tailwind_modules_base$Tailwind$Color$Opacity = function (a) {
-	return {$: 'Opacity', a: a};
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$transparent = A5(
-	$matheus23$elm_tailwind_modules_base$Tailwind$Color$Color,
-	'rgb',
-	'0',
-	'0',
-	'0',
-	$matheus23$elm_tailwind_modules_base$Tailwind$Color$Opacity('0'));
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$white = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '255', '255', '255', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $author$project$GlobalStyles$buttonStyle = _List_fromArray(
-	[
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400),
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$white),
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_1,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$px_4,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_xl,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400),
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$cursor_pointer,
-		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$transition_all,
-		$rtfeldman$elm_css$Css$hover(
-		_List_fromArray(
-			[
-				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900),
-				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900),
-				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$transparent)
-			]))
-	]);
-var $elm$virtual_dom$VirtualDom$property = F2(
-	function (key, value) {
-		return A2(
-			_VirtualDom_property,
-			_VirtualDom_noInnerHtmlOrFormAction(key),
-			_VirtualDom_noJavaScriptOrHtmlJson(value));
-	});
-var $rtfeldman$elm_css$VirtualDom$Styled$property = F2(
-	function (key, value) {
-		return A3(
-			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
-			A2($elm$virtual_dom$VirtualDom$property, key, value),
-			false,
-			'');
-	});
-var $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			$rtfeldman$elm_css$VirtualDom$Styled$property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $rtfeldman$elm_css$Html$Styled$Attributes$class = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('className');
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -9920,6 +9408,9 @@ var $rtfeldman$elm_css$Css$Structure$FontFace = function (a) {
 };
 var $rtfeldman$elm_css$Css$Structure$PageRule = function (a) {
 	return {$: 'PageRule', a: a};
+};
+var $rtfeldman$elm_css$Css$Structure$Property = function (a) {
+	return {$: 'Property', a: a};
 };
 var $rtfeldman$elm_css$Css$Structure$Selector = F3(
 	function (a, b, c) {
@@ -11166,11 +10657,236 @@ var $rtfeldman$elm_css$Html$Styled$Internal$css = function (styles) {
 	return A3($rtfeldman$elm_css$VirtualDom$Styled$Attribute, classProperty, true, cssTemplate);
 };
 var $rtfeldman$elm_css$Html$Styled$Attributes$css = $rtfeldman$elm_css$Html$Styled$Internal$css;
+var $rtfeldman$elm_css$Css$Preprocess$AppendProperty = function (a) {
+	return {$: 'AppendProperty', a: a};
+};
+var $rtfeldman$elm_css$Css$property = F2(
+	function (key, value) {
+		return $rtfeldman$elm_css$Css$Preprocess$AppendProperty(
+			$rtfeldman$elm_css$Css$Structure$Property(key + (':' + value)));
+	});
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex = A2($rtfeldman$elm_css$Css$property, 'display', 'flex');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_col = A2($rtfeldman$elm_css$Css$property, 'flex-direction', 'column');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_grow = A2($rtfeldman$elm_css$Css$property, 'flex-grow', '1');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_4 = A2($rtfeldman$elm_css$Css$property, 'gap', '1rem');
-var $rtfeldman$elm_css$Html$Styled$h3 = $rtfeldman$elm_css$Html$Styled$node('h3');
+var $rtfeldman$elm_css$Html$Styled$h2 = $rtfeldman$elm_css$Html$Styled$node('h2');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_center = A2($rtfeldman$elm_css$Css$property, 'align-items', 'center');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_20 = A2($rtfeldman$elm_css$Css$property, 'margin', '5rem');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_6 = A2($rtfeldman$elm_css$Css$property, 'margin', '1.5rem');
+var $rtfeldman$elm_css$Css$Structure$CustomQuery = function (a) {
+	return {$: 'CustomQuery', a: a};
+};
+var $rtfeldman$elm_css$Css$Preprocess$WithMedia = F2(
+	function (a, b) {
+		return {$: 'WithMedia', a: a, b: b};
+	});
+var $rtfeldman$elm_css$Css$Media$withMediaQuery = function (queries) {
+	return $rtfeldman$elm_css$Css$Preprocess$WithMedia(
+		A2($elm$core$List$map, $rtfeldman$elm_css$Css$Structure$CustomQuery, queries));
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Breakpoints$sm = $rtfeldman$elm_css$Css$Media$withMediaQuery(
+	_List_fromArray(
+		['(min-width: 640px)']));
+var $author$project$Home$view = A2(
+	$rtfeldman$elm_css$Html$Styled$div,
+	_List_fromArray(
+		[
+			$rtfeldman$elm_css$Html$Styled$Attributes$css(
+			_List_fromArray(
+				[
+					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex,
+					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_col,
+					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_center,
+					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_6,
+					$matheus23$elm_default_tailwind_modules$Tailwind$Breakpoints$sm(
+					_List_fromArray(
+						[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_20]))
+				]))
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$rtfeldman$elm_css$Html$Styled$h2,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$rtfeldman$elm_css$Html$Styled$text('Hello and welcome to our awesome website !')
+				])),
+			A2(
+			$rtfeldman$elm_css$Html$Styled$p,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$rtfeldman$elm_css$Html$Styled$text('which is still under construction')
+				]))
+		]));
+var $author$project$Login$LoginSubmit = {$: 'LoginSubmit'};
+var $author$project$Login$StoreEmail = function (a) {
+	return {$: 'StoreEmail', a: a};
+};
+var $author$project$Login$StorePassword = function (a) {
+	return {$: 'StorePassword', a: a};
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$absolute = A2($rtfeldman$elm_css$Css$property, 'position', 'absolute');
+var $rtfeldman$elm_css$Css$Preprocess$ApplyStyles = function (a) {
+	return {$: 'ApplyStyles', a: a};
+};
+var $rtfeldman$elm_css$Css$batch = $rtfeldman$elm_css$Css$Preprocess$ApplyStyles;
+var $matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor = F4(
+	function (property, embedColor, opacityVarName, color) {
+		if (color.$ === 'Color') {
+			var mode = color.a;
+			var r = color.b;
+			var g = color.c;
+			var b = color.d;
+			var opacity = color.e;
+			var _v1 = _Utils_Tuple2(opacity, opacityVarName);
+			if (_v1.a.$ === 'Opacity') {
+				var op = _v1.a.a;
+				return A2(
+					$rtfeldman$elm_css$Css$property,
+					property,
+					embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + (' / ' + (op + ')'))))))))));
+			} else {
+				if (_v1.b.$ === 'Just') {
+					var _v2 = _v1.a;
+					var varName = _v1.b.a;
+					return $rtfeldman$elm_css$Css$batch(
+						_List_fromArray(
+							[
+								A2($rtfeldman$elm_css$Css$property, varName, '1'),
+								A2(
+								$rtfeldman$elm_css$Css$property,
+								property,
+								embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + (' / var(' + (varName + '))'))))))))))
+							]));
+				} else {
+					var _v3 = _v1.a;
+					var _v4 = _v1.b;
+					return A2(
+						$rtfeldman$elm_css$Css$property,
+						property,
+						embedColor(mode + ('(' + (r + (' ' + (g + (' ' + (b + ' / 1.0)'))))))));
+				}
+			}
+		} else {
+			var keyword = color.a;
+			return A2($rtfeldman$elm_css$Css$property, property, keyword);
+		}
+	});
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color = function (color) {
+	return A4(
+		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
+		'background-color',
+		function (c) {
+			return c;
+		},
+		$elm$core$Maybe$Just('--tw-bg-opacity'),
+		color);
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_opacity_40 = A2($rtfeldman$elm_css$Css$property, '--tw-bg-opacity', '0.4');
+var $rtfeldman$elm_css$Html$Styled$button = $rtfeldman$elm_css$Html$Styled$node('button');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border = A2($rtfeldman$elm_css$Css$property, 'border-width', '1px');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color = function (color) {
+	return A4(
+		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
+		'border-color',
+		function (c) {
+			return c;
+		},
+		$elm$core$Maybe$Just('--tw-border-opacity'),
+		color);
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$cursor_pointer = A2($rtfeldman$elm_css$Css$property, 'cursor', 'pointer');
+var $rtfeldman$elm_css$Css$Preprocess$ExtendSelector = F2(
+	function (a, b) {
+		return {$: 'ExtendSelector', a: a, b: b};
+	});
+var $rtfeldman$elm_css$Css$Structure$PseudoClassSelector = function (a) {
+	return {$: 'PseudoClassSelector', a: a};
+};
+var $rtfeldman$elm_css$Css$pseudoClass = function (_class) {
+	return $rtfeldman$elm_css$Css$Preprocess$ExtendSelector(
+		$rtfeldman$elm_css$Css$Structure$PseudoClassSelector(_class));
+};
+var $rtfeldman$elm_css$Css$hover = $rtfeldman$elm_css$Css$pseudoClass('hover');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$px_4 = $rtfeldman$elm_css$Css$batch(
+	_List_fromArray(
+		[
+			A2($rtfeldman$elm_css$Css$property, 'padding-left', '1rem'),
+			A2($rtfeldman$elm_css$Css$property, 'padding-right', '1rem')
+		]));
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_1 = $rtfeldman$elm_css$Css$batch(
+	_List_fromArray(
+		[
+			A2($rtfeldman$elm_css$Css$property, 'padding-top', '0.25rem'),
+			A2($rtfeldman$elm_css$Css$property, 'padding-bottom', '0.25rem')
+		]));
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded = A2($rtfeldman$elm_css$Css$property, 'border-radius', '0.25rem');
+var $matheus23$elm_tailwind_modules_base$Tailwind$Color$Color = F5(
+	function (a, b, c, d, e) {
+		return {$: 'Color', a: a, b: b, c: c, d: d, e: e};
+	});
+var $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable = {$: 'ViaVariable'};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '56', '189', '248', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
+var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '12', '74', '110', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color = function (color) {
+	return A4(
+		$matheus23$elm_tailwind_modules_base$Tailwind$Color$propertyWithColor,
+		'color',
+		function (c) {
+			return c;
+		},
+		$elm$core$Maybe$Just('--tw-text-opacity'),
+		color);
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_xl = $rtfeldman$elm_css$Css$batch(
+	_List_fromArray(
+		[
+			A2($rtfeldman$elm_css$Css$property, 'font-size', '1.25rem'),
+			A2($rtfeldman$elm_css$Css$property, 'line-height', '1.75rem')
+		]));
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$transition_all = $rtfeldman$elm_css$Css$batch(
+	_List_fromArray(
+		[
+			A2($rtfeldman$elm_css$Css$property, 'transition-property', 'all'),
+			A2($rtfeldman$elm_css$Css$property, 'transition-timing-function', 'cubic-bezier(0.4, 0, 0.2, 1)'),
+			A2($rtfeldman$elm_css$Css$property, 'transition-duration', '150ms')
+		]));
+var $matheus23$elm_tailwind_modules_base$Tailwind$Color$Opacity = function (a) {
+	return {$: 'Opacity', a: a};
+};
+var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$transparent = A5(
+	$matheus23$elm_tailwind_modules_base$Tailwind$Color$Color,
+	'rgb',
+	'0',
+	'0',
+	'0',
+	$matheus23$elm_tailwind_modules_base$Tailwind$Color$Opacity('0'));
+var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$white = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '255', '255', '255', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
+var $author$project$GlobalStyles$buttonStyle = _List_fromArray(
+	[
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400),
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$white),
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_1,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$px_4,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_xl,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400),
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$cursor_pointer,
+		$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$transition_all,
+		$rtfeldman$elm_css$Css$hover(
+		_List_fromArray(
+			[
+				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900),
+				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_900),
+				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$transparent)
+			]))
+	]);
+var $rtfeldman$elm_css$Html$Styled$form = $rtfeldman$elm_css$Html$Styled$node('form');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_3 = A2($rtfeldman$elm_css$Css$property, 'gap', '0.75rem');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_5 = A2($rtfeldman$elm_css$Css$property, 'gap', '1.25rem');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$h_full = A2($rtfeldman$elm_css$Css$property, 'height', '100%');
+var $rtfeldman$elm_css$Html$Styled$input = $rtfeldman$elm_css$Html$Styled$node('input');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$block = A2($rtfeldman$elm_css$Css$property, 'display', 'block');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$border_0 = A2($rtfeldman$elm_css$Css$property, 'border-width', '0px');
 var $rtfeldman$elm_css$Css$focus = $rtfeldman$elm_css$Css$pseudoClass('focus');
@@ -11376,448 +11092,6 @@ var $author$project$GlobalStyles$inputStyle = _List_fromArray(
 				$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$ring_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_400)
 			]))
 	]);
-var $rtfeldman$elm_css$Html$Styled$li = $rtfeldman$elm_css$Html$Styled$node('li');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_0 = A2($rtfeldman$elm_css$Css$property, 'margin', '0px');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mt_4 = A2($rtfeldman$elm_css$Css$property, 'margin-top', '1rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mx_2 = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'margin-left', '0.5rem'),
-			A2($rtfeldman$elm_css$Css$property, 'margin-right', '0.5rem')
-		]));
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $rtfeldman$elm_css$VirtualDom$Styled$on = F2(
-	function (eventName, handler) {
-		return A3(
-			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
-			A2($elm$virtual_dom$VirtualDom$on, eventName, handler),
-			false,
-			'');
-	});
-var $rtfeldman$elm_css$Html$Styled$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$rtfeldman$elm_css$VirtualDom$Styled$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $rtfeldman$elm_css$Html$Styled$Events$onClick = function (msg) {
-	return A2(
-		$rtfeldman$elm_css$Html$Styled$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $rtfeldman$elm_css$Html$Styled$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var $rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			$rtfeldman$elm_css$VirtualDom$Styled$on,
-			event,
-			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var $rtfeldman$elm_css$Html$Styled$Events$targetValue = A2(
-	$elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	$elm$json$Json$Decode$string);
-var $rtfeldman$elm_css$Html$Styled$Events$onInput = function (tagger) {
-	return A2(
-		$rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn,
-		'input',
-		A2(
-			$elm$json$Json$Decode$map,
-			$rtfeldman$elm_css$Html$Styled$Events$alwaysStop,
-			A2($elm$json$Json$Decode$map, tagger, $rtfeldman$elm_css$Html$Styled$Events$targetValue)));
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$p_4 = A2($rtfeldman$elm_css$Css$property, 'padding', '1rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_4 = $rtfeldman$elm_css$Css$batch(
-	_List_fromArray(
-		[
-			A2($rtfeldman$elm_css$Css$property, 'padding-top', '1rem'),
-			A2($rtfeldman$elm_css$Css$property, 'padding-bottom', '1rem')
-		]));
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_200 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '186', '230', '253', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $rtfeldman$elm_css$Html$Styled$textarea = $rtfeldman$elm_css$Html$Styled$node('textarea');
-var $rtfeldman$elm_css$Html$Styled$Attributes$type_ = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('type');
-var $rtfeldman$elm_css$Html$Styled$ul = $rtfeldman$elm_css$Html$Styled$node('ul');
-var $rtfeldman$elm_css$Html$Styled$Attributes$value = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$black = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '0', '0', '0', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_1 = A2($rtfeldman$elm_css$Css$property, 'gap', '0.25rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$gray_400 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '156', '163', '175', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_center = A2($rtfeldman$elm_css$Css$property, 'align-items', 'center');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$justify_between = A2($rtfeldman$elm_css$Css$property, 'justify-content', 'space-between');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mb_4 = A2($rtfeldman$elm_css$Css$property, 'margin-bottom', '1rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$p_2 = A2($rtfeldman$elm_css$Css$property, 'padding', '0.5rem');
-var $elm$time$Time$flooredDiv = F2(
-	function (numerator, denominator) {
-		return $elm$core$Basics$floor(numerator / denominator);
-	});
-var $elm$time$Time$toAdjustedMinutesHelp = F3(
-	function (defaultOffset, posixMinutes, eras) {
-		toAdjustedMinutesHelp:
-		while (true) {
-			if (!eras.b) {
-				return posixMinutes + defaultOffset;
-			} else {
-				var era = eras.a;
-				var olderEras = eras.b;
-				if (_Utils_cmp(era.start, posixMinutes) < 0) {
-					return posixMinutes + era.offset;
-				} else {
-					var $temp$defaultOffset = defaultOffset,
-						$temp$posixMinutes = posixMinutes,
-						$temp$eras = olderEras;
-					defaultOffset = $temp$defaultOffset;
-					posixMinutes = $temp$posixMinutes;
-					eras = $temp$eras;
-					continue toAdjustedMinutesHelp;
-				}
-			}
-		}
-	});
-var $elm$time$Time$toAdjustedMinutes = F2(
-	function (_v0, time) {
-		var defaultOffset = _v0.a;
-		var eras = _v0.b;
-		return A3(
-			$elm$time$Time$toAdjustedMinutesHelp,
-			defaultOffset,
-			A2(
-				$elm$time$Time$flooredDiv,
-				$elm$time$Time$posixToMillis(time),
-				60000),
-			eras);
-	});
-var $elm$time$Time$toHour = F2(
-	function (zone, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			24,
-			A2(
-				$elm$time$Time$flooredDiv,
-				A2($elm$time$Time$toAdjustedMinutes, zone, time),
-				60));
-	});
-var $elm$time$Time$toMinute = F2(
-	function (zone, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			60,
-			A2($elm$time$Time$toAdjustedMinutes, zone, time));
-	});
-var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
-var $author$project$Chat$viewMessage = function (messageData) {
-	var minute = $elm$core$String$fromInt(
-		A2(
-			$elm$time$Time$toMinute,
-			$elm$time$Time$utc,
-			$elm$time$Time$millisToPosix(messageData.timestamp)));
-	var hour = $elm$core$String$fromInt(
-		A2(
-			$elm$time$Time$toHour,
-			$elm$time$Time$utc,
-			$elm$time$Time$millisToPosix(messageData.timestamp)));
-	return A2(
-		$rtfeldman$elm_css$Html$Styled$li,
-		_List_fromArray(
-			[
-				$rtfeldman$elm_css$Html$Styled$Attributes$css(
-				_List_fromArray(
-					[
-						$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_200),
-						$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$p_2,
-						$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded,
-						$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mb_4
-					]))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$rtfeldman$elm_css$Html$Styled$div,
-				_List_fromArray(
-					[
-						$rtfeldman$elm_css$Html$Styled$Attributes$css(
-						_List_fromArray(
-							[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$justify_between, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_center]))
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$rtfeldman$elm_css$Html$Styled$div,
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_col, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_1]))
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$rtfeldman$elm_css$Html$Styled$div,
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$Attributes$css(
-										_List_fromArray(
-											[
-												$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$black)
-											]))
-									]),
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$text(messageData.name + ':')
-									])),
-								A2(
-								$rtfeldman$elm_css$Html$Styled$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$text(messageData.data.message)
-									]))
-							])),
-						A2(
-						$rtfeldman$elm_css$Html$Styled$div,
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[
-										$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$gray_400)
-									]))
-							]),
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$text(hour + (':' + minute))
-							]))
-					]))
-			]));
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$w_80 = A2($rtfeldman$elm_css$Css$property, 'width', '20rem');
-var $author$project$Chat$view = function (model) {
-	return A2(
-		$rtfeldman$elm_css$Html$Styled$div,
-		_List_fromArray(
-			[
-				$rtfeldman$elm_css$Html$Styled$Attributes$css(
-				_List_fromArray(
-					[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_col]))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$rtfeldman$elm_css$Html$Styled$div,
-				_List_fromArray(
-					[
-						$rtfeldman$elm_css$Html$Styled$Attributes$css(
-						_List_fromArray(
-							[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_4, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mx_2]))
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$rtfeldman$elm_css$Html$Styled$div,
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[
-										$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$w_80,
-										$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_color($matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_200),
-										$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$p_4,
-										$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded
-									]))
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$rtfeldman$elm_css$Html$Styled$h3,
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$Attributes$css(
-										_List_fromArray(
-											[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_0]))
-									]),
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$text('Participants')
-									])),
-								A2(
-								$rtfeldman$elm_css$Html$Styled$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										$rtfeldman$elm_css$Html$Styled$ul,
-										_List_fromArray(
-											[
-												$rtfeldman$elm_css$Html$Styled$Attributes$css(
-												_List_fromArray(
-													[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mt_4]))
-											]),
-										A2(
-											$elm$core$List$map,
-											function (user) {
-												return A2(
-													$rtfeldman$elm_css$Html$Styled$li,
-													_List_fromArray(
-														[
-															$rtfeldman$elm_css$Html$Styled$Attributes$css(
-															_List_fromArray(
-																[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$mt_4]))
-														]),
-													_List_fromArray(
-														[
-															$rtfeldman$elm_css$Html$Styled$text(
-															$author$project$Chat$takeNameOrEmail(user))
-														]));
-											},
-											model.users))
-									]))
-							])),
-						A2(
-						$rtfeldman$elm_css$Html$Styled$div,
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_grow]))
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$rtfeldman$elm_css$Html$Styled$div,
-								_List_fromArray(
-									[
-										$rtfeldman$elm_css$Html$Styled$Attributes$class('customHeight')
-									]),
-								_List_fromArray(
-									[
-										A2(
-										$rtfeldman$elm_css$Html$Styled$ul,
-										_List_Nil,
-										A2($elm$core$List$map, $author$project$Chat$viewMessage, model.receivedMessages))
-									])),
-								function () {
-								var _v0 = model.error;
-								if (_v0.$ === 'Just') {
-									var err = _v0.a;
-									return A2(
-										$rtfeldman$elm_css$Html$Styled$div,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$rtfeldman$elm_css$Html$Styled$text(err)
-											]));
-								} else {
-									return A2(
-										$rtfeldman$elm_css$Html$Styled$div,
-										_List_fromArray(
-											[
-												$rtfeldman$elm_css$Html$Styled$Attributes$css(
-												_List_fromArray(
-													[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_4, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_4]))
-											]),
-										_List_fromArray(
-											[
-												A2(
-												$rtfeldman$elm_css$Html$Styled$textarea,
-												_List_fromArray(
-													[
-														$rtfeldman$elm_css$Html$Styled$Attributes$css($author$project$GlobalStyles$inputStyle),
-														$rtfeldman$elm_css$Html$Styled$Events$onInput($author$project$Chat$StoreMessage),
-														$rtfeldman$elm_css$Html$Styled$Attributes$value(model.message)
-													]),
-												_List_Nil),
-												A2(
-												$rtfeldman$elm_css$Html$Styled$button,
-												_List_fromArray(
-													[
-														$rtfeldman$elm_css$Html$Styled$Attributes$type_('button'),
-														$rtfeldman$elm_css$Html$Styled$Attributes$css($author$project$GlobalStyles$buttonStyle),
-														$rtfeldman$elm_css$Html$Styled$Events$onClick($author$project$Chat$MessageSubmit)
-													]),
-												_List_fromArray(
-													[
-														$rtfeldman$elm_css$Html$Styled$text('Send')
-													]))
-											]));
-								}
-							}()
-							]))
-					]))
-			]));
-};
-var $rtfeldman$elm_css$Html$Styled$h2 = $rtfeldman$elm_css$Html$Styled$node('h2');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_20 = A2($rtfeldman$elm_css$Css$property, 'margin', '5rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_6 = A2($rtfeldman$elm_css$Css$property, 'margin', '1.5rem');
-var $rtfeldman$elm_css$Css$Structure$CustomQuery = function (a) {
-	return {$: 'CustomQuery', a: a};
-};
-var $rtfeldman$elm_css$Css$Preprocess$WithMedia = F2(
-	function (a, b) {
-		return {$: 'WithMedia', a: a, b: b};
-	});
-var $rtfeldman$elm_css$Css$Media$withMediaQuery = function (queries) {
-	return $rtfeldman$elm_css$Css$Preprocess$WithMedia(
-		A2($elm$core$List$map, $rtfeldman$elm_css$Css$Structure$CustomQuery, queries));
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Breakpoints$sm = $rtfeldman$elm_css$Css$Media$withMediaQuery(
-	_List_fromArray(
-		['(min-width: 640px)']));
-var $author$project$Home$view = A2(
-	$rtfeldman$elm_css$Html$Styled$div,
-	_List_fromArray(
-		[
-			$rtfeldman$elm_css$Html$Styled$Attributes$css(
-			_List_fromArray(
-				[
-					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex,
-					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex_col,
-					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_center,
-					$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_6,
-					$matheus23$elm_default_tailwind_modules$Tailwind$Breakpoints$sm(
-					_List_fromArray(
-						[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_20]))
-				]))
-		]),
-	_List_fromArray(
-		[
-			A2(
-			$rtfeldman$elm_css$Html$Styled$h2,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$rtfeldman$elm_css$Html$Styled$text('Hello and welcome to our awesome website !')
-				])),
-			A2(
-			$rtfeldman$elm_css$Html$Styled$p,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$rtfeldman$elm_css$Html$Styled$text('which is still under construction')
-				]))
-		]));
-var $author$project$Login$LoginSubmit = {$: 'LoginSubmit'};
-var $author$project$Login$StoreEmail = function (a) {
-	return {$: 'StoreEmail', a: a};
-};
-var $author$project$Login$StorePassword = function (a) {
-	return {$: 'StorePassword', a: a};
-};
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$absolute = A2($rtfeldman$elm_css$Css$property, 'position', 'absolute');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$bg_opacity_40 = A2($rtfeldman$elm_css$Css$property, '--tw-bg-opacity', '0.4');
-var $rtfeldman$elm_css$Html$Styled$form = $rtfeldman$elm_css$Html$Styled$node('form');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_3 = A2($rtfeldman$elm_css$Css$property, 'gap', '0.75rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_5 = A2($rtfeldman$elm_css$Css$property, 'gap', '1.25rem');
-var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$h_full = A2($rtfeldman$elm_css$Css$property, 'height', '100%');
-var $rtfeldman$elm_css$Html$Styled$input = $rtfeldman$elm_css$Html$Styled$node('input');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$justify_center = A2($rtfeldman$elm_css$Css$property, 'justify-content', 'center');
 var $rtfeldman$elm_css$Html$Styled$label = $rtfeldman$elm_css$Html$Styled$node('label');
 var $rtfeldman$elm_css$Css$Preprocess$WithKeyframes = function (a) {
@@ -11948,6 +11222,58 @@ var $author$project$Helpers$loadingElement = A2(
 var $matheus23$elm_default_tailwind_modules$Tailwind$Breakpoints$md = $rtfeldman$elm_css$Css$Media$withMediaQuery(
 	_List_fromArray(
 		['(min-width: 768px)']));
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $rtfeldman$elm_css$VirtualDom$Styled$on = F2(
+	function (eventName, handler) {
+		return A3(
+			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
+			A2($elm$virtual_dom$VirtualDom$on, eventName, handler),
+			false,
+			'');
+	});
+var $rtfeldman$elm_css$Html$Styled$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$rtfeldman$elm_css$VirtualDom$Styled$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $rtfeldman$elm_css$Html$Styled$Events$onClick = function (msg) {
+	return A2(
+		$rtfeldman$elm_css$Html$Styled$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $rtfeldman$elm_css$Html$Styled$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var $rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			$rtfeldman$elm_css$VirtualDom$Styled$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var $rtfeldman$elm_css$Html$Styled$Events$targetValue = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	$elm$json$Json$Decode$string);
+var $rtfeldman$elm_css$Html$Styled$Events$onInput = function (tagger) {
+	return A2(
+		$rtfeldman$elm_css$Html$Styled$Events$stopPropagationOn,
+		'input',
+		A2(
+			$elm$json$Json$Decode$map,
+			$rtfeldman$elm_css$Html$Styled$Events$alwaysStop,
+			A2($elm$json$Json$Decode$map, tagger, $rtfeldman$elm_css$Html$Styled$Events$targetValue)));
+};
 var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$red_400 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '248', '113', '113', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
 var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$sky_50 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '240', '249', '255', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_3xl = $rtfeldman$elm_css$Css$batch(
@@ -11956,6 +11282,30 @@ var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_3xl = $rtfel
 			A2($rtfeldman$elm_css$Css$property, 'font-size', '1.875rem'),
 			A2($rtfeldman$elm_css$Css$property, 'line-height', '2.25rem')
 		]));
+var $elm$virtual_dom$VirtualDom$property = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_property,
+			_VirtualDom_noInnerHtmlOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlJson(value));
+	});
+var $rtfeldman$elm_css$VirtualDom$Styled$property = F2(
+	function (key, value) {
+		return A3(
+			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
+			A2($elm$virtual_dom$VirtualDom$property, key, value),
+			false,
+			'');
+	});
+var $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			$rtfeldman$elm_css$VirtualDom$Styled$property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $rtfeldman$elm_css$Html$Styled$Attributes$type_ = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('type');
+var $rtfeldman$elm_css$Html$Styled$Attributes$value = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$w_60 = A2($rtfeldman$elm_css$Css$property, 'width', '15rem');
 var $author$project$Login$view = function (model) {
 	return A2(
@@ -12133,9 +11483,11 @@ var $author$project$Profile$StoreFirstName = function (a) {
 	return {$: 'StoreFirstName', a: a};
 };
 var $rtfeldman$elm_css$Html$Styled$Attributes$for = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('htmlFor');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Theme$gray_400 = A5($matheus23$elm_tailwind_modules_base$Tailwind$Color$Color, 'rgb', '156', '163', '175', $matheus23$elm_tailwind_modules_base$Tailwind$Color$ViaVariable);
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$h_1 = A2($rtfeldman$elm_css$Css$property, 'height', '0.25rem');
 var $rtfeldman$elm_css$Html$Styled$Attributes$id = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('id');
 var $rtfeldman$elm_css$Html$Styled$img = $rtfeldman$elm_css$Html$Styled$node('img');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$m_0 = A2($rtfeldman$elm_css$Css$property, 'margin', '0px');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$opacity_0 = A2($rtfeldman$elm_css$Css$property, 'opacity', '0');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$overflow_hidden = A2($rtfeldman$elm_css$Css$property, 'overflow', 'hidden');
 var $rtfeldman$elm_css$Html$Styled$Attributes$src = function (url) {
@@ -12853,12 +12205,6 @@ var $author$project$Main$content = function (model) {
 							$author$project$Profile$view(profileModel));
 					case 'HomePage':
 						return A2($rtfeldman$elm_css$Html$Styled$map, $author$project$Main$GotHomeMsg, $author$project$Home$view);
-					case 'ChatPage':
-						var chatModel = _v0.a;
-						return A2(
-							$rtfeldman$elm_css$Html$Styled$map,
-							$author$project$Main$GotChatMsg,
-							$author$project$Chat$view(chatModel));
 					case 'VerificationPage':
 						var verificationModel = _v0.a;
 						return A2(
@@ -12878,6 +12224,7 @@ var $author$project$Main$content = function (model) {
 			]));
 };
 var $rtfeldman$elm_css$Html$Styled$a = $rtfeldman$elm_css$Html$Styled$node('a');
+var $rtfeldman$elm_css$Html$Styled$Attributes$class = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('className');
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -12897,6 +12244,7 @@ var $rtfeldman$elm_css$Html$Styled$Attributes$classList = function (classes) {
 			' ',
 			A2($elm$core$List$filter, $elm$core$Tuple$second, classes)));
 };
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_4 = A2($rtfeldman$elm_css$Css$property, 'gap', '1rem');
 var $rtfeldman$elm_css$Html$Styled$h1 = $rtfeldman$elm_css$Html$Styled$node('h1');
 var $rtfeldman$elm_css$Html$Styled$Attributes$href = function (url) {
 	return A2($rtfeldman$elm_css$Html$Styled$Attributes$stringProperty, 'href', url);
@@ -12936,14 +12284,6 @@ var $author$project$Main$isActive = function (_v0) {
 				var _v7 = _v1.a;
 				return false;
 			}
-		case 'Chat':
-			if (_v1.b.$ === 'ChatPage') {
-				var _v8 = _v1.a;
-				return true;
-			} else {
-				var _v9 = _v1.a;
-				return false;
-			}
 		case 'Verification':
 			if (_v1.b.$ === 'VerificationPage') {
 				return true;
@@ -12951,15 +12291,19 @@ var $author$project$Main$isActive = function (_v0) {
 				return false;
 			}
 		default:
-			var _v10 = _v1.a;
+			var _v8 = _v1.a;
 			return false;
 	}
 };
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$justify_between = A2($rtfeldman$elm_css$Css$property, 'justify-content', 'space-between');
+var $rtfeldman$elm_css$Html$Styled$li = $rtfeldman$elm_css$Html$Styled$node('li');
 var $rtfeldman$elm_css$Html$Styled$nav = $rtfeldman$elm_css$Html$Styled$node('nav');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$p_5 = A2($rtfeldman$elm_css$Css$property, 'padding', '1.25rem');
+var $rtfeldman$elm_css$Html$Styled$ul = $rtfeldman$elm_css$Html$Styled$node('ul');
 var $author$project$Main$GetLogout = {$: 'GetLogout'};
 var $author$project$Main$OpenDropdown = {$: 'OpenDropdown'};
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$duration_500 = A2($rtfeldman$elm_css$Css$property, 'transition-duration', '500ms');
+var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$gap_1 = A2($rtfeldman$elm_css$Css$property, 'gap', '0.25rem');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$h_10 = A2($rtfeldman$elm_css$Css$property, 'height', '2.5rem');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$items_end = A2($rtfeldman$elm_css$Css$property, 'align-items', 'flex-end');
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$ml_1 = A2($rtfeldman$elm_css$Css$property, 'margin-left', '0.25rem');
@@ -12975,6 +12319,7 @@ var $rtfeldman$elm_css$VirtualDom$Styled$style = F2(
 	});
 var $rtfeldman$elm_css$Html$Styled$Attributes$style = $rtfeldman$elm_css$VirtualDom$Styled$style;
 var $rtfeldman$elm_css$Html$Styled$sup = $rtfeldman$elm_css$Html$Styled$node('sup');
+var $elm$core$Debug$toString = _Debug_toString;
 var $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$w_10 = A2($rtfeldman$elm_css$Css$property, 'width', '2.5rem');
 var $rtfeldman$elm_css$VirtualDom$Styled$attribute = F2(
 	function (key, value) {
@@ -13249,35 +12594,6 @@ var $author$project$Main$viewLoggedInHeader = function (_v0) {
 							]));
 				}
 			}(),
-				A2(
-				$rtfeldman$elm_css$Html$Styled$li,
-				_List_fromArray(
-					[
-						$rtfeldman$elm_css$Html$Styled$Attributes$classList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								'active',
-								$author$project$Main$isActive(
-									{link: $author$project$Main$Chat, page: page}))
-							]))
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$rtfeldman$elm_css$Html$Styled$a,
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$Attributes$css(
-								_List_fromArray(
-									[$matheus23$elm_default_tailwind_modules$Tailwind$Utilities$py_1, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$px_4, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$text_xl, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$rounded, $matheus23$elm_default_tailwind_modules$Tailwind$Utilities$flex])),
-								$rtfeldman$elm_css$Html$Styled$Attributes$href('/chat')
-							]),
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Html$Styled$text('Chat')
-							]))
-					])),
 				A2(
 				$rtfeldman$elm_css$Html$Styled$li,
 				_List_Nil,

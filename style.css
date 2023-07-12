@@ -1,0 +1,32 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    background: #f0f9ff;
+    color: #1e3a8a;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.active a {
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.customHeight {
+    height: calc(100vh - 250px);
+    overflow-y: scroll;
+}
