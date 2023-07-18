@@ -1,3 +1,5 @@
-node_modules/
-elm-stuff/
+node_modules
+elm-stuff
+.cache
+.env
 /public/index.js

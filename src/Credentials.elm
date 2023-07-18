@@ -56,6 +56,25 @@ type UserId
     = UserId String
 
 
+type alias SocketMessageData =
+    { name : String
+    , id : String
+    , clientId : String
+    , connectionId : String
+    , timestamp : Int
+    , data : DataMessage
+    }
+
+
+type alias DataMessage =
+    { message : String
+    }
+
+
+type UserId
+    = UserId String
+
+
 userIdToString : UserId -> String
 userIdToString (UserId id) =
     -- TODO need some vaildation ?
