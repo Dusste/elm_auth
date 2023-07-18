@@ -30,8 +30,6 @@ import Login
 import Profile
 import ResetPassword
 import Signup
-import Svg.Attributes as SvgAttr exposing (path)
-import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
 import Task
