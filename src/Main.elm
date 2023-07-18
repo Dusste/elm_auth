@@ -1,16 +1,11 @@
 module Main exposing (..)
 
 import Browser exposing (Document)
-import Browser.Dom exposing (Error(..))
 import Browser.Navigation as Nav
 import Credentials
     exposing
         ( ResetCodeParam
         , Session
-<<<<<<< HEAD
-=======
-        , SocketMessageData
->>>>>>> 90f6456 (Add forgot password and reset password flow)
         , UserId
         , VerificationString
         , decodeToSession
@@ -19,10 +14,6 @@ import Credentials
         , fromTokenToString
         , logout
         , passwordCodeStringParser
-<<<<<<< HEAD
-=======
-        , socketMessageChanges
->>>>>>> 90f6456 (Add forgot password and reset password flow)
         , subscriptionChanges
         , userIdParser
         , userIdToString
@@ -65,11 +56,6 @@ type Page
     | ProfilePage Profile.Model
     | ForgotPasswordPage ForgotPassword.Model
     | HomePage Home.Model
-<<<<<<< HEAD
-=======
-    | ForgotPasswordPage ForgotPassword.Model
-    | ChatPage Chat.Model
->>>>>>> 90f6456 (Add forgot password and reset password flow)
     | VerificationPage Verification.Model
     | ResetPasswordPage ResetPassword.Model
     | NotFoundPage
@@ -82,12 +68,6 @@ type Route
     | ForgotPassword
     | ResetPassword ResetCodeParam
     | Home
-<<<<<<< HEAD
-=======
-    | ForgotPassword
-    | ResetPassword ResetCodeParam
-    | Chat
->>>>>>> 90f6456 (Add forgot password and reset password flow)
     | Verification VerificationString
     | NotFound
 
@@ -101,12 +81,6 @@ type Msg
     | GotFpMsg ForgotPassword.Msg
     | GotRpMsg ResetPassword.Msg
     | GotHomeMsg Home.Msg
-<<<<<<< HEAD
-=======
-    | GotChatMsg Chat.Msg
-    | GotFpMsg ForgotPassword.Msg
-    | GotRpMsg ResetPassword.Msg
->>>>>>> 90f6456 (Add forgot password and reset password flow)
     | GotVerificationMsg Verification.Msg
     | GotSubscriptionChangeMsg Session
     | GetLogout
@@ -143,24 +117,9 @@ content model =
                 Home.view
                     |> Html.map GotHomeMsg
 
-<<<<<<< HEAD
-=======
-            ForgotPasswordPage fpModal ->
-                ForgotPassword.view fpModal
-                    |> Html.map GotFpMsg
-
-            ChatPage chatModel ->
-                Chat.view chatModel
-                    |> Html.map GotChatMsg
-
->>>>>>> 90f6456 (Add forgot password and reset password flow)
             VerificationPage verificationModel ->
                 Verification.view verificationModel
                     |> Html.map GotVerificationMsg
-
-            ResetPasswordPage rPasswordModel ->
-                ResetPassword.view rPasswordModel
-                    |> Html.map GotRpMsg
 
             NotFoundPage ->
                 Html.p [] [ text "Page not found buddy -_- sorry" ]
@@ -322,12 +281,6 @@ isActive { link, page } =
             False
 
         ( ResetPassword _, ResetPasswordPage _ ) ->
-            True
-
-        ( ResetPassword _, _ ) ->
-            False
-
-        ( Home, HomePage _ ) ->
             True
 
         ( ResetPassword _, _ ) ->
@@ -547,23 +500,6 @@ urlToPage url session =
                 VerificationPage (Tuple.first (Verification.init session url.path))
 
         Just (ResetPassword _) ->
-<<<<<<< HEAD
-=======
-            if fromSessionToToken session == Nothing then
-                ResetPasswordPage (Tuple.first (ResetPassword.init url.path))
-
-            else
-                NotFoundPage
-
-        Just ForgotPassword ->
-            if fromSessionToToken session == Nothing then
-                ForgotPasswordPage (Tuple.first (ForgotPassword.init ()))
-
-            else
-                NotFoundPage
-
-        Just Chat ->
->>>>>>> 90f6456 (Add forgot password and reset password flow)
             if fromSessionToToken session == Nothing then
                 ResetPasswordPage (Tuple.first (ResetPassword.init url.path))
 
@@ -630,26 +566,12 @@ initCurrentPage ( url, model, existingCmds ) =
             in
             ( { model | page = ResetPasswordPage pageModel }, Cmd.map GotRpMsg pageCmds )
 
-        ForgotPasswordPage _ ->
-            let
-                ( pageModel, pageCmds ) =
-                    ForgotPassword.init ()
-            in
-            ( { model | page = ForgotPasswordPage pageModel }, Cmd.batch [ Cmd.map GotFpMsg pageCmds, existingCmds ] )
-
         VerificationPage _ ->
             let
                 ( pageModel, pageCmds ) =
                     Verification.init model.session url.path
             in
             ( { model | page = VerificationPage pageModel }, Cmd.map GotVerificationMsg pageCmds )
-
-        ResetPasswordPage _ ->
-            let
-                ( pageModel, pageCmds ) =
-                    ResetPassword.init url.path
-            in
-            ( { model | page = ResetPasswordPage pageModel }, Cmd.map GotRpMsg pageCmds )
 
         ProfilePage _ ->
             let

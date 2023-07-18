@@ -1,31 +1,7 @@
 {
-    "name": "my_elm_app",
-    "version": "0.0.1",
-    "scripts": {
-        "start": "NODE_ENV=development nodemon app.js & elm-live src/Main.elm --start-page=public/index.html  --proxy-prefix=/api --proxy-host=http://localhost:7999/api --pushstate -- --output=public/index.js",
-        "build": "NODE_ENV=production && npm i && npm run start"
-    },
-    "author": "Dusan Stevanovic",
-    "license": "ISC",
-    "dependencies": {
-        "@sendgrid/mail": "^7.7.0",
-        "bcrypt": "^5.0.1",
-        "body-parser": "^1.20.1",
-        "cassandra-driver": "^4.6.4",
-        "dotenv": "^16.0.3",
-        "elm": "^0.19.1-5",
-        "elm-hot": "^1.0.1",
-        "elm-live": "^4.0.2",
-        "express": "^4.18.2",
-        "firebase": "^9.15.0",
-        "jsonwebtoken": "^8.5.1",
-        "socket.io": "^4.5.4",
-        "uuid": "^8.3.2"
-    },
-    "devDependencies": {
-        "elm-tailwind-modules": "^0.5.0-alpha2",
-        "nodemon": "^2.0.20",
-        "postcss": "^8.4.21",
-        "tailwindcss": "^3.2.7"
-    }
+  "devDependencies": {
+    "elm-tailwind-modules": "^0.5.0",
+    "postcss": "^8.4.25",
+    "tailwindcss": "^3.3.2"
+  }
 }

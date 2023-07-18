@@ -2,143 +2,17 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>MyElmApp</title>
+        <title>ElmAuth</title>
         <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-        <script
-            src="https://cdn.socket.io/4.5.4/socket.io.min.js"
-            integrity="sha384-/KNQL8Nu5gCHLqwqfQjA689Hhoqgi2S84SNUxC3roTe4EhJ9AfLkp8QiQcU8AMzI"
-            crossorigin="anonymous"
-        ></script>
-        <script src="public/index.js"></script>
-        <link rel="stylesheet" href="public/style.css" />
+        <script src="./index.js"></script>
+        <link rel="stylesheet" href="./style.css" />
     </head>
 
     <body>
         <pre id="elm"></pre>
-        <!-- <ul class="pages">
-            <li class="chat page">
-                <div class="chatArea">
-                    <ul class="messages"></ul>
-                </div>
-                <input class="inputMessage" placeholder="Type here..." />
-            </li>
-            <li class="login page">
-                <div class="form">
-                    <h3 class="title">What's your nickname?</h3>
-                    <input class="usernameInput" type="text" maxlength="14" />
-                </div>
-            </li>
-        </ul> -->
         <script>
             const app = Elm.Main.init({ flags: localStorage.session || null });
-            // const tokenFragment = JSON.parse(localStorage.getItem('session')).token.split('.')[0];
-           
-            // fetch('/api/socket?roomId=123')
-            //     .then((data) => data.json())
-            //     .then((result) => {
-            const socket = io.connect('ws://localhost:7999');
-            // const socket = io.connect('ws://localhost:7999', {
-            //         auth: {
-            //             token: tokenFragment
-            //         }
-            //     }
-            // );
-          
-
-            // app.ports.initiateSocketChannel.subscribe(function (messageClient) {
-            socket.on('connect_error', (err) => {
-                console.log(`connect_error due to ${err.message}`);
-            });
-            // Whenever the server emits 'login', log the login message
-            app.ports.addUserToRoom.subscribe((msg) => {
-                // const { userName, userId } = msg;
-                console.log('HOW MANY TIMES USER CAN JOIN ?', msg)
-                socket.emit('add user', msg);
-            });
-            app.ports.sendMessageToSocket.subscribe((sendMessage) => {
-                console.log('EMITING MESSAGE TO SERVER', sendMessage)
-                socket.emit('new message', sendMessage);
-            });
-            app.ports.emitTyping.subscribe((typing) => {
-                console.log('EMITING TYPING TO SERVER', typing)
-                socket.emit('typing', typing);
-            });
-            socket.on('login', (data) => {
-                console.log('new user logged in', data);
-                // connected = true;
-                // // Display the welcome message
-                // const message = 'Welcome to Socket.IO Chat – ';
-                // log(message, {
-                //     prepend: true,
-                // });
-                // addParticipantsMessage(data);
-            });
-
-            // Listening events from Server
-
-            // Whenever the server emits 'new message', update the chat body
-            socket.on('new message', (data) => {
-                console.log('message received from server: ', data);
-                const { userName, message } = data;
-                const dummyObj = {
-                    name: userName,
-                    id: '123',
-                    clientId: '123',
-                    connectionId: '123',
-                    timestamp: Date.now(),
-                    data: { message },
-                };
-
-                app.ports.listenSocketMessage.send(dummyObj);
-            });
-
-            // Whenever the server emits 'user joined', log it in the chat body
-            socket.on('user joined', (data) => {
-                const { username, numUsers } = data;
-                console.log(
-                    'user joined: ',
-                    username + ' and number of users reached number: ' + numUsers,
-                );
-            });
-
-            // Whenever the server emits 'user left', log it in the chat body
-            socket.on('user left', (data) => {
-                console.log('user left: ', data);
-            });
-
-            // Whenever the server emits 'typing', show the typing message
-            // socket.on('typing', (data) => {
-            //     const { userName } = data;
-            //     const dummyObj = {
-            //         name: userName,
-            //         id: '123',
-            //         clientId: '123',
-            //         connectionId: '123',
-            //         timestamp: Date.now(),
-            //         data: { message: `${userName} is typing...` },
-            //     };
-
-            //     app.ports.listenSocketMessage.send(dummyObj);
-            // });
-
-            // Whenever the server emits 'stop typing', kill the typing message
-            socket.on('stop typing', (data) => {
-                console.log('stop typeing ', data);
-            });
-
-            socket.on('disconnect', (data) => {
-                console.log('disconnect ', data);
-            });
-
-            socket.io.on('reconnect', () => {
-                console.log('reconnect ');
-            });
-
-            socket.io.on('reconnect_error', () => {
-                console.log('reconnect_error ');
-            });
-
+            
             app.ports.storeSession.subscribe(function (session) {
                 localStorage.session = session;
 
