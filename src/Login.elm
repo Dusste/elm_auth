@@ -114,6 +114,7 @@ view model =
                 , Html.input [ Attr.css Gs.inputStyle, type_ "password", onInput StorePassword, value model.storePassword ] []
                 ]
             , Html.button [ Attr.css Gs.buttonStyle, type_ "button", onClick LoginSubmit ] [ text "Sign in" ]
+            , Html.a [ Attr.href "/forgot-password", Attr.css [ Tw.mt_5 ] ] [ text "Forgot password ?" ]
             ]
         ]
 

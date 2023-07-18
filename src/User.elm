@@ -1,4 +1,4 @@
-module User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, validateCredentials)
+module User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, emailEncoder, fromEmailToString, fromStringToValidEmail, passwordEncoder, validateConfirmPassword, validateCredentials)
 
 import Helpers exposing (validEmail)
 import Json.Encode as Encode
@@ -22,9 +22,19 @@ type alias ValidCredentials =
 credentialsEncoder : ValidCredentials -> Encode.Value
 credentialsEncoder { email, password } =
     Encode.object
-        [ ( "email", Encode.string <| fromEmailToString email )
-        , ( "password", Encode.string <| fromPasswordToString password )
+        [ ( "email", emailEncoder email )
+        , ( "password", passwordEncoder password )
         ]
+
+
+emailEncoder : Email -> Encode.Value
+emailEncoder email =
+    Encode.string <| fromEmailToString email
+
+
+passwordEncoder : Password -> Encode.Value
+passwordEncoder password =
+    Encode.string <| fromPasswordToString password
 
 
 fromEmailToString : Email -> String
@@ -69,14 +79,14 @@ fromStringToValidPassword password =
         Ok (Password trimmedPassword)
 
 
-andThenValidateConfirmPassword : String -> Result String ValidCredentials -> Result String ValidCredentials
+andThenValidateConfirmPassword : String -> Result String { a | password : Password } -> Result String { a | password : Password }
 andThenValidateConfirmPassword confirmPassword resultCredential =
     resultCredential
         |> Result.andThen
-            (\{ email, password } ->
+            (\cred ->
                 let
                     validPassword =
-                        fromPasswordToString password
+                        fromPasswordToString cred.password
 
                     trimmedConfirmPassword =
                         String.trim confirmPassword
@@ -91,8 +101,18 @@ andThenValidateConfirmPassword confirmPassword resultCredential =
                     Err "Confirm password can't be empty"
 
                 else
-                    Ok { email = email, password = password }
+                    Ok { cred | password = cred.password }
             )
+
+
+validateConfirmPassword : { password : String, confirmPassword : String } -> Result String { password : Password }
+validateConfirmPassword { password, confirmPassword } =
+    fromStringToValidPassword password
+        |> Result.map
+            (\okPassword ->
+                { password = okPassword }
+            )
+        |> andThenValidateConfirmPassword confirmPassword
 
 
 validateCredentials : { email : String, password : String } -> Result String ValidCredentials
