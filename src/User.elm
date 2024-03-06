@@ -1,8 +1,7 @@
-module User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, emailEncoder, fromEmailToString, fromStringToValidEmail, passwordEncoder, validateConfirmPassword, validateCredentials)
+module User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, emailEncoder, fromEmailToString, fromStringToValidEmail, parseEmail, passwordEncoder, validateConfirmPassword, validateCredentials)
 
-import Helpers exposing (validEmail)
 import Json.Encode as Encode
-import Regex
+import Parser as P exposing ((|.), (|=), Parser, deadEndsToString)
 
 
 type Email
@@ -56,11 +55,105 @@ fromStringToValidEmail email =
     if String.isEmpty trimmedEmail then
         Err "Email can't be empty"
 
-    else if not <| Regex.contains validEmail trimmedEmail then
-        Err "Email is invalid"
-
     else
-        Ok (Email trimmedEmail)
+        parseEmail trimmedEmail
+
+
+
+-- BeforeEt "dooshanstevanovic" | AfterEr "gmail" | AfterDot "com"
+
+
+type SplitEmail
+    = BeforeEt String
+    | AfterEt String
+    | AfterDot String
+
+
+type alias ConstructEmail =
+    { beforeEt : String, afterEt : String, afterDot : String }
+
+
+beforeEtParser : Parser SplitEmail
+beforeEtParser =
+    P.succeed BeforeEt
+        |= (P.chompWhile Char.isAlphaNum
+                |> P.getChompedString
+                |> P.andThen
+                    (\beforeEt ->
+                        if String.isEmpty beforeEt then
+                            --P.problem "Email does not contain username"
+                            P.problem "Invalid email"
+
+                        else
+                            P.succeed beforeEt
+                    )
+           )
+
+
+afterEtParser : Parser SplitEmail
+afterEtParser =
+    P.succeed AfterEt
+        |= (P.chompWhile Char.isAlphaNum
+                |> P.getChompedString
+                |> P.andThen
+                    (\afterEt ->
+                        let
+                            _ =
+                                Debug.log "afterEt" afterEt
+                        in
+                        if String.isEmpty afterEt then
+                            --P.problem "Email does not contain mail server"
+                            P.problem "Invalid email"
+
+                        else
+                            P.succeed afterEt
+                    )
+           )
+
+
+afterDotParser : Parser SplitEmail
+afterDotParser =
+    P.succeed AfterDot
+        |= (P.chompWhile Char.isAlphaNum
+                |> P.getChompedString
+                |> P.andThen
+                    (\afterDot ->
+                        if String.isEmpty afterDot then
+                            -- P.problem "Email does not contain domain"
+                            P.problem "Invalid email"
+
+                        else
+                            P.succeed afterDot
+                    )
+           )
+
+
+emailParser : Parser (Maybe ConstructEmail)
+emailParser =
+    P.succeed
+        (\a b c ->
+            case ( a, b, c ) of
+                ( BeforeEt be, AfterEt ae, AfterDot ad ) ->
+                    Just <| ConstructEmail be ae ad
+
+                _ ->
+                    Nothing
+        )
+        |= beforeEtParser
+        |. P.symbol "@"
+        |= afterEtParser
+        |. P.symbol "."
+        |= afterDotParser
+
+
+parseEmail : String -> Result String Email
+parseEmail email =
+    case P.run emailParser email of
+        Err _ ->
+            Err "Invalid email"
+
+        Ok _ ->
+            Ok (Email email)
 
 
 fromStringToValidPassword : String -> Result String Password
