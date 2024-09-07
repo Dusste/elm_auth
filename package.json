@@ -1,5 +1,17 @@
 {
+  "name": "elm_auth",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "elm-live --port=9090 --start-page=/public/index.html src/Main.elm -- --debug --output=public/app.js "
+  },
+  "author": "Dusan Stevanovic",
+  "license": "ISC",
+  "dependencies": {
+    "elm": "^0.19.1-5",
+    "elm-live": "^4.0.2"
+  },
   "devDependencies": {
+    "elm-format": "^0.8.7",
     "elm-tailwind-modules": "^0.5.0",
     "postcss": "^8.4.25",
     "tailwindcss": "^3.3.2"

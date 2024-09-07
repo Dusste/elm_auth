@@ -1,8 +1,11 @@
 module Login exposing (Model, Msg, init, update, view)
 
-import Credentials exposing (Token, encodeToken, storeSession, tokenDecoder)
+import Api.Login
+import Data.Credentials as Credentials
+import Data.Ports as Ports
+import Data.User as User
+import Data.Util as Util
 import GlobalStyles as Gs
-import Helpers exposing (buildErrorMessage, loadingElement)
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
@@ -13,7 +16,6 @@ import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
 import Task
-import User
 
 
 type alias Model =
@@ -41,7 +43,7 @@ type Msg
     = StoreEmail String
     | StorePassword String
     | LoginSubmit
-    | LoginDone (Result Http.Error Token)
+    | LoginDone (Result Http.Error Credentials.Token)
     | HideError
 
 
@@ -65,7 +67,7 @@ update msg model =
                     ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
 
                 Ok validCredentials ->
-                    ( { model | formState = Loading }, submitLogin validCredentials )
+                    ( { model | formState = Loading }, Api.Login.submitLogin validCredentials LoginDone )
 
         HideError ->
             ( { model | formState = Initial }, Cmd.none )
@@ -73,21 +75,12 @@ update msg model =
         LoginDone (Ok token) ->
             let
                 tokenValue =
-                    encodeToken token
+                    Credentials.encodeToken token
             in
-            ( { model | formState = Initial }, storeSession <| Just <| encode 0 tokenValue )
+            ( { model | formState = Initial }, Ports.storeSession <| Just <| encode 0 tokenValue )
 
         LoginDone (Err error) ->
-            ( { model | formState = Error <| buildErrorMessage error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
-
-
-submitLogin : User.ValidCredentials -> Cmd Msg
-submitLogin credentials =
-    Http.post
-        { url = "/api/login"
-        , body = Http.jsonBody (User.credentialsEncoder credentials)
-        , expect = Http.expectJson LoginDone tokenDecoder
-        }
+            ( { model | formState = Error <| Util.buildErrorMessage error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
 
 
 view : Model -> Html Msg
@@ -97,7 +90,7 @@ view model =
         [ Html.h2 [ Attr.css [ Tw.text_3xl ] ] [ text "Login" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ loadingElement ]
+                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
 
             Error error ->
                 Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]

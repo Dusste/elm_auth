@@ -1,18 +1,18 @@
 module ForgotPassword exposing (..)
 
+import Api.ForgotPassword
+import Data.User as User
+import Data.Util as Util
 import GlobalStyles as Gs
-import Helpers exposing (buildErrorMessage, loadingElement)
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import Json.Encode as Encode
 import Process
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
 import Task
-import User
 
 
 type alias Model =
@@ -52,7 +52,7 @@ view model =
         [ Html.h2 [] [ text "Forgot Password" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ loadingElement ]
+                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
 
             Error error ->
                 Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
@@ -87,7 +87,7 @@ update msg model =
                     ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
 
                 Ok validCredentials ->
-                    ( { model | formState = Loading }, submitForgotPassword validCredentials )
+                    ( { model | formState = Loading }, Api.ForgotPassword.submitForgotPassword validCredentials Done )
 
         HideError ->
             ( { model | formState = Initial }, Cmd.none )
@@ -99,16 +99,4 @@ update msg model =
             ( { model | formState = Success, storeEmail = "" }, Cmd.none )
 
         Done (Err err) ->
-            ( { model | formState = Error <| buildErrorMessage err }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
-
-
-submitForgotPassword : User.Email -> Cmd Msg
-submitForgotPassword email =
-    Http.post
-        { url = "/api/forgot-password"
-        , body =
-            Http.jsonBody <|
-                Encode.object
-                    [ ( "email", User.emailEncoder email ) ]
-        , expect = Http.expectWhatever Done
-        }
+            ( { model | formState = Error <| Util.buildErrorMessage err }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )

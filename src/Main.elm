@@ -1,30 +1,16 @@
 module Main exposing (..)
 
-import Browser exposing (Document)
+import Browser
 import Browser.Navigation as Nav
-import Credentials
-    exposing
-        ( ResetCodeParam
-        , Session
-        , UserId
-        , VerificationString
-        , decodeToSession
-        , decodeTokenData
-        , fromSessionToToken
-        , fromTokenToString
-        , logout
-        , passwordCodeStringParser
-        , subscriptionChanges
-        , userIdParser
-        , userIdToString
-        , verifictionStringParser
-        )
+import Data.Credentials as Credentials
+import Data.Ports as Ports
+import Data.Verification as Verification
 import ForgotPassword
 import Home
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (classList, href, src, style, width)
 import Html.Styled.Events exposing (onClick)
-import Json.Decode exposing (Value)
+import Json.Decode
 import Jwt
 import Login
 import Profile
@@ -35,14 +21,14 @@ import Tailwind.Utilities as Tw
 import Task
 import Time
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, s)
+import Url.Parser exposing ((</>))
 import Verification
 
 
 type alias Model =
     { page : Page
     , key : Nav.Key
-    , session : Session
+    , session : Credentials.Session
     , openDropdown : Bool
     , time : Maybe Time.Posix
     }
@@ -62,11 +48,11 @@ type Page
 type Route
     = Login
     | Signup
-    | Profile UserId
+    | Profile Credentials.UserId
     | ForgotPassword
-    | ResetPassword ResetCodeParam
+    | ResetPassword String
     | Home
-    | Verification VerificationString
+    | Verification String
     | NotFound
 
 
@@ -80,11 +66,11 @@ type Msg
     | GotRpMsg ResetPassword.Msg
     | GotHomeMsg Home.Msg
     | GotVerificationMsg Verification.Msg
-    | GotSubscriptionChangeMsg Session
+    | GotSubscriptionChangeMsg Credentials.Session
     | GetLogout
     | OpenDropdown
     | GotTime Time.Posix
-    | CheckSessionExpired ( Session, Maybe Time.Posix )
+    | CheckSessionExpired ( Credentials.Session, Maybe Time.Posix )
 
 
 content : Model -> Html Msg
@@ -134,7 +120,7 @@ app model =
         ]
 
 
-view : Model -> Document Msg
+view : Model -> Browser.Document Msg
 view model =
     { title = "My elm app"
     , body =
@@ -153,7 +139,7 @@ viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
     Html.nav [ Attr.css [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ] ]
         [ Html.h1 [] [ Html.a [ href "/" ] [ text "My elm app" ] ]
-        , case fromSessionToToken session of
+        , case Credentials.fromSessionToToken session of
             Just token ->
                 viewLoggedInHeader { page = page, token = token, openDropdown = openDropdown }
 
@@ -190,7 +176,7 @@ viewHeader { page, session, openDropdown } =
 viewLoggedInHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
 viewLoggedInHeader { page, token, openDropdown } =
     Html.ul [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ] ]
-        [ case Jwt.decodeToken decodeTokenData <| fromTokenToString token of
+        [ case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
             Ok resultTokenRecord ->
                 Html.li
                     [ Attr.css [ Tw.cursor_pointer ] ]
@@ -239,7 +225,7 @@ viewLoggedInHeader { page, token, openDropdown } =
                                     ]
                                 , onClick OpenDropdown
                                 ]
-                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ], href <| "/profile/" ++ userIdToString resultTokenRecord.id ] [ text "My profile" ] ]
+                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ], href <| "/profile/" ++ Credentials.userIdToString resultTokenRecord.id ] [ text "My profile" ] ]
                             , Html.li [ onClick OpenDropdown ] [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option2" ] ]
                             , Html.li [ onClick OpenDropdown ] [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option3" ] ]
                             ]
@@ -409,11 +395,11 @@ update msg model =
 
         GotSubscriptionChangeMsg session ->
             ( { model | session = session }
-            , case fromSessionToToken session of
+            , case Credentials.fromSessionToToken session of
                 Just token ->
-                    case Jwt.decodeToken decodeTokenData <| fromTokenToString token of
+                    case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
                         Ok resultTokenRecord ->
-                            Nav.pushUrl model.key ("/profile/" ++ userIdToString resultTokenRecord.id)
+                            Nav.pushUrl model.key ("/profile/" ++ Credentials.userIdToString resultTokenRecord.id)
 
                         Err _ ->
                             Nav.pushUrl model.key "/login"
@@ -423,16 +409,16 @@ update msg model =
             )
 
         CheckSessionExpired ( session, maybeTime ) ->
-            case ( maybeTime, fromSessionToToken session ) of
+            case ( maybeTime, Credentials.fromSessionToToken session ) of
                 ( Just time, Just token ) ->
                     let
                         tokenString =
-                            fromTokenToString token
+                            Credentials.fromTokenToString token
                     in
                     case Jwt.isExpired time tokenString of
                         Ok isExpired ->
                             if isExpired then
-                                ( model, logout )
+                                ( model, Ports.logout )
 
                             else
                                 ( model, Cmd.none )
@@ -444,7 +430,7 @@ update msg model =
                     ( model, Cmd.none )
 
         GetLogout ->
-            ( model, logout )
+            ( model, Ports.logout )
 
         GotTime time ->
             ( { model | time = Just time }, Cmd.none )
@@ -453,59 +439,63 @@ update msg model =
             ( { model | openDropdown = not model.openDropdown }, Cmd.none )
 
 
-matchRoute : Parser (Route -> a) a
+matchRoute : Url.Parser.Parser (Route -> a) a
 matchRoute =
-    Parser.oneOf
-        [ Parser.map Home Parser.top
-        , Parser.map ForgotPassword (s "forgot-password")
-        , Parser.map Login (s "login")
-        , Parser.map Profile (s "profile" </> userIdParser)
-        , Parser.map Signup (s "signup")
-        , Parser.map Verification (s "verify-email" </> verifictionStringParser)
-        , Parser.map ResetPassword (s "password-reset" </> passwordCodeStringParser)
+    Url.Parser.oneOf
+        [ Url.Parser.map Home Url.Parser.top
+        , Url.Parser.map ForgotPassword (Url.Parser.s "forgot-password")
+        , Url.Parser.map Login (Url.Parser.s "login")
+        , Url.Parser.map Profile (Url.Parser.s "profile" </> Credentials.userIdParser)
+        , Url.Parser.map Signup (Url.Parser.s "signup")
+        , Url.Parser.map Verification (Url.Parser.s "verify-email" </> Verification.verifictionStringParser)
+        , Url.Parser.map ResetPassword (Url.Parser.s "password-reset" </> Credentials.passwordCodeStringParser)
         ]
 
 
-urlToPage : Url -> Session -> Page
+urlToPage : Url -> Credentials.Session -> Page
 urlToPage url session =
-    case Parser.parse matchRoute url of
+    case Url.Parser.parse matchRoute url of
         Just Login ->
-            if fromSessionToToken session == Nothing then
+            if Credentials.fromSessionToToken session == Nothing then
                 LoginPage (Tuple.first (Login.init ()))
 
             else
                 NotFoundPage
 
         Just Signup ->
-            if fromSessionToToken session == Nothing then
+            if Credentials.fromSessionToToken session == Nothing then
                 SignupPage (Tuple.first (Signup.init ()))
 
             else
                 NotFoundPage
 
         Just (Profile _) ->
-            if fromSessionToToken session == Nothing then
+            if Credentials.fromSessionToToken session == Nothing then
                 NotFoundPage
 
             else
                 ProfilePage (Tuple.first (Profile.init session))
 
         Just (Verification _) ->
-            if fromSessionToToken session == Nothing then
+            if Credentials.fromSessionToToken session == Nothing then
                 NotFoundPage
 
             else
                 VerificationPage (Tuple.first (Verification.init session url.path))
 
         Just (ResetPassword _) ->
-            if fromSessionToToken session == Nothing then
-                ResetPasswordPage (Tuple.first (ResetPassword.init url.path))
+            if Credentials.fromSessionToToken session == Nothing then
+                let
+                    cleanedResetCode =
+                        String.replace "/password-reset/" "" url.path
+                in
+                ResetPasswordPage (Tuple.first (ResetPassword.init cleanedResetCode))
 
             else
                 NotFoundPage
 
         Just ForgotPassword ->
-            if fromSessionToToken session == Nothing then
+            if Credentials.fromSessionToToken session == Nothing then
                 ForgotPasswordPage (Tuple.first (ForgotPassword.init ()))
 
             else
@@ -579,11 +569,11 @@ initCurrentPage ( url, model, existingCmds ) =
             ( { model | page = ProfilePage pageModel }, Cmd.batch [ Cmd.map GotProfileMsg pageCmds, existingCmds ] )
 
 
-init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Json.Decode.Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
         session =
-            decodeToSession key flags
+            Credentials.decodeToSession key flags
 
         model =
             { page = urlToPage url session
@@ -598,10 +588,10 @@ init flags url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    subscriptionChanges GotSubscriptionChangeMsg model.key
+    Credentials.subscriptionChanges GotSubscriptionChangeMsg model.key
 
 
-main : Program Value Model Msg
+main : Program Json.Decode.Value Model Msg
 main =
     Browser.application
         { init = init

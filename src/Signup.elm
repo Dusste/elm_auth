@@ -1,19 +1,21 @@
 module Signup exposing (Model, Msg, init, update, view)
 
-import Credentials exposing (Token, encodeToken, storeSession, tokenDecoder)
+import Api.Signup
+import Data.Credentials as Credentials
+import Data.Ports as Ports
+import Data.User as User
+import Data.Util as Util
 import GlobalStyles as Gs
-import Helpers exposing (buildErrorMessage, loadingElement)
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import Json.Encode exposing (encode)
+import Json.Encode
 import Process
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
 import Task
-import User
 
 
 type alias Model =
@@ -44,7 +46,7 @@ type Msg
     | StorePassword String
     | StoreConfirmPassword String
     | SignupSubmit
-    | SignupDone (Result Http.Error Token)
+    | SignupDone (Result Http.Error Credentials.Token)
     | HideError
 
 
@@ -72,7 +74,7 @@ update msg model =
                     ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
 
                 Ok validCredentials ->
-                    ( { model | formState = Loading }, submitSignup validCredentials )
+                    ( { model | formState = Loading }, Api.Signup.submitSignup validCredentials SignupDone )
 
         HideError ->
             ( { model | formState = Initial }, Cmd.none )
@@ -80,21 +82,12 @@ update msg model =
         SignupDone (Ok token) ->
             let
                 tokenValue =
-                    encodeToken token
+                    Credentials.encodeToken token
             in
-            ( { model | formState = Initial }, storeSession <| Just <| encode 0 tokenValue )
+            ( { model | formState = Initial }, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
 
         SignupDone (Err error) ->
-            ( { model | formState = Error <| buildErrorMessage error }, Cmd.none )
-
-
-submitSignup : User.ValidCredentials -> Cmd Msg
-submitSignup credentials =
-    Http.post
-        { url = "/api/signup"
-        , body = Http.jsonBody (User.credentialsEncoder credentials)
-        , expect = Http.expectJson SignupDone tokenDecoder
-        }
+            ( { model | formState = Error <| Util.buildErrorMessage error }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -104,7 +97,7 @@ view model =
         [ Html.h2 [ Attr.css [ Tw.text_3xl ] ] [ text "Signup" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ loadingElement ]
+                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
 
             Error error ->
                 Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]

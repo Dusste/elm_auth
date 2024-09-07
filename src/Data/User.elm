@@ -1,4 +1,4 @@
-module User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, emailEncoder, fromEmailToString, fromStringToValidEmail, parseEmail, passwordEncoder, validateConfirmPassword, validateCredentials)
+module Data.User exposing (Email, Password, ValidCredentials, andThenValidateConfirmPassword, credentialsEncoder, emailEncoder, fromEmailToString, fromStringToValidEmail, parseEmail, passwordEncoder, validateConfirmPassword, validateCredentials)
 
 import Json.Encode as Encode
 import Parser as P exposing ((|.), (|=), Parser, deadEndsToString)

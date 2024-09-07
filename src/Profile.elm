@@ -1,28 +1,17 @@
 module Profile exposing (..)
 
-import Credentials
-    exposing
-        ( Session
-        , Token
-        , addHeader
-        , decodeTokenData
-        , encodeImageString
-        , encodeToken
-        , fromSessionToToken
-        , fromTokenToString
-        , logout
-        , storeSession
-        , tokenDecoder
-        )
+import Api.Profile
+import Data.Credentials as Credentials
+import Data.Ports as Ports
+import Data.Util as Util
 import File exposing (File)
 import File.Select as Select
 import GlobalStyles as Gs
-import Helpers exposing (buildErrorMessage, loadingElement)
 import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (src, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import Json.Encode as Encode exposing (encode)
+import Json.Encode
 import Jwt
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
@@ -46,26 +35,18 @@ type FormState
 
 type UserState
     = NotVerified
-    | Verified Session
+    | Verified Credentials.Session
     | Intruder
     | SessionExpired
 
 
 type Msg
     = StoreFirstName String
-    | ProfileSubmit Session
-    | ProfileDone (Result Http.Error Token)
+    | ProfileSubmit Credentials.Session
+    | ProfileDone (Result Http.Error Credentials.Token)
     | FileRequest
     | FileRequestProceed File
     | FileRead (Result Http.Error String)
-
-
-profileSubmitDataEncoder : { name : String, profilePic : String } -> Encode.Value
-profileSubmitDataEncoder { name, profilePic } =
-    Encode.object
-        [ ( "firstname", Encode.string name )
-        , ( "imagefile", encodeImageString profilePic )
-        ]
 
 
 initialModel : Model
@@ -77,11 +58,11 @@ initialModel =
     }
 
 
-init : Session -> ( Model, Cmd Msg )
+init : Credentials.Session -> ( Model, Cmd Msg )
 init session =
-    case fromSessionToToken session of
+    case Credentials.fromSessionToToken session of
         Just token ->
-            case Jwt.decodeToken decodeTokenData <| fromTokenToString token of
+            case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
                 Ok userDataFromToken ->
                     ( { initialModel
                         | storeName = userDataFromToken.firstname
@@ -115,7 +96,7 @@ view model =
                 [ Html.h2 [ Attr.css [ Tw.text_3xl ] ] [ text "Hello" ]
                 , case model.formState of
                     Loading ->
-                        Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ loadingElement ]
+                        Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
 
                     Error error ->
                         Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
@@ -214,21 +195,21 @@ update msg model =
                 ( { model | formState = Error "Name can't be empty" }, Cmd.none )
 
             else
-                ( { model | formState = Loading }, submitProfile session { name = model.storeName, profilePic = imageOrNot } )
+                ( { model | formState = Loading }, Api.Profile.submitProfile session { name = model.storeName, profilePic = imageOrNot } ProfileDone )
 
         ProfileDone (Ok token) ->
             let
                 tokenValue =
-                    encodeToken token
+                    Credentials.encodeToken token
             in
-            ( { model | formState = Initial }, storeSession <| Just <| encode 0 tokenValue )
+            ( { model | formState = Initial }, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
 
         ProfileDone (Err error) ->
-            ( { model | formState = Error <| buildErrorMessage error }
+            ( { model | formState = Error <| Util.buildErrorMessage error }
             , case error of
                 Http.BadStatus statusCode ->
                     if statusCode == 401 then
-                        logout
+                        Ports.logout
 
                     else
                         Cmd.none
@@ -247,22 +228,4 @@ update msg model =
             ( { model | profilePic = Just imageFileString }, Cmd.none )
 
         FileRead (Err error) ->
-            ( { model | formState = Error <| buildErrorMessage error }, Cmd.none )
-
-
-submitProfile : Session -> { profilePic : String, name : String } -> Cmd Msg
-submitProfile session data =
-    case fromSessionToToken session of
-        Just token ->
-            Http.request
-                { method = "PUT"
-                , headers = [ addHeader token ]
-                , url = "/api/profile"
-                , body = Http.jsonBody (profileSubmitDataEncoder data)
-                , expect = Http.expectJson ProfileDone tokenDecoder
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-
-        Nothing ->
-            Cmd.none
+            ( { model | formState = Error <| Util.buildErrorMessage error }, Cmd.none )

@@ -1,4 +1,4 @@
-module Helpers exposing (buildErrorMessage, loadingElement, validEmail)
+module Data.Util exposing (..)
 
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
