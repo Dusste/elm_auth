@@ -5,14 +5,11 @@ import Data.Credentials as Credentials
 import Data.Ports as Ports
 import Data.Util as Util
 import Data.Verification as Verification
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr
+import Html exposing (Html)
+import Html.Attributes as HA
 import Http
 import Json.Encode
 import Process
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
 import Task
 
 
@@ -96,17 +93,19 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ] ]
+    Html.div
+        [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+        ]
         [ case model.userState of
             VerificationPending ->
                 Html.div
                     []
                     [ Html.h2
                         []
-                        [ text "Give us a moment to verify your account ! " ]
+                        [ Html.text "Give us a moment to verify your account ! " ]
                     , Html.p
                         []
-                        [ text "Soon you will have access to a all profile features" ]
+                        [ Html.text "Soon you will have access to a all profile features" ]
                     , Util.loadingElement
                     ]
 
@@ -115,10 +114,10 @@ view model =
                     []
                     [ Html.h2
                         []
-                        [ text "Thanks for verifying your email ! " ]
+                        [ Html.text "Thanks for verifying your email ! " ]
                     , Html.p
                         []
-                        [ text "Now you will be redirected to your profile page and have full access to all app's features" ]
+                        [ Html.text "Now you will be redirected to your profile page and have full access to all app's features" ]
                     , Util.loadingElement
                     ]
 
@@ -127,10 +126,10 @@ view model =
                     []
                     [ Html.h2
                         []
-                        [ text "UPS seems that something is off !" ]
+                        [ Html.text "UPS seems that something is off !" ]
                     , Html.p
                         []
-                        [ text "Try to re-login or refresh the page" ]
+                        [ Html.text "Try to re-login or refresh the page" ]
                     ]
 
             Verified ->
@@ -138,10 +137,10 @@ view model =
                     []
                     [ Html.h2
                         []
-                        [ text "HMMm seems that you're already verified !" ]
+                        [ Html.text "HMMm seems that you're already verified !" ]
                     , Html.p
                         []
-                        [ text "Please proceed to you profile" ]
+                        [ Html.text "Please proceed to you profile" ]
                     ]
 
             Sessionless ->
@@ -149,9 +148,9 @@ view model =
                     []
                     [ Html.h2
                         []
-                        [ text "You are not logged in !" ]
+                        [ Html.text "You are not logged in !" ]
                     , Html.p
                         []
-                        [ text "Please proceed to login" ]
+                        [ Html.text "Please proceed to login" ]
                     ]
         ]

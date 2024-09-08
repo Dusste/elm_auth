@@ -7,6 +7,7 @@ module Data.User exposing
     , emailEncoder
     , fromEmailToString
     , fromStringToValidEmail
+    , isEmailValid
     , parseEmail
     , passwordEncoder
     , validateConfirmPassword
@@ -70,6 +71,16 @@ fromStringToValidEmail email =
 
     else
         parseEmail trimmedEmail
+
+
+isEmailValid : String -> Bool
+isEmailValid email =
+    case fromStringToValidEmail email of
+        Ok _ ->
+            True
+
+        Err _ ->
+            False
 
 
 

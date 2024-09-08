@@ -1,25 +1,26 @@
 module Login exposing (Model, Msg, init, update, view)
 
 import Api.Login
+import Components.Element
+import Components.Error
 import Data.Credentials as Credentials
 import Data.Ports as Ports
 import Data.User as User
 import Data.Util as Util
-import GlobalStyles as Gs
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Dict exposing (Dict)
+import Html exposing (Html)
+import Html.Attributes as HA
+import Html.Events as HE
 import Http
 import Json.Encode
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
+import Maybe.Extra
 
 
 type alias Model =
     { storeEmail : String
     , storePassword : String
     , formState : FormState
+    , errors : Dict String (List String)
     }
 
 
@@ -28,6 +29,7 @@ initialModel =
     { storeEmail = ""
     , storePassword = ""
     , formState = Initial
+    , errors = Dict.empty
     }
 
 
@@ -55,21 +57,44 @@ update msg model =
 
         LoginSubmit ->
             let
-                validatedCred : Result String User.ValidCredentials
-                validatedCred =
-                    User.validateCredentials { email = model.storeEmail, password = model.storePassword }
+                errors : Dict String (List String)
+                errors =
+                    model.errors
+                        |> Components.Error.updateError
+                            (String.length model.storeEmail == 0)
+                            "email"
+                            "Email is empty"
+                        |> Components.Error.updateError
+                            (User.isEmailValid model.storeEmail
+                                |> not
+                            )
+                            "email"
+                            "Email is invalid"
+                        |> Components.Error.updateError
+                            (String.length model.storePassword == 0)
+                            "password"
+                            "Password cannot be empty"
             in
-            case validatedCred of
-                Err error ->
-                    ( { model | formState = Error error }
-                    , Cmd.none
-                    )
+            if Components.Error.anyActiveError errors then
+                ( { model | errors = errors }, Cmd.none )
 
-                Ok validCredentials ->
-                    ( { model | formState = Loading }
-                    , Api.Login.submitLogin validCredentials LoginDone
-                    )
+            else
+                ( { model | errors = errors }, Cmd.none )
 
+        -- let
+        --     validatedCred : Result String User.ValidCredentials
+        --     validatedCred =
+        --         User.validateCredentials { email = model.storeEmail, password = model.storePassword }
+        -- in
+        -- case validatedCred of
+        --     Err error ->
+        --         ( { model | formState = Error error }
+        --         , Cmd.none
+        --         )
+        --     Ok validCredentials ->
+        --         ( { model | formState = Loading }
+        --         , Api.Login.submitLogin validCredentials LoginDone
+        --         )
         LoginDone (Ok token) ->
             let
                 tokenValue =
@@ -80,7 +105,7 @@ update msg model =
             )
 
         LoginDone (Err error) ->
-            ( { model | formState = Error <| Util.buildErrorMessage error }
+            ( { model | formState = Error <| Components.Error.buildErrorMessage error }
             , Cmd.none
             )
 
@@ -88,49 +113,84 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ] ]
+        [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
+          HA.class "flex flex-col"
+        ]
         [ Html.h2
-            [ Attr.css [ Tw.text_3xl ] ]
-            [ text "Login" ]
+            [-- HA.class [ Tw.text_3xl ]
+            ]
+            [ Html.text "Login" ]
         , case model.formState of
             Loading ->
                 Html.div
-                    [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                    [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                    ]
                     [ Util.loadingElement ]
 
             Error error ->
                 Html.p
-                    [ Attr.css [ Tw.text_color Tw.red_400 ] ]
-                    [ text error ]
+                    [-- HA.class [ Tw.text_color Tw.red_400 ]
+                    ]
+                    [ Html.text error ]
 
             Initial ->
-                text ""
+                Html.text ""
         , Html.form
-            [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
+            [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+            ]
             [ Html.div
-                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ Html.label
-                    []
-                    [ text "Email" ]
-                , Html.input
-                    [ Attr.css Gs.inputStyle, type_ "text", onInput StoreEmail, value model.storeEmail ]
-                    []
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ --  Html.label
+                  --     []
+                  --     [ Html.text "Email" ]
+                  -- , Html.input
+                  --     [ -- HA.class Gs.inputStyle
+                  --       HA.type_ "text"
+                  --     , HE.onInput StoreEmail
+                  --     , HA.value model.storeEmail
+                  --     ]
+                  --     []
+                  Components.Element.inputField
+                    { type_ = Components.Element.Text
+                    , label = Just "Email"
+                    , value = model.storeEmail
+                    , toMsg = StoreEmail
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "email" model.errors
+                    }
                 ]
             , Html.div
-                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ Html.label
-                    [ Attr.css [] ]
-                    [ text "Password" ]
-                , Html.input
-                    [ Attr.css Gs.inputStyle, type_ "password", onInput StorePassword, value model.storePassword ]
-                    []
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
+
+                -- Html.label
+                --     [ HA.css [] ]
+                --     [ text "Password" ]
+                -- , Html.input
+                --     [ HA.css Gs.inputStyle, type_ "password", onInput StorePassword, value model.storePassword ]
+                --     []
                 ]
             , Html.button
-                [ Attr.css Gs.buttonStyle, type_ "button", onClick LoginSubmit ]
-                [ text "Sign in" ]
+                [ -- HA.class Gs.buttonStyle
+                  HA.type_ "button"
+                , HE.onClick LoginSubmit
+                ]
+                [ Html.text "Sign in" ]
             , Html.a
-                [ Attr.href "/forgot-password", Attr.css [ Tw.mt_5 ] ]
-                [ text "Forgot password ?" ]
+                [ HA.href "/forgot-password"
+
+                -- , HA.class [ Tw.mt_5 ]
+                ]
+                [ Html.text "Forgot password ?" ]
             ]
         ]
 

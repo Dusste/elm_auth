@@ -7,17 +7,15 @@ import Data.Ports as Ports
 import Data.Verification as Verification
 import ForgotPassword
 import Home
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (classList, href, src, style, width)
-import Html.Styled.Events exposing (onClick)
+import Html exposing (Html)
+import Html.Attributes as HA
+import Html.Events as HE
 import Json.Decode
 import Jwt
 import Login
 import Profile
 import ResetPassword
 import Signup
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
 import Task
 import Time
 import Url exposing (Url)
@@ -107,14 +105,14 @@ content model =
                     |> Html.map GotVerificationMsg
 
             NotFoundPage ->
-                Html.p [] [ text "Page not found buddy -_- sorry" ]
+                Html.p [] [ Html.text "Page not found buddy -_- sorry" ]
         ]
 
 
 app : Model -> Html Msg
 app model =
     Html.div
-        [ onClick <| CheckSessionExpired ( model.session, model.time ) ]
+        [ HE.onClick <| CheckSessionExpired ( model.session, model.time ) ]
         [ viewHeader model
         , content model
 
@@ -126,26 +124,28 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "My elm app"
     , body =
-        [ Html.toUnstyled <| app model ]
+        [ app model ]
     }
 
 
 viewFooter : Html Msg
 viewFooter =
-    Html.footer [ Attr.css [ Tw.bg_color Tw.black, Tw.text_color Tw.white, Tw.p_10, Tw.w_full ] ]
-        [ text "This is footer"
+    Html.footer
+        [-- Attr.class [ Tw.bg_color Tw.black, Tw.text_color Tw.white, Tw.p_10, Tw.w_full ]
         ]
+        [ Html.text "This is footer" ]
 
 
 viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
     Html.nav
-        [ Attr.css [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ] ]
+        [-- Attr.class [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ]
+        ]
         [ Html.h1
             []
             [ Html.a
-                [ href "/" ]
-                [ text "My elm app" ]
+                [ HA.href "/" ]
+                [ Html.text "My elm app" ]
             ]
         , case Credentials.fromSessionToToken session of
             Just token ->
@@ -153,39 +153,46 @@ viewHeader { page, session, openDropdown } =
 
             Nothing ->
                 Html.ul
-                    [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4 ] ]
+                    [-- HA.class [ Tw.flex, Tw.justify_between, Tw.gap_4 ]
+                    ]
                     [ Html.li
-                        [ classList
+                        [ HA.classList
                             [ ( "active"
                               , isActive { link = Home, page = page }
                               )
                             ]
                         ]
                         [ Html.a
-                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/" ]
-                            [ text "home" ]
+                            [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                              HA.href "/"
+                            ]
+                            [ Html.text "home" ]
                         ]
                     , Html.li
-                        [ classList
+                        [ HA.classList
                             [ ( "active"
                               , isActive { link = Login, page = page }
                               )
                             ]
                         ]
                         [ Html.a
-                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/login" ]
-                            [ text "login" ]
+                            [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                              HA.href "/login"
+                            ]
+                            [ Html.text "login" ]
                         ]
                     , Html.li
-                        [ classList
+                        [ HA.classList
                             [ ( "active"
                               , isActive { link = Signup, page = page }
                               )
                             ]
                         ]
                         [ Html.a
-                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/signup" ]
-                            [ text "sign up" ]
+                            [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                              HA.href "/signup"
+                            ]
+                            [ Html.text "sign up" ]
                         ]
                     ]
         ]
@@ -195,7 +202,14 @@ viewProfilePic : Maybe String -> List (Html.Attribute msg) -> Html msg
 viewProfilePic maybeSrc attr =
     case maybeSrc of
         Just url ->
-            Html.img (List.append [ Attr.css [ Tw.w_10 ], src url ] attr) []
+            Html.img
+                (List.append
+                    [ -- HA.class [ Tw.w_10 ]
+                      HA.src url
+                    ]
+                    attr
+                )
+                []
 
         Nothing ->
             Html.text ""
@@ -204,37 +218,58 @@ viewProfilePic maybeSrc attr =
 viewSessionHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
 viewSessionHeader { page, token, openDropdown } =
     Html.ul
-        [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ] ]
+        [-- Attr.class [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ]
+        ]
         [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
                 Html.li
-                    [ Attr.css [ Tw.cursor_pointer ] ]
+                    [-- HA.class [ Tw.cursor_pointer ]
+                    ]
                     [ Html.div
-                        [ Attr.css [ Tw.relative ] ]
+                        [-- HA.class [ Tw.relative ]
+                        ]
                         [ if String.length resultTokenRecord.firstname > 0 then
                             Html.div
-                                [ Attr.css [ Tw.flex, Tw.items_center ], onClick OpenDropdown ]
+                                [ --  HA.class [ Tw.flex, Tw.items_center ]
+                                  HE.onClick OpenDropdown
+                                ]
                                 [ Html.div
-                                    [ Attr.css [ Tw.w_10, Tw.h_10, Tw.overflow_hidden, Tw.rounded_full ] ]
-                                    [ viewProfilePic resultTokenRecord.profilepicurl [ Attr.css [ Tw.w_10 ] ] ]
+                                    [-- HA.class [ Tw.w_10, Tw.h_10, Tw.overflow_hidden, Tw.rounded_full ]
+                                    ]
+                                    [ viewProfilePic resultTokenRecord.profilepicurl
+                                        [--  HA.class [ Tw.w_10 ]
+                                        ]
+                                    ]
                                 , Html.span
-                                    [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ]
-                                    [ text resultTokenRecord.firstname, Html.sup [ Attr.css [ Tw.ml_1 ] ] [ text "⌄" ] ]
+                                    [-- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl ]
+                                    ]
+                                    [ Html.text resultTokenRecord.firstname
+                                    , Html.sup
+                                        [--  HA.class [ Tw.ml_1 ]
+                                        ]
+                                        [ Html.text "⌄" ]
+                                    ]
                                 ]
 
                           else
                             Html.div
-                                [ onClick OpenDropdown ]
+                                [ HE.onClick OpenDropdown ]
                                 [ Html.span
-                                    [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ]
-                                    [ text resultTokenRecord.email, Html.sup [ Attr.css [ Tw.ml_1 ] ] [ text "⌄" ] ]
+                                    [-- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl ]
+                                    ]
+                                    [ Html.text resultTokenRecord.email
+                                    , Html.sup
+                                        [-- HA.class [ Tw.ml_1 ]
+                                        ]
+                                        [ Html.text "⌄" ]
+                                    ]
                                 , Html.div
                                     []
-                                    [ viewProfilePic resultTokenRecord.profilepicurl [ width 60 ] ]
+                                    [ viewProfilePic resultTokenRecord.profilepicurl [ HA.width 60 ] ]
                                 ]
                         , Html.ul
-                            [ Attr.css [ Tw.flex, Tw.absolute, Tw.mt_3, Tw.flex_col, Tw.gap_1, Tw.overflow_hidden, Tw.transition_all, Tw.duration_500, Tw.bg_color Tw.white ]
-                            , style "height"
+                            [ -- HA.class [ Tw.flex, Tw.absolute, Tw.mt_3, Tw.flex_col, Tw.gap_1, Tw.overflow_hidden, Tw.transition_all, Tw.duration_500, Tw.bg_color Tw.white ]
+                              HA.style "height"
                                 (if openDropdown then
                                     "90px"
 
@@ -243,20 +278,33 @@ viewSessionHeader { page, token, openDropdown } =
                                 )
                             ]
                             [ Html.li
-                                [ classList
+                                [ HA.classList
                                     [ ( "active"
                                       , isActive { link = Profile resultTokenRecord.id, page = page }
                                       )
                                     ]
-                                , onClick OpenDropdown
+                                , HE.onClick OpenDropdown
                                 ]
-                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ], href <| "/profile/" ++ Credentials.userIdToString resultTokenRecord.id ] [ text "My profile" ] ]
+                                [ Html.a
+                                    [ -- HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
+                                      HA.href <| "/profile/" ++ Credentials.userIdToString resultTokenRecord.id
+                                    ]
+                                    [ Html.text "My profile" ]
+                                ]
                             , Html.li
-                                [ onClick OpenDropdown ]
-                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option2" ] ]
+                                [ HE.onClick OpenDropdown ]
+                                [ Html.a
+                                    [--  HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
+                                    ]
+                                    [ Html.text "option2" ]
+                                ]
                             , Html.li
-                                [ onClick OpenDropdown ]
-                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option3" ] ]
+                                [ HE.onClick OpenDropdown ]
+                                [ Html.a
+                                    [-- HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
+                                    ]
+                                    [ Html.text "option3" ]
+                                ]
                             ]
                         ]
                     ]
@@ -266,8 +314,11 @@ viewSessionHeader { page, token, openDropdown } =
         , Html.li
             []
             [ Html.a
-                [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/", onClick GetLogout ]
-                [ text "logout" ]
+                [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                  HA.href "/"
+                , HE.onClick GetLogout
+                ]
+                [ Html.text "logout" ]
             ]
         ]
 

@@ -1,18 +1,13 @@
 module ForgotPassword exposing (..)
 
 import Api.ForgotPassword
+import Components.Error
 import Data.User as User
 import Data.Util as Util
-import GlobalStyles as Gs
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html exposing (Html, text)
+import Html.Attributes as HA
+import Html.Events as HE
 import Http
-import Process
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
-import Task
 
 
 type alias Model =
@@ -47,17 +42,20 @@ init _ =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ] ]
+        [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+        ]
         [ Html.h2 [] [ text "Forgot Password" ]
         , case model.formState of
             Loading ->
                 Html.div
-                    [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                    [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                    ]
                     [ Util.loadingElement ]
 
             Error error ->
                 Html.p
-                    [ Attr.css [ Tw.text_color Tw.red_400 ] ]
+                    [-- HA.class [ Tw.text_color Tw.red_400 ]
+                    ]
                     [ text error ]
 
             Initial ->
@@ -65,7 +63,8 @@ view model =
 
             Success ->
                 Html.div
-                    [ Attr.css [ Tw.text_center ] ]
+                    [--  HA.class [ Tw.text_center ]
+                    ]
                     [ Html.h2 [] [ text "Submitted successfully !" ]
                     , Html.p [] [ text "Check your email for rest link." ]
                     ]
@@ -73,9 +72,21 @@ view model =
             []
             [ text "Enter your email and we will send you a reset link." ]
         , Html.form
-            [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
-            [ Html.input [ Attr.css Gs.inputStyle, type_ "text", onInput StoreEmail, value model.storeEmail ] []
-            , Html.button [ Attr.css Gs.buttonStyle, type_ "button", onClick Submit ] [ text "Submit" ]
+            [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+            ]
+            [ Html.input
+                [ -- HA.class Gs.inputStyle,
+                  HA.type_ "text"
+                , HE.onInput StoreEmail
+                , HA.value model.storeEmail
+                ]
+                []
+            , Html.button
+                [ -- HA.class Gs.buttonStyle
+                  HA.type_ "button"
+                , HE.onClick Submit
+                ]
+                [ text "Submit" ]
             ]
         ]
 
@@ -105,4 +116,4 @@ update msg model =
             ( { model | formState = Success, storeEmail = "" }, Cmd.none )
 
         Done (Err err) ->
-            ( { model | formState = Error <| Util.buildErrorMessage err }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage err }, Cmd.none )

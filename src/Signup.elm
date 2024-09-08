@@ -1,19 +1,16 @@
 module Signup exposing (Model, Msg, init, update, view)
 
 import Api.Signup
+import Components.Error
 import Data.Credentials as Credentials
 import Data.Ports as Ports
 import Data.User as User
 import Data.Util as Util
-import GlobalStyles as Gs
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html exposing (Html)
+import Html.Attributes as HA
+import Html.Events as HE
 import Http
 import Json.Encode
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
 
 
 type alias Model =
@@ -81,55 +78,78 @@ update msg model =
             ( { model | formState = Initial }, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
 
         SignupDone (Err error) ->
-            ( { model | formState = Error <| Util.buildErrorMessage error }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage error }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ] ]
-        [ Html.h2 [ Attr.css [ Tw.text_3xl ] ] [ text "Signup" ]
+        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
+        ]
+        [ Html.h2
+            [--  HA.class [ Tw.text_3xl ]
+            ]
+            [ Html.text "Signup" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
+                Html.div
+                    [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                    ]
+                    [ Util.loadingElement ]
 
             Error error ->
-                Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
+                Html.p
+                    [--  HA.class [ Tw.text_color Tw.red_400 ]
+                    ]
+                    [ Html.text error ]
 
             Initial ->
-                text ""
-        , Html.form [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
-            [ Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ text "Email"
+                Html.text ""
+        , Html.form
+            [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+            ]
+            [ Html.div
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Html.text "Email"
                 , Html.input
-                    [ Attr.css Gs.inputStyle
-                    , type_ "text"
-                    , onInput StoreEmail
-                    , value model.storeEmail
+                    [ -- HA.class Gs.inputStyle
+                      HA.type_ "text"
+                    , HE.onInput StoreEmail
+                    , HA.value model.storeEmail
                     ]
                     []
                 ]
-            , Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ text "Password"
+            , Html.div
+                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Html.text "Password"
                 , Html.input
-                    [ Attr.css Gs.inputStyle
-                    , type_ "password"
-                    , onInput StorePassword
-                    , value model.storePassword
+                    [ -- HA.class Gs.inputStyle
+                      HA.type_ "password"
+                    , HE.onInput StorePassword
+                    , HA.value model.storePassword
                     ]
                     []
                 ]
-            , Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ text "Confirm Password"
+            , Html.div
+                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Html.text "Confirm Password"
                 , Html.input
-                    [ Attr.css Gs.inputStyle
-                    , type_ "password"
-                    , onInput StoreConfirmPassword
-                    , value model.storeConfirmPassword
+                    [ --  HA.class Gs.inputStyle
+                      HA.type_ "password"
+                    , HE.onInput StoreConfirmPassword
+                    , HA.value model.storeConfirmPassword
                     ]
                     []
                 ]
-            , Html.button [ Attr.css Gs.buttonStyle, type_ "button", onClick SignupSubmit ] [ text "Sign up" ]
+            , Html.button
+                [ -- /HA.class Gs.buttonStyle
+                  HA.type_ "button"
+                , HE.onClick SignupSubmit
+                ]
+                [ Html.text "Sign up" ]
             ]
         ]
 

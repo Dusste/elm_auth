@@ -10,4 +10,5 @@
 ###Commands
 
 - elm make src/Main.elm --output=public/app.js
-- npm start
+- start app: npm start
+- start tailwind css watch: npm run css:watch

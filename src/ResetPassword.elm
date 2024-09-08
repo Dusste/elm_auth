@@ -1,16 +1,13 @@
 module ResetPassword exposing (..)
 
 import Api.ResetPassword
+import Components.Error
 import Data.User as User
 import Data.Util as Util
-import GlobalStyles as Gs
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html exposing (Html)
+import Html.Attributes as HA
+import Html.Events as HE
 import Http
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
 
 
 type alias Model =
@@ -54,63 +51,71 @@ init resetCodeParam =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ Attr.css
-            [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+        [-- HA.class[ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
         ]
         [ Html.h2
             []
-            [ text "Reset password" ]
+            [ Html.text "Reset password" ]
         , case model.formState of
             Loading ->
                 Html.div
-                    [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                    [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                    ]
                     [ Util.loadingElement ]
 
             Error error ->
                 Html.p
-                    [ Attr.css [ Tw.text_color Tw.red_400 ] ]
-                    [ text error ]
+                    [-- HA.class [ Tw.text_color Tw.red_400 ]
+                    ]
+                    [ Html.text error ]
 
             Initial ->
-                text ""
+                Html.text ""
 
             Success ->
                 Html.div
-                    [ Attr.css [ Tw.text_center ] ]
+                    [-- HA.class [ Tw.text_center ]
+                    ]
                     [ Html.h2
                         []
-                        [ text "All done !" ]
+                        [ Html.text "All done !" ]
                     , Html.p
                         []
-                        [ text "Your password has been reset. Please login with your new password." ]
+                        [ Html.text "Your password has been reset. Please login with your new password." ]
                     ]
         , Html.form
-            [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
+            [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+            ]
             [ Html.div
-                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ text "Password"
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Html.text "Password"
                 , Html.input
-                    [ Attr.css Gs.inputStyle
-                    , type_ "password"
-                    , onInput StorePassword
-                    , value model.storePassword
+                    [ --  HA.class Gs.inputStyle
+                      HA.type_ "password"
+                    , HE.onInput StorePassword
+                    , HA.value model.storePassword
                     ]
                     []
                 ]
             , Html.div
-                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                [ text "Confirm Password"
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                ]
+                [ Html.text "Confirm Password"
                 , Html.input
-                    [ Attr.css Gs.inputStyle
-                    , type_ "password"
-                    , onInput StoreConfirmPassword
-                    , value model.storeConfirmPassword
+                    [ -- HA.class Gs.inputStyle
+                      HA.type_ "password"
+                    , HE.onInput StoreConfirmPassword
+                    , HA.value model.storeConfirmPassword
                     ]
                     []
                 ]
             , Html.button
-                [ Attr.css Gs.buttonStyle, type_ "button", onClick Submit ]
-                [ text "Submit" ]
+                [ -- HA.class Gs.buttonStyle
+                  HA.type_ "button"
+                , HE.onClick Submit
+                ]
+                [ Html.text "Submit" ]
             ]
         ]
 
@@ -143,4 +148,4 @@ update msg model =
             ( { model | formState = Success, storePassword = "", storeConfirmPassword = "" }, Cmd.none )
 
         Done (Err err) ->
-            ( { model | formState = Error <| Util.buildErrorMessage err }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage err }, Cmd.none )

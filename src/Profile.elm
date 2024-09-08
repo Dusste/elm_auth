@@ -1,21 +1,17 @@
 module Profile exposing (..)
 
 import Api.Profile
+import Components.Error
 import Data.Credentials as Credentials
 import Data.Ports as Ports
 import Data.Util as Util
 import File exposing (File)
 import File.Select as Select
-import GlobalStyles as Gs
-import Html.Styled as Html exposing (Html, text)
-import Html.Styled.Attributes as Attr exposing (src, type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html exposing (Html)
+import Html.Attributes as HA
+import Html.Events as HE
 import Http
 import Json.Encode
-import Jwt
-import Tailwind.Breakpoints as Bp
-import Tailwind.Theme as Tw
-import Tailwind.Utilities as Tw
 import Task
 
 
@@ -92,55 +88,68 @@ view model =
     case model.userState of
         Verified session ->
             Html.div
-                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ] ]
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+                ]
                 [ Html.h2
-                    [ Attr.css [ Tw.text_3xl ] ]
-                    [ text "Hello" ]
+                    [-- HA.class [ Tw.text_3xl ]
+                    ]
+                    [ Html.text "Hello" ]
                 , case model.formState of
                     Loading ->
                         Html.div
-                            [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                            [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                            ]
                             [ Util.loadingElement ]
 
                     Error error ->
                         Html.p
-                            [ Attr.css [ Tw.text_color Tw.red_400 ] ]
-                            [ text error ]
+                            [-- HA.class [ Tw.text_color Tw.red_400 ]
+                            ]
+                            [ Html.text error ]
 
                     Initial ->
-                        text ""
+                        Html.text ""
                 , Html.form
-                    [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
+                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+                    ]
                     [ Html.div
-                        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                        [ text "First Name"
+                        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                        ]
+                        [ Html.text "First Name"
                         , Html.input
-                            [ Attr.css Gs.inputStyle
-                            , type_ "text"
-                            , onInput StoreFirstName
-                            , value model.storeName
+                            [ -- HA.class Gs.inputStyle
+                              HA.type_ "text"
+                            , HE.onInput StoreFirstName
+                            , HA.value model.storeName
                             ]
                             []
                         ]
                     , Html.div
-                        [ Attr.css [ Tw.flex, Tw.gap_3 ] ]
+                        [-- HA.class [ Tw.flex, Tw.gap_3 ]
+                        ]
                         [ Html.div
-                            [ Attr.css [ Tw.flex, Tw.flex_col ] ]
+                            [--  HA.class [ Tw.flex, Tw.flex_col ]
+                            ]
                             [ Html.p
-                                [ Attr.css [ Tw.m_0 ] ]
-                                [ text "Upload an avatar" ]
+                                [-- HA.class [ Tw.m_0 ]
+                                ]
+                                [ Html.text "Upload an avatar" ]
                             , Html.p
-                                [ Attr.css [ Tw.m_0, Tw.text_sm, Tw.text_color Tw.gray_400 ] ]
-                                [ text "(Size limit is 3 mb)" ]
+                                [-- HA.class [ Tw.m_0, Tw.text_sm, Tw.text_color Tw.gray_400 ]
+                                ]
+                                [ Html.text "(Size limit is 3 mb)" ]
                             ]
                         , Html.label
-                            [ Attr.for "file", Attr.css <| Gs.buttonStyle ++ [ Tw.overflow_hidden ] ]
-                            [ text "Choose file"
+                            [ HA.for "file"
+
+                            -- , HA.class <| Gs.buttonStyle ++ [ Tw.overflow_hidden ]
+                            ]
+                            [ Html.text "Choose file"
                             , Html.input
-                                [ Attr.css [ Tw.w_1, Tw.h_1, Tw.overflow_hidden, Tw.opacity_0, Tw.absolute, Tw.z_0 ]
-                                , Attr.id "file"
-                                , type_ "file"
-                                , onClick FileRequest
+                                [ -- HA.class [ Tw.w_1, Tw.h_1, Tw.overflow_hidden, Tw.opacity_0, Tw.absolute, Tw.z_0 ]
+                                  HA.id "file"
+                                , HA.type_ "file"
+                                , HE.onClick FileRequest
                                 ]
                                 []
                             ]
@@ -148,46 +157,65 @@ view model =
                     , case model.profilePic of
                         Just imageString ->
                             Html.div
-                                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
-                                [ text "Your avatar preview"
+                                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                                ]
+                                [ Html.text "Your avatar preview"
                                 , Html.img
-                                    [ Attr.css [ Tw.rounded ], src imageString ]
+                                    [ -- HA.class [ Tw.rounded ],
+                                      HA.src imageString
+                                    ]
                                     []
                                 ]
 
                         Nothing ->
-                            text ""
+                            Html.text ""
                     , Html.div
-                        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
+                        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                        ]
                         [ Html.button
-                            [ Attr.css Gs.buttonStyle
-                            , type_ "button"
-                            , onClick (ProfileSubmit session)
+                            [ -- HA.class Gs.buttonStyle
+                              HA.type_ "button"
+                            , HE.onClick (ProfileSubmit session)
                             ]
-                            [ text "Submit" ]
+                            [ Html.text "Submit" ]
                         ]
                     ]
                 ]
 
         NotVerified ->
-            Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ] ]
-                [ Html.h2 [] [ text "Please verify your email ! " ]
-                , Html.p []
-                    [ text "You can't access your profile until you verify your email" ]
+            Html.div
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+                ]
+                [ Html.h2
+                    []
+                    [ Html.text "Please verify your email ! " ]
+                , Html.p
+                    []
+                    [ Html.text "You can't access your profile until you verify your email" ]
                 ]
 
         Intruder ->
-            Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ] ]
-                [ Html.h2 [] [ text "Hmm seems you are not logged in" ]
-                , Html.p []
-                    [ text "Please create account or login" ]
+            Html.div
+                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+                ]
+                [ Html.h2
+                    []
+                    [ Html.text "Hmm seems you are not logged in" ]
+                , Html.p
+                    []
+                    [ Html.text "Please create account or login" ]
                 ]
 
         SessionExpired ->
-            Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ] ]
-                [ Html.h2 [] [ text "Your session have expired" ]
-                , Html.p []
-                    [ text "Please login again" ]
+            Html.div
+                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+                ]
+                [ Html.h2
+                    []
+                    [ Html.text "Your session have expired" ]
+                , Html.p
+                    []
+                    [ Html.text "Please login again" ]
                 ]
 
 
@@ -226,7 +254,7 @@ update msg model =
             )
 
         ProfileDone (Err error) ->
-            ( { model | formState = Error <| Util.buildErrorMessage error }
+            ( { model | formState = Error <| Components.Error.buildErrorMessage error }
             , case error of
                 Http.BadStatus statusCode ->
                     if statusCode == 401 then
@@ -249,4 +277,4 @@ update msg model =
             ( { model | profilePic = Just imageFileString }, Cmd.none )
 
         FileRead (Err error) ->
-            ( { model | formState = Error <| Util.buildErrorMessage error }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage error }, Cmd.none )
