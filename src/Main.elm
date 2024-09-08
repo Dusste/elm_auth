@@ -50,9 +50,9 @@ type Route
     | Signup
     | Profile Credentials.UserId
     | ForgotPassword
-    | ResetPassword String
+    | ResetPassword Credentials.ResetCodeParam
     | Home
-    | Verification String
+    | Verification Verification.VerificationString
     | NotFound
 
 

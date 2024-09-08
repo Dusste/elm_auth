@@ -1,4 +1,9 @@
-module Data.Verification exposing (..)
+module Data.Verification exposing
+    ( VerificationString
+    , verificationToString
+    , verifictionStringParser
+    , verifyStringDecoder
+    )
 
 import Json.Decode
 import Url.Parser
@@ -12,15 +17,6 @@ verificationToString : VerificationString -> String
 verificationToString (VerificationString verificationString) =
     -- TODO need some vaildation ?
     verificationString
-
-
-
--- TODO why ?
-
-
-emptyVerificationString : VerificationString
-emptyVerificationString =
-    VerificationString ""
 
 
 verifyStringDecoder : Json.Decode.Decoder VerificationString
