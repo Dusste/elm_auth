@@ -62,7 +62,7 @@ init : Credentials.Session -> ( Model, Cmd Msg )
 init session =
     case Credentials.fromSessionToToken session of
         Just token ->
-            case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
+            case Credentials.tokenToUserData token of
                 Ok userDataFromToken ->
                     ( { initialModel
                         | storeName = userDataFromToken.firstname
@@ -93,18 +93,26 @@ view model =
         Verified session ->
             Html.div
                 [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ] ]
-                [ Html.h2 [ Attr.css [ Tw.text_3xl ] ] [ text "Hello" ]
+                [ Html.h2
+                    [ Attr.css [ Tw.text_3xl ] ]
+                    [ text "Hello" ]
                 , case model.formState of
                     Loading ->
-                        Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
+                        Html.div
+                            [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                            [ Util.loadingElement ]
 
                     Error error ->
-                        Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
+                        Html.p
+                            [ Attr.css [ Tw.text_color Tw.red_400 ] ]
+                            [ text error ]
 
                     Initial ->
                         text ""
-                , Html.form [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
-                    [ Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
+                , Html.form
+                    [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
+                    [ Html.div
+                        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
                         [ text "First Name"
                         , Html.input
                             [ Attr.css Gs.inputStyle
@@ -114,12 +122,19 @@ view model =
                             ]
                             []
                         ]
-                    , Html.div [ Attr.css [ Tw.flex, Tw.gap_3 ] ]
-                        [ Html.div [ Attr.css [ Tw.flex, Tw.flex_col ] ]
-                            [ Html.p [ Attr.css [ Tw.m_0 ] ] [ text "Upload an avatar" ]
-                            , Html.p [ Attr.css [ Tw.m_0, Tw.text_sm, Tw.text_color Tw.gray_400 ] ] [ text "(Size limit is 3 mb)" ]
+                    , Html.div
+                        [ Attr.css [ Tw.flex, Tw.gap_3 ] ]
+                        [ Html.div
+                            [ Attr.css [ Tw.flex, Tw.flex_col ] ]
+                            [ Html.p
+                                [ Attr.css [ Tw.m_0 ] ]
+                                [ text "Upload an avatar" ]
+                            , Html.p
+                                [ Attr.css [ Tw.m_0, Tw.text_sm, Tw.text_color Tw.gray_400 ] ]
+                                [ text "(Size limit is 3 mb)" ]
                             ]
-                        , Html.label [ Attr.for "file", Attr.css <| Gs.buttonStyle ++ [ Tw.overflow_hidden ] ]
+                        , Html.label
+                            [ Attr.for "file", Attr.css <| Gs.buttonStyle ++ [ Tw.overflow_hidden ] ]
                             [ text "Choose file"
                             , Html.input
                                 [ Attr.css [ Tw.w_1, Tw.h_1, Tw.overflow_hidden, Tw.opacity_0, Tw.absolute, Tw.z_0 ]
@@ -132,7 +147,8 @@ view model =
                         ]
                     , case model.profilePic of
                         Just imageString ->
-                            Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
+                            Html.div
+                                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
                                 [ text "Your avatar preview"
                                 , Html.img
                                     [ Attr.css [ Tw.rounded ], src imageString ]
@@ -141,7 +157,8 @@ view model =
 
                         Nothing ->
                             text ""
-                    , Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
+                    , Html.div
+                        [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
                         [ Html.button
                             [ Attr.css Gs.buttonStyle
                             , type_ "button"
@@ -195,14 +212,18 @@ update msg model =
                 ( { model | formState = Error "Name can't be empty" }, Cmd.none )
 
             else
-                ( { model | formState = Loading }, Api.Profile.submitProfile session { name = model.storeName, profilePic = imageOrNot } ProfileDone )
+                ( { model | formState = Loading }
+                , Api.Profile.submitProfile session { name = model.storeName, profilePic = imageOrNot } ProfileDone
+                )
 
         ProfileDone (Ok token) ->
             let
                 tokenValue =
                     Credentials.encodeToken token
             in
-            ( { model | formState = Initial }, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
+            ( { model | formState = Initial }
+            , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
+            )
 
         ProfileDone (Err error) ->
             ( { model | formState = Error <| Util.buildErrorMessage error }

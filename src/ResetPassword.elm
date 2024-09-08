@@ -8,11 +8,9 @@ import Html.Styled as Html exposing (Html, text)
 import Html.Styled.Attributes as Attr exposing (type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
-import Process
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
-import Task
 
 
 type alias Model =
@@ -27,7 +25,6 @@ type Msg
     = StorePassword String
     | StoreConfirmPassword String
     | Submit
-    | HideError
     | Done (Result Http.Error ())
 
 
@@ -60,25 +57,37 @@ view model =
         [ Attr.css
             [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
         ]
-        [ Html.h2 [] [ text "Reset password" ]
+        [ Html.h2
+            []
+            [ text "Reset password" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
+                Html.div
+                    [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                    [ Util.loadingElement ]
 
             Error error ->
-                Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
+                Html.p
+                    [ Attr.css [ Tw.text_color Tw.red_400 ] ]
+                    [ text error ]
 
             Initial ->
                 text ""
 
             Success ->
-                Html.div [ Attr.css [ Tw.text_center ] ]
-                    [ Html.h2 [] [ text "All done !" ]
-                    , Html.p [] [ text "Your password has been reset. Please login with your new password." ]
+                Html.div
+                    [ Attr.css [ Tw.text_center ] ]
+                    [ Html.h2
+                        []
+                        [ text "All done !" ]
+                    , Html.p
+                        []
+                        [ text "Your password has been reset. Please login with your new password." ]
                     ]
         , Html.form
             [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
-            [ Html.div [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
+            [ Html.div
+                [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_3 ] ]
                 [ text "Password"
                 , Html.input
                     [ Attr.css Gs.inputStyle
@@ -117,13 +126,12 @@ update msg model =
             in
             case validatedCred of
                 Err error ->
-                    ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
+                    ( { model | formState = Error error }, Cmd.none )
 
                 Ok { password } ->
-                    ( { model | formState = Loading }, Api.ResetPassword.submitResetPassword password model.resetCodeParam Done )
-
-        HideError ->
-            ( { model | formState = Initial }, Cmd.none )
+                    ( { model | formState = Loading }
+                    , Api.ResetPassword.submitResetPassword password model.resetCodeParam Done
+                    )
 
         StorePassword str ->
             ( { model | storePassword = str }, Cmd.none )
@@ -135,4 +143,4 @@ update msg model =
             ( { model | formState = Success, storePassword = "", storeConfirmPassword = "" }, Cmd.none )
 
         Done (Err err) ->
-            ( { model | formState = Error <| Util.buildErrorMessage err }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
+            ( { model | formState = Error <| Util.buildErrorMessage err }, Cmd.none )

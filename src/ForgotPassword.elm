@@ -22,7 +22,6 @@ type alias Model =
 type Msg
     = StoreEmail String
     | Submit
-    | HideError
     | Done (Result Http.Error ())
 
 
@@ -52,21 +51,29 @@ view model =
         [ Html.h2 [] [ text "Forgot Password" ]
         , case model.formState of
             Loading ->
-                Html.div [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ] [ Util.loadingElement ]
+                Html.div
+                    [ Attr.css [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ] ]
+                    [ Util.loadingElement ]
 
             Error error ->
-                Html.p [ Attr.css [ Tw.text_color Tw.red_400 ] ] [ text error ]
+                Html.p
+                    [ Attr.css [ Tw.text_color Tw.red_400 ] ]
+                    [ text error ]
 
             Initial ->
                 text ""
 
             Success ->
-                Html.div [ Attr.css [ Tw.text_center ] ]
+                Html.div
+                    [ Attr.css [ Tw.text_center ] ]
                     [ Html.h2 [] [ text "Submitted successfully !" ]
                     , Html.p [] [ text "Check your email for rest link." ]
                     ]
-        , Html.p [] [ text "Enter your email and we will send you a reset link." ]
-        , Html.form [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
+        , Html.p
+            []
+            [ text "Enter your email and we will send you a reset link." ]
+        , Html.form
+            [ Attr.css [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ] ]
             [ Html.input [ Attr.css Gs.inputStyle, type_ "text", onInput StoreEmail, value model.storeEmail ] []
             , Html.button [ Attr.css Gs.buttonStyle, type_ "button", onClick Submit ] [ text "Submit" ]
             ]
@@ -84,13 +91,12 @@ update msg model =
             in
             case validatedCred of
                 Err error ->
-                    ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
+                    ( { model | formState = Error error }, Cmd.none )
 
                 Ok validCredentials ->
-                    ( { model | formState = Loading }, Api.ForgotPassword.submitForgotPassword validCredentials Done )
-
-        HideError ->
-            ( { model | formState = Initial }, Cmd.none )
+                    ( { model | formState = Loading }
+                    , Api.ForgotPassword.submitForgotPassword validCredentials Done
+                    )
 
         StoreEmail str ->
             ( { model | storeEmail = str }, Cmd.none )
@@ -99,4 +105,4 @@ update msg model =
             ( { model | formState = Success, storeEmail = "" }, Cmd.none )
 
         Done (Err err) ->
-            ( { model | formState = Error <| Util.buildErrorMessage err }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
+            ( { model | formState = Error <| Util.buildErrorMessage err }, Cmd.none )

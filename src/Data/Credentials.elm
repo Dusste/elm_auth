@@ -1,6 +1,5 @@
 module Data.Credentials exposing
-    ( ImageString
-    , ResetCodeParam
+    ( ResetCodeParam
     , Session
     , Token
     , UserDataFromToken
@@ -16,6 +15,7 @@ module Data.Credentials exposing
     , resetCodeParamToString
     , subscriptionChanges
     , tokenDecoder
+    , tokenToUserData
     , userIdParser
     , userIdToString
     )
@@ -27,6 +27,7 @@ import Http
 import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
+import Jwt
 import Url.Parser
 
 
@@ -58,7 +59,7 @@ userIdToString (UserId id) =
     id
 
 
-encodeImageString : ImageString -> Json.Encode.Value
+encodeImageString : String -> Json.Encode.Value
 encodeImageString imageString =
     Json.Encode.string imageString
 
@@ -68,17 +69,13 @@ idDecoder =
     Json.Decode.map UserId Json.Decode.string
 
 
-type alias ImageString =
-    String
-
-
 type alias UserDataFromToken =
     { id : UserId
     , isverified : Bool
     , email : String
     , firstname : String
     , verificationstring : Verification.VerificationString
-    , profilepicurl : ImageString
+    , profilepicurl : Maybe String
     }
 
 
@@ -97,6 +94,11 @@ fromTokenToString (Token string) =
     string
 
 
+tokenToUserData : Token -> Result Jwt.JwtError UserDataFromToken
+tokenToUserData token =
+    Jwt.decodeToken decodeTokenData (fromTokenToString token)
+
+
 tokenDecoder : Json.Decode.Decoder Token
 tokenDecoder =
     Json.Decode.succeed Token
@@ -111,13 +113,24 @@ encodeToken (Token token) =
 
 decodeTokenData : Json.Decode.Decoder UserDataFromToken
 decodeTokenData =
-    Json.Decode.map6 UserDataFromToken
-        (Json.Decode.at [ "id" ] idDecoder)
-        (Json.Decode.at [ "isverified" ] Json.Decode.bool)
-        (Json.Decode.at [ "email" ] Json.Decode.string)
-        (Json.Decode.at [ "firstname" ] Json.Decode.string)
-        (Json.Decode.at [ "verificationstring" ] Verification.verifyStringDecoder)
-        (Json.Decode.at [ "profilepicurl" ] Json.Decode.string)
+    Json.Decode.succeed UserDataFromToken
+        |> Json.Decode.Pipeline.required "id" idDecoder
+        |> Json.Decode.Pipeline.required "isverified" Json.Decode.bool
+        |> Json.Decode.Pipeline.required "email" Json.Decode.string
+        |> Json.Decode.Pipeline.required "firstname" Json.Decode.string
+        |> Json.Decode.Pipeline.required "verificationstring" Verification.verifyStringDecoder
+        |> Json.Decode.Pipeline.optional "profilepicurl"
+            (Json.Decode.map
+                (\s ->
+                    if s == "" then
+                        Nothing
+
+                    else
+                        Just s
+                )
+                Json.Decode.string
+            )
+            Nothing
 
 
 

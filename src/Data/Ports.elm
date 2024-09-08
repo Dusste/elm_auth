@@ -1,4 +1,4 @@
-port module Data.Ports exposing (..)
+port module Data.Ports exposing (logout, onSessionChange, storeSession)
 
 import Json.Encode exposing (Value)
 

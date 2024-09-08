@@ -75,7 +75,8 @@ type Msg
 
 content : Model -> Html Msg
 content model =
-    Html.div []
+    Html.div
+        []
         [ case model.page of
             LoginPage loginModel ->
                 Login.view loginModel
@@ -112,7 +113,8 @@ content model =
 
 app : Model -> Html Msg
 app model =
-    Html.div [ onClick <| CheckSessionExpired ( model.session, model.time ) ]
+    Html.div
+        [ onClick <| CheckSessionExpired ( model.session, model.time ) ]
         [ viewHeader model
         , content model
 
@@ -137,14 +139,21 @@ viewFooter =
 
 viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
-    Html.nav [ Attr.css [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ] ]
-        [ Html.h1 [] [ Html.a [ href "/" ] [ text "My elm app" ] ]
+    Html.nav
+        [ Attr.css [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ] ]
+        [ Html.h1
+            []
+            [ Html.a
+                [ href "/" ]
+                [ text "My elm app" ]
+            ]
         , case Credentials.fromSessionToToken session of
             Just token ->
-                viewLoggedInHeader { page = page, token = token, openDropdown = openDropdown }
+                viewSessionHeader { page = page, token = token, openDropdown = openDropdown }
 
             Nothing ->
-                Html.ul [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4 ] ]
+                Html.ul
+                    [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4 ] ]
                     [ Html.li
                         [ classList
                             [ ( "active"
@@ -152,7 +161,10 @@ viewHeader { page, session, openDropdown } =
                               )
                             ]
                         ]
-                        [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/" ] [ text "home" ] ]
+                        [ Html.a
+                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/" ]
+                            [ text "home" ]
+                        ]
                     , Html.li
                         [ classList
                             [ ( "active"
@@ -160,7 +172,10 @@ viewHeader { page, session, openDropdown } =
                               )
                             ]
                         ]
-                        [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/login" ] [ text "login" ] ]
+                        [ Html.a
+                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/login" ]
+                            [ text "login" ]
+                        ]
                     , Html.li
                         [ classList
                             [ ( "active"
@@ -168,44 +183,54 @@ viewHeader { page, session, openDropdown } =
                               )
                             ]
                         ]
-                        [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/signup" ] [ text "sign up" ] ]
+                        [ Html.a
+                            [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/signup" ]
+                            [ text "sign up" ]
+                        ]
                     ]
         ]
 
 
-viewLoggedInHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
-viewLoggedInHeader { page, token, openDropdown } =
-    Html.ul [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ] ]
-        [ case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
+viewProfilePic : Maybe String -> List (Html.Attribute msg) -> Html msg
+viewProfilePic maybeSrc attr =
+    case maybeSrc of
+        Just url ->
+            Html.img (List.append [ Attr.css [ Tw.w_10 ], src url ] attr) []
+
+        Nothing ->
+            Html.text ""
+
+
+viewSessionHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
+viewSessionHeader { page, token, openDropdown } =
+    Html.ul
+        [ Attr.css [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ] ]
+        [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
                 Html.li
                     [ Attr.css [ Tw.cursor_pointer ] ]
-                    [ Html.div [ Attr.css [ Tw.relative ] ]
+                    [ Html.div
+                        [ Attr.css [ Tw.relative ] ]
                         [ if String.length resultTokenRecord.firstname > 0 then
                             Html.div
                                 [ Attr.css [ Tw.flex, Tw.items_center ], onClick OpenDropdown ]
-                                [ Html.div [ Attr.css [ Tw.w_10, Tw.h_10, Tw.overflow_hidden, Tw.rounded_full ] ]
-                                    [ if String.isEmpty resultTokenRecord.profilepicurl then
-                                        text ""
-
-                                      else
-                                        Html.img [ Attr.css [ Tw.w_10 ], src resultTokenRecord.profilepicurl ] []
-                                    ]
-                                , Html.span [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ] [ text resultTokenRecord.firstname, Html.sup [ Attr.css [ Tw.ml_1 ] ] [ text "⌄" ] ]
+                                [ Html.div
+                                    [ Attr.css [ Tw.w_10, Tw.h_10, Tw.overflow_hidden, Tw.rounded_full ] ]
+                                    [ viewProfilePic resultTokenRecord.profilepicurl [ Attr.css [ Tw.w_10 ] ] ]
+                                , Html.span
+                                    [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ]
+                                    [ text resultTokenRecord.firstname, Html.sup [ Attr.css [ Tw.ml_1 ] ] [ text "⌄" ] ]
                                 ]
 
                           else
                             Html.div
                                 [ onClick OpenDropdown ]
-                                [ Html.span [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ]
+                                [ Html.span
+                                    [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl ] ]
                                     [ text resultTokenRecord.email, Html.sup [ Attr.css [ Tw.ml_1 ] ] [ text "⌄" ] ]
-                                , Html.div []
-                                    [ if String.isEmpty resultTokenRecord.profilepicurl then
-                                        text ""
-
-                                      else
-                                        Html.img [ src resultTokenRecord.profilepicurl, width 60 ] []
-                                    ]
+                                , Html.div
+                                    []
+                                    [ viewProfilePic resultTokenRecord.profilepicurl [ width 60 ] ]
                                 ]
                         , Html.ul
                             [ Attr.css [ Tw.flex, Tw.absolute, Tw.mt_3, Tw.flex_col, Tw.gap_1, Tw.overflow_hidden, Tw.transition_all, Tw.duration_500, Tw.bg_color Tw.white ]
@@ -226,17 +251,24 @@ viewLoggedInHeader { page, token, openDropdown } =
                                 , onClick OpenDropdown
                                 ]
                                 [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ], href <| "/profile/" ++ Credentials.userIdToString resultTokenRecord.id ] [ text "My profile" ] ]
-                            , Html.li [ onClick OpenDropdown ] [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option2" ] ]
-                            , Html.li [ onClick OpenDropdown ] [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option3" ] ]
+                            , Html.li
+                                [ onClick OpenDropdown ]
+                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option2" ] ]
+                            , Html.li
+                                [ onClick OpenDropdown ]
+                                [ Html.a [ Attr.css [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ] ] [ text "option3" ] ]
                             ]
                         ]
                     ]
 
-            Err err ->
-                Html.li [] [ text (Debug.toString err) ]
+            Err _ ->
+                Html.text ""
         , Html.li
             []
-            [ Html.a [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/", onClick GetLogout ] [ text "logout" ] ]
+            [ Html.a
+                [ Attr.css [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ], href "/", onClick GetLogout ]
+                [ text "logout" ]
+            ]
         ]
 
 
@@ -397,7 +429,7 @@ update msg model =
             ( { model | session = session }
             , case Credentials.fromSessionToToken session of
                 Just token ->
-                    case Jwt.decodeToken Credentials.decodeTokenData <| Credentials.fromTokenToString token of
+                    case Credentials.tokenToUserData token of
                         Ok resultTokenRecord ->
                             Nav.pushUrl model.key ("/profile/" ++ Credentials.userIdToString resultTokenRecord.id)
 
@@ -409,25 +441,7 @@ update msg model =
             )
 
         CheckSessionExpired ( session, maybeTime ) ->
-            case ( maybeTime, Credentials.fromSessionToToken session ) of
-                ( Just time, Just token ) ->
-                    let
-                        tokenString =
-                            Credentials.fromTokenToString token
-                    in
-                    case Jwt.isExpired time tokenString of
-                        Ok isExpired ->
-                            if isExpired then
-                                ( model, Ports.logout )
-
-                            else
-                                ( model, Cmd.none )
-
-                        Err _ ->
-                            ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( model, handleLogout session maybeTime )
 
         GetLogout ->
             ( model, Ports.logout )
@@ -437,6 +451,29 @@ update msg model =
 
         OpenDropdown ->
             ( { model | openDropdown = not model.openDropdown }, Cmd.none )
+
+
+handleLogout : Credentials.Session -> Maybe Time.Posix -> Cmd Msg
+handleLogout session maybeTime =
+    case ( Credentials.fromSessionToToken session, maybeTime ) of
+        ( Just token, Just time ) ->
+            let
+                tokenString =
+                    Credentials.fromTokenToString token
+            in
+            case Jwt.isExpired time tokenString of
+                Ok isExpired ->
+                    if isExpired then
+                        Ports.logout
+
+                    else
+                        Cmd.none
+
+                Err _ ->
+                    Cmd.none
+
+        _ ->
+            Cmd.none
 
 
 matchRoute : Url.Parser.Parser (Route -> a) a
@@ -454,60 +491,33 @@ matchRoute =
 
 urlToPage : Url -> Credentials.Session -> Page
 urlToPage url session =
-    case Url.Parser.parse matchRoute url of
-        Just Login ->
-            if Credentials.fromSessionToToken session == Nothing then
-                LoginPage (Tuple.first (Login.init ()))
+    case ( Url.Parser.parse matchRoute url, Credentials.fromSessionToToken session ) of
+        ( Just Login, Nothing ) ->
+            LoginPage (Tuple.first (Login.init ()))
 
-            else
-                NotFoundPage
+        ( Just Signup, Nothing ) ->
+            SignupPage (Tuple.first (Signup.init ()))
 
-        Just Signup ->
-            if Credentials.fromSessionToToken session == Nothing then
-                SignupPage (Tuple.first (Signup.init ()))
+        ( Just (Profile _), Just _ ) ->
+            ProfilePage (Tuple.first (Profile.init session))
 
-            else
-                NotFoundPage
+        ( Just (Verification _), Just _ ) ->
+            VerificationPage (Tuple.first (Verification.init session url.path))
 
-        Just (Profile _) ->
-            if Credentials.fromSessionToToken session == Nothing then
-                NotFoundPage
+        ( Just (ResetPassword _), Nothing ) ->
+            let
+                cleanedResetCode =
+                    String.replace "/password-reset/" "" url.path
+            in
+            ResetPasswordPage (Tuple.first (ResetPassword.init cleanedResetCode))
 
-            else
-                ProfilePage (Tuple.first (Profile.init session))
+        ( Just ForgotPassword, Nothing ) ->
+            ForgotPasswordPage (Tuple.first (ForgotPassword.init ()))
 
-        Just (Verification _) ->
-            if Credentials.fromSessionToToken session == Nothing then
-                NotFoundPage
-
-            else
-                VerificationPage (Tuple.first (Verification.init session url.path))
-
-        Just (ResetPassword _) ->
-            if Credentials.fromSessionToToken session == Nothing then
-                let
-                    cleanedResetCode =
-                        String.replace "/password-reset/" "" url.path
-                in
-                ResetPasswordPage (Tuple.first (ResetPassword.init cleanedResetCode))
-
-            else
-                NotFoundPage
-
-        Just ForgotPassword ->
-            if Credentials.fromSessionToToken session == Nothing then
-                ForgotPasswordPage (Tuple.first (ForgotPassword.init ()))
-
-            else
-                NotFoundPage
-
-        Just Home ->
+        ( Just Home, Nothing ) ->
             HomePage (Tuple.first (Home.init ()))
 
-        Just NotFound ->
-            NotFoundPage
-
-        Nothing ->
+        _ ->
             NotFoundPage
 
 

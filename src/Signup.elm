@@ -11,11 +11,9 @@ import Html.Styled.Attributes as Attr exposing (type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Http
 import Json.Encode
-import Process
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Tw
 import Tailwind.Utilities as Tw
-import Task
 
 
 type alias Model =
@@ -47,7 +45,6 @@ type Msg
     | StoreConfirmPassword String
     | SignupSubmit
     | SignupDone (Result Http.Error Credentials.Token)
-    | HideError
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,13 +68,10 @@ update msg model =
             in
             case validatedCred of
                 Err error ->
-                    ( { model | formState = Error error }, Process.sleep 4000 |> Task.perform (\_ -> HideError) )
+                    ( { model | formState = Error error }, Cmd.none )
 
                 Ok validCredentials ->
                     ( { model | formState = Loading }, Api.Signup.submitSignup validCredentials SignupDone )
-
-        HideError ->
-            ( { model | formState = Initial }, Cmd.none )
 
         SignupDone (Ok token) ->
             let

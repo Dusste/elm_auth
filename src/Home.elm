@@ -31,7 +31,8 @@ view : Html Msg
 view =
     Html.div
         [ Attr.css [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ] ]
-        [ Html.h2 []
+        [ Html.h2
+            []
             [ text "Hello and welcome to our awesome website !" ]
         , Html.p
             []
