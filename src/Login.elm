@@ -14,6 +14,7 @@ import Html.Events as HE
 import Http
 import Json.Encode
 import Maybe.Extra
+import Regex
 
 
 type alias Model =
@@ -61,40 +62,32 @@ update msg model =
                 errors =
                     model.errors
                         |> Components.Error.updateError
-                            (String.length model.storeEmail == 0)
+                            (Components.Error.CheckEmptyEmail model.storeEmail)
                             "email"
-                            "Email is empty"
                         |> Components.Error.updateError
-                            (User.isEmailValid model.storeEmail
-                                |> not
-                            )
+                            (Components.Error.CheckInvalidEmail model.storeEmail)
                             "email"
-                            "Email is invalid"
                         |> Components.Error.updateError
-                            (String.length model.storePassword == 0)
+                            (Components.Error.CheckEmptyPassword model.storePassword)
                             "password"
-                            "Password cannot be empty"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordTooShort model.storePassword 10)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordCapitalize model.storePassword)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordSpecialChar model.storePassword)
+                            "password"
             in
-            if Components.Error.anyActiveError errors then
-                ( { model | errors = errors }, Cmd.none )
+            ( { model | errors = errors }
+            , if Components.Error.anyActiveError errors then
+                Cmd.none
 
-            else
-                ( { model | errors = errors }, Cmd.none )
+              else
+                Api.Login.submitLogin { email = model.storeEmail, password = model.storePassword } LoginDone
+            )
 
-        -- let
-        --     validatedCred : Result String User.ValidCredentials
-        --     validatedCred =
-        --         User.validateCredentials { email = model.storeEmail, password = model.storePassword }
-        -- in
-        -- case validatedCred of
-        --     Err error ->
-        --         ( { model | formState = Error error }
-        --         , Cmd.none
-        --         )
-        --     Ok validCredentials ->
-        --         ( { model | formState = Loading }
-        --         , Api.Login.submitLogin validCredentials LoginDone
-        --         )
         LoginDone (Ok token) ->
             let
                 tokenValue =
@@ -141,17 +134,7 @@ view model =
             [ Html.div
                 [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ --  Html.label
-                  --     []
-                  --     [ Html.text "Email" ]
-                  -- , Html.input
-                  --     [ -- HA.class Gs.inputStyle
-                  --       HA.type_ "text"
-                  --     , HE.onInput StoreEmail
-                  --     , HA.value model.storeEmail
-                  --     ]
-                  --     []
-                  Components.Element.inputField
+                [ Components.Element.inputField
                     { type_ = Components.Element.Text
                     , label = Just "Email"
                     , value = model.storeEmail
@@ -171,13 +154,6 @@ view model =
                     , isDisabled = False
                     , error = Components.Error.byFieldName "password" model.errors
                     }
-
-                -- Html.label
-                --     [ HA.css [] ]
-                --     [ text "Password" ]
-                -- , Html.input
-                --     [ HA.css Gs.inputStyle, type_ "password", onInput StorePassword, value model.storePassword ]
-                --     []
                 ]
             , Html.button
                 [ -- HA.class Gs.buttonStyle

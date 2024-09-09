@@ -5,7 +5,7 @@ import Data.User as User
 import Http
 
 
-submitSignup : User.ValidCredentials -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
+submitSignup : { email : String, password : String } -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
 submitSignup credentials toMsg =
     Http.post
         { url = "/api/signup"

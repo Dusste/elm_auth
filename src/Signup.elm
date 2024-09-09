@@ -1,11 +1,12 @@
 module Signup exposing (Model, Msg, init, update, view)
 
 import Api.Signup
+import Components.Element
 import Components.Error
 import Data.Credentials as Credentials
 import Data.Ports as Ports
-import Data.User as User
 import Data.Util as Util
+import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
@@ -18,6 +19,7 @@ type alias Model =
     , storePassword : String
     , storeConfirmPassword : String
     , formState : FormState
+    , errors : Dict String (List String)
     }
 
 
@@ -27,6 +29,7 @@ initialModel =
     , storePassword = ""
     , storeConfirmPassword = ""
     , formState = Initial
+    , errors = Dict.empty
     }
 
 
@@ -58,17 +61,50 @@ update msg model =
 
         SignupSubmit ->
             let
-                validatedCred : Result String User.ValidCredentials
-                validatedCred =
-                    User.validateCredentials { email = model.storeEmail, password = model.storePassword }
-                        |> User.andThenValidateConfirmPassword model.storeConfirmPassword
+                errors : Dict String (List String)
+                errors =
+                    model.errors
+                        |> Components.Error.updateError
+                            (Components.Error.CheckEmptyEmail model.storeEmail)
+                            "email"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckInvalidEmail model.storeEmail)
+                            "email"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckEmptyPassword model.storePassword)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordTooShort model.storePassword 10)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordCapitalize model.storePassword)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordSpecialChar model.storePassword)
+                            "password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckEmptyPassword model.storeConfirmPassword)
+                            "confirm-password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordTooShort model.storeConfirmPassword 10)
+                            "confirm-password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordCapitalize model.storeConfirmPassword)
+                            "confirm-password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordSpecialChar model.storeConfirmPassword)
+                            "confirm-password"
+                        |> Components.Error.updateError
+                            (Components.Error.CheckPasswordMatch model.storePassword model.storeConfirmPassword)
+                            "confirm-password"
             in
-            case validatedCred of
-                Err error ->
-                    ( { model | formState = Error error }, Cmd.none )
+            ( { model | errors = errors }
+            , if Components.Error.anyActiveError errors then
+                Cmd.none
 
-                Ok validCredentials ->
-                    ( { model | formState = Loading }, Api.Signup.submitSignup validCredentials SignupDone )
+              else
+                Api.Signup.submitSignup { email = model.storeEmail, password = model.storePassword } SignupDone
+            )
 
         SignupDone (Ok token) ->
             let
@@ -111,38 +147,38 @@ view model =
             [ Html.div
                 [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ Html.text "Email"
-                , Html.input
-                    [ -- HA.class Gs.inputStyle
-                      HA.type_ "text"
-                    , HE.onInput StoreEmail
-                    , HA.value model.storeEmail
-                    ]
-                    []
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Text
+                    , label = Just "Email"
+                    , value = model.storeEmail
+                    , toMsg = StoreEmail
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "email" model.errors
+                    }
                 ]
             , Html.div
                 [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ Html.text "Password"
-                , Html.input
-                    [ -- HA.class Gs.inputStyle
-                      HA.type_ "password"
-                    , HE.onInput StorePassword
-                    , HA.value model.storePassword
-                    ]
-                    []
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
                 ]
             , Html.div
                 [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ Html.text "Confirm Password"
-                , Html.input
-                    [ --  HA.class Gs.inputStyle
-                      HA.type_ "password"
-                    , HE.onInput StoreConfirmPassword
-                    , HA.value model.storeConfirmPassword
-                    ]
-                    []
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Confirm Password"
+                    , value = model.storeConfirmPassword
+                    , toMsg = StoreConfirmPassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "confirm-password" model.errors
+                    }
                 ]
             , Html.button
                 [ -- /HA.class Gs.buttonStyle

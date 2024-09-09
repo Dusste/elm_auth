@@ -5,10 +5,10 @@ import Data.User as User
 import Http
 
 
-submitLogin : User.ValidCredentials -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
-submitLogin credentials toMsg =
+submitLogin : { email : String, password : String } -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
+submitLogin creds toMsg =
     Http.post
         { url = "/api/login"
-        , body = Http.jsonBody (User.credentialsEncoder credentials)
+        , body = Http.jsonBody (User.credentialsEncoder creds)
         , expect = Http.expectJson toMsg Credentials.tokenDecoder
         }

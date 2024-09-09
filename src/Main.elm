@@ -122,7 +122,7 @@ app model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "My elm app"
+    { title = "Kickoff project"
     , body =
         [ app model ]
     }
@@ -145,7 +145,7 @@ viewHeader { page, session, openDropdown } =
             []
             [ Html.a
                 [ HA.href "/" ]
-                [ Html.text "My elm app" ]
+                [ Html.text "Kickoff project" ]
             ]
         , case Credentials.fromSessionToToken session of
             Just token ->

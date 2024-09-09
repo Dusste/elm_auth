@@ -1,7 +1,6 @@
 module Data.User exposing
     ( Email
     , Password
-    , ValidCredentials
     , andThenValidateConfirmPassword
     , credentialsEncoder
     , emailEncoder
@@ -11,7 +10,6 @@ module Data.User exposing
     , parseEmail
     , passwordEncoder
     , validateConfirmPassword
-    , validateCredentials
     )
 
 import Json.Encode as Encode
@@ -26,17 +24,11 @@ type Password
     = Password String
 
 
-type alias ValidCredentials =
-    { email : Email
-    , password : Password
-    }
-
-
-credentialsEncoder : ValidCredentials -> Encode.Value
+credentialsEncoder : { email : String, password : String } -> Encode.Value
 credentialsEncoder { email, password } =
     Encode.object
-        [ ( "email", emailEncoder email )
-        , ( "password", passwordEncoder password )
+        [ ( "email", Encode.string email )
+        , ( "password", Encode.string password )
         ]
 
 
@@ -121,10 +113,6 @@ afterEtParser =
                 |> P.getChompedString
                 |> P.andThen
                     (\afterEt ->
-                        let
-                            _ =
-                                Debug.log "afterEt" afterEt
-                        in
                         if String.isEmpty afterEt then
                             --P.problem "Email does not contain mail server"
                             P.problem "Invalid email"
@@ -232,9 +220,10 @@ validateConfirmPassword { password, confirmPassword } =
         |> andThenValidateConfirmPassword confirmPassword
 
 
-validateCredentials : { email : String, password : String } -> Result String ValidCredentials
-validateCredentials { email, password } =
-    Result.map2
-        ValidCredentials
-        (fromStringToValidEmail email)
-        (fromStringToValidPassword password)
+
+-- validateCredentials : { email : String, password : String } -> Result String ValidCredentials
+-- validateCredentials { email, password } =
+--     Result.map2
+--         ValidCredentials
+--         (fromStringToValidEmail email)
+--         (fromStringToValidPassword password)
