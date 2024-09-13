@@ -3,9 +3,10 @@ module Signup exposing (Model, Msg, init, update, view)
 import Api.Signup
 import Components.Element
 import Components.Error
+import Components.Misc
 import Data.Credentials as Credentials
 import Data.Ports as Ports
-import Data.Util as Util
+import Data.Validation as Validation
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as HA
@@ -51,55 +52,87 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         StoreEmail email ->
-            ( { model | storeEmail = email }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "email" model.errors
+            in
+            ( { model
+                | storeEmail = email
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         StorePassword password ->
-            ( { model | storePassword = password }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "password" model.errors
+            in
+            ( { model
+                | storePassword = password
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         StoreConfirmPassword confirmPassword ->
-            ( { model | storeConfirmPassword = confirmPassword }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "confirm-password" model.errors
+            in
+            ( { model
+                | storeConfirmPassword = confirmPassword
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         SignupSubmit ->
             let
-                errors : Dict String (List String)
-                errors =
-                    model.errors
-                        |> Components.Error.updateError
-                            (Components.Error.CheckEmptyEmail model.storeEmail)
-                            "email"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckInvalidEmail model.storeEmail)
-                            "email"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckEmptyPassword model.storePassword)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordTooShort model.storePassword 10)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordCapitalize model.storePassword)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordSpecialChar model.storePassword)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckEmptyPassword model.storeConfirmPassword)
-                            "confirm-password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordTooShort model.storeConfirmPassword 10)
-                            "confirm-password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordCapitalize model.storeConfirmPassword)
-                            "confirm-password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordSpecialChar model.storeConfirmPassword)
-                            "confirm-password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordMatch model.storePassword model.storeConfirmPassword)
-                            "confirm-password"
+                validationConfig : Validation.Config
+                validationConfig =
+                    { validationRules =
+                        [ { fieldName = "email"
+                          , fieldRules =
+                                [ Validation.CheckEmptyEmail
+                                , Validation.CheckInvalidEmail
+                                ]
+                          , fieldValue = model.storeEmail
+                          }
+                        , { fieldName = "password"
+                          , fieldRules =
+                                [ Validation.CheckEmptyPassword
+                                , Validation.CheckPasswordTooShort 10
+                                , Validation.CheckPasswordCapitalize
+                                , Validation.CheckPasswordSpecialChar
+                                , Validation.CheckPasswordContainsInt
+                                ]
+                          , fieldValue = model.storePassword
+                          }
+                        , { fieldName = "confirm-password"
+                          , fieldRules =
+                                [ Validation.CheckEmptyPassword
+                                , Validation.CheckPasswordTooShort 10
+                                , Validation.CheckPasswordCapitalize
+                                , Validation.CheckPasswordSpecialChar
+                                , Validation.CheckPasswordContainsInt
+                                , Validation.CheckPasswordMatch model.storePassword
+                                ]
+                          , fieldValue = model.storeConfirmPassword
+                          }
+                        ]
+                    , initialErrors = model.errors
+                    }
+
+                potentialErrors : Dict String (List String)
+                potentialErrors =
+                    Validation.checkErrors validationConfig
             in
-            ( { model | errors = errors }
-            , if Components.Error.anyActiveError errors then
+            ( { model | errors = potentialErrors }
+            , if Validation.anyActiveError potentialErrors then
                 Cmd.none
 
               else
@@ -108,13 +141,21 @@ update msg model =
 
         SignupDone (Ok token) ->
             let
+                tokenValue : Json.Encode.Value
                 tokenValue =
                     Credentials.encodeToken token
             in
-            ( { model | formState = Initial }, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
+            ( { model | formState = Initial }
+            , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
+            )
 
         SignupDone (Err error) ->
-            ( { model | formState = Error <| Components.Error.buildErrorMessage error }, Cmd.none )
+            ( { model
+                | formState =
+                    Error <| Components.Error.buildErrorMessage error
+              }
+            , Cmd.none
+            )
 
 
 view : Model -> Html Msg
@@ -131,7 +172,7 @@ view model =
                 Html.div
                     [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
                     ]
-                    [ Util.loadingElement ]
+                    [ Components.Misc.loadingElement ]
 
             Error error ->
                 Html.p

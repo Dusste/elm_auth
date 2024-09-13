@@ -1,19 +1,13 @@
-module Api.Verification exposing (apiCallAfterSomeTime, apiCallToVerify)
+module Api.Verification exposing (apiCallToVerify)
 
 import Data.Credentials as Credentials
 import Http
-import Process
-import Task
 
 
-apiCallAfterSomeTime : Credentials.Session -> (Credentials.Session -> msg) -> Cmd msg
-apiCallAfterSomeTime session toMsg =
-    Process.sleep 5000
-        |> Task.perform
-            (\_ -> toMsg session)
-
-
-apiCallToVerify : Credentials.Session -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
+apiCallToVerify :
+    Credentials.Session
+    -> (Result Http.Error Credentials.Token -> msg)
+    -> Cmd msg
 apiCallToVerify session toMsg =
     case Credentials.fromSessionToToken session of
         Just token ->

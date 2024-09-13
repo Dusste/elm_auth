@@ -3,18 +3,16 @@ module Login exposing (Model, Msg, init, update, view)
 import Api.Login
 import Components.Element
 import Components.Error
+import Components.Misc
 import Data.Credentials as Credentials
 import Data.Ports as Ports
-import Data.User as User
-import Data.Util as Util
+import Data.Validation as Validation
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
 import Http
 import Json.Encode
-import Maybe.Extra
-import Regex
 
 
 type alias Model =
@@ -58,34 +56,44 @@ update msg model =
 
         LoginSubmit ->
             let
-                errors : Dict String (List String)
-                errors =
-                    model.errors
-                        |> Components.Error.updateError
-                            (Components.Error.CheckEmptyEmail model.storeEmail)
-                            "email"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckInvalidEmail model.storeEmail)
-                            "email"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckEmptyPassword model.storePassword)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordTooShort model.storePassword 10)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordCapitalize model.storePassword)
-                            "password"
-                        |> Components.Error.updateError
-                            (Components.Error.CheckPasswordSpecialChar model.storePassword)
-                            "password"
+                validationConfig : Validation.Config
+                validationConfig =
+                    { validationRules =
+                        [ { fieldName = "email"
+                          , fieldRules =
+                                [ Validation.CheckEmptyEmail
+                                , Validation.CheckInvalidEmail
+                                ]
+                          , fieldValue = model.storeEmail
+                          }
+                        , { fieldName = "password"
+                          , fieldRules =
+                                [ Validation.CheckEmptyPassword
+                                , Validation.CheckPasswordTooShort 10
+                                , Validation.CheckPasswordCapitalize
+                                , Validation.CheckPasswordSpecialChar
+                                , Validation.CheckPasswordContainsInt
+                                ]
+                          , fieldValue = model.storePassword
+                          }
+                        ]
+                    , initialErrors = model.errors
+                    }
+
+                potentialErrors : Dict String (List String)
+                potentialErrors =
+                    Validation.checkErrors validationConfig
             in
-            ( { model | errors = errors }
-            , if Components.Error.anyActiveError errors then
+            ( { model | errors = potentialErrors }
+            , if Validation.anyActiveError potentialErrors then
                 Cmd.none
 
               else
-                Api.Login.submitLogin { email = model.storeEmail, password = model.storePassword } LoginDone
+                Api.Login.submitLogin
+                    { email = model.storeEmail
+                    , password = model.storePassword
+                    }
+                    LoginDone
             )
 
         LoginDone (Ok token) ->
@@ -118,7 +126,7 @@ view model =
                 Html.div
                     [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
                     ]
-                    [ Util.loadingElement ]
+                    [ Components.Misc.loadingElement ]
 
             Error error ->
                 Html.p

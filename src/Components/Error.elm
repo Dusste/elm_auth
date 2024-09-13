@@ -1,23 +1,15 @@
 module Components.Error exposing
-    ( Validation(..)
-    , anyActiveError
+    ( ErrorResponse
     , buildErrorMessage
     , byFieldName
-    , updateError
     )
 
 import Components.Element
-import Data.User
-import Data.Util
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Http
 import Json.Decode
 import Json.Decode.Pipeline
-
-
-type alias ErrorField =
-    Dict String (List String)
 
 
 type alias ErrorResponse =
@@ -27,118 +19,9 @@ type alias ErrorResponse =
     }
 
 
-type Validation
-    = CheckEmptyEmail String
-    | CheckInvalidEmail String
-    | CheckEmptyPassword String
-    | CheckPasswordTooShort String Int
-    | CheckPasswordCapitalize String
-    | CheckPasswordSpecialChar String
-    | CheckPasswordMatch String String
-
-
-validationToErrorMsg : Validation -> String
-validationToErrorMsg validation =
-    case validation of
-        CheckEmptyEmail _ ->
-            "Email is empty"
-
-        CheckInvalidEmail _ ->
-            "Email is invalid"
-
-        CheckEmptyPassword _ ->
-            "Password is empty"
-
-        CheckPasswordTooShort _ _ ->
-            "Password must have at least 10 characters"
-
-        CheckPasswordCapitalize _ ->
-            "Password must contain at least one capitalized letter"
-
-        CheckPasswordSpecialChar _ ->
-            "Password must contain at least one special character"
-
-        CheckPasswordMatch _ _ ->
-            "Passwors doesn't match"
-
-
 type CustomError
     = Concrete ErrorResponse
     | Naive Http.Error
-
-
-
-{-
-   Why `hasError` ?
-   - Easy to pipeline/chain in case you need to update
-   more then one error field
-   ex:
-    constructErrors =
-        model.errors
-            |> ErrorData.updateError isEmpty "Field A" "Some error message"
-            |> ErrorData.updateError isInvalid "Field B" "Other error message"
--}
-
-
-updateError : Validation -> String -> Dict String (List String) -> Dict String (List String)
-updateError validation field errors =
-    let
-        errorMsg : String
-        errorMsg =
-            validationToErrorMsg validation
-
-        shouldInsertError : Bool
-        shouldInsertError =
-            case validation of
-                CheckEmptyEmail email ->
-                    Data.Util.checkEmpty email
-
-                CheckInvalidEmail email ->
-                    not <| Data.User.isEmailValid email
-
-                CheckEmptyPassword password ->
-                    Data.Util.checkEmpty password
-
-                CheckPasswordTooShort password minimum ->
-                    Data.Util.checkLength password minimum
-
-                CheckPasswordCapitalize password ->
-                    not <| Data.Util.checkCapitalized password
-
-                CheckPasswordSpecialChar password ->
-                    not <| Data.Util.checkSpecChar password
-
-                CheckPasswordMatch password confirmPassword ->
-                    not <| Data.Util.checkMatch password confirmPassword
-    in
-    if Dict.member field errors then
-        Dict.update
-            field
-            (Maybe.map
-                (\errors_ ->
-                    updateErrorFlow shouldInsertError errorMsg errors_
-                )
-            )
-            errors
-
-    else if shouldInsertError then
-        Dict.insert field [ errorMsg ] errors
-
-    else
-        errors
-
-
-updateErrorFlow : Bool -> String -> List String -> List String
-updateErrorFlow checkError errorMsg errs =
-    case ( checkError, List.member errorMsg errs ) of
-        ( False, True ) ->
-            List.filter (\err -> err /= errorMsg) errs
-
-        ( True, False ) ->
-            List.append errs [ errorMsg ]
-
-        _ ->
-            errs
 
 
 customErrorDecoder : Json.Decode.Decoder CustomError
@@ -205,22 +88,14 @@ buildErrorMessage httpError =
             message
 
 
-byFieldName : String -> ErrorField -> List String
+byFieldName : String -> Dict String (List String) -> List String
 byFieldName field errors =
     errors
         |> Dict.get field
         |> Maybe.withDefault []
 
 
-anyActiveError : ErrorField -> Bool
-anyActiveError errors =
-    errors
-        |> Dict.values
-        |> List.all List.isEmpty
-        |> not
-
-
-toHtml : String -> ErrorField -> Html msg
+toHtml : String -> Dict String (List String) -> Html msg
 toHtml field errors =
     let
         errors_ =
@@ -235,8 +110,3 @@ toHtml field errors =
             )
             errors_
         )
-
-
-resetAllErrors : ErrorField -> ErrorField
-resetAllErrors errors =
-    Dict.map (\_ _ -> []) errors

@@ -5,7 +5,11 @@ import Data.Profile
 import Http
 
 
-submitProfile : Credentials.Session -> { profilePic : String, name : String } -> (Result Http.Error Credentials.Token -> msg) -> Cmd msg
+submitProfile :
+    Credentials.Session
+    -> { profilePic : String, name : String }
+    -> (Result Http.Error Credentials.Token -> msg)
+    -> Cmd msg
 submitProfile session data toMsg =
     case Credentials.fromSessionToToken session of
         Just token ->

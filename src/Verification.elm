@@ -1,9 +1,9 @@
 module Verification exposing (Model, Msg, init, update, view)
 
 import Api.Verification
+import Components.Misc
 import Data.Credentials as Credentials
 import Data.Ports as Ports
-import Data.Util as Util
 import Data.Verification as Verification
 import Html exposing (Html)
 import Html.Attributes as HA
@@ -48,7 +48,7 @@ init session verificationParam =
 
                     else if not resultTokenRecord.isverified then
                         ( { userState = VerificationPending }
-                        , Api.Verification.apiCallAfterSomeTime session VerifyApiCallStart
+                        , Components.Misc.sleepForAWhileThenCall session VerifyApiCallStart
                         )
 
                     else
@@ -106,7 +106,7 @@ view model =
                     , Html.p
                         []
                         [ Html.text "Soon you will have access to a all profile features" ]
-                    , Util.loadingElement
+                    , Components.Misc.loadingElement
                     ]
 
             VerificationDone ->
@@ -118,7 +118,7 @@ view model =
                     , Html.p
                         []
                         [ Html.text "Now you will be redirected to your profile page and have full access to all app's features" ]
-                    , Util.loadingElement
+                    , Components.Misc.loadingElement
                     ]
 
             VerificationFail ->

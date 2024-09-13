@@ -1,10 +1,13 @@
 module Profile exposing (..)
 
 import Api.Profile
+import Components.Element
 import Components.Error
+import Components.Misc
 import Data.Credentials as Credentials
 import Data.Ports as Ports
-import Data.Util as Util
+import Data.Validation as Validation
+import Dict exposing (Dict)
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html)
@@ -20,6 +23,7 @@ type alias Model =
     , profilePic : Maybe String
     , userState : UserState
     , formState : FormState
+    , errors : Dict String (List String)
     }
 
 
@@ -51,6 +55,7 @@ initialModel =
     , profilePic = Nothing
     , formState = Initial
     , userState = NotVerified
+    , errors = Dict.empty
     }
 
 
@@ -99,7 +104,7 @@ view model =
                         Html.div
                             [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
                             ]
-                            [ Util.loadingElement ]
+                            [ Components.Misc.loadingElement ]
 
                     Error error ->
                         Html.p
@@ -115,14 +120,14 @@ view model =
                     [ Html.div
                         [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                         ]
-                        [ Html.text "First Name"
-                        , Html.input
-                            [ -- HA.class Gs.inputStyle
-                              HA.type_ "text"
-                            , HE.onInput StoreFirstName
-                            , HA.value model.storeName
-                            ]
-                            []
+                        [ Components.Element.inputField
+                            { type_ = Components.Element.Text
+                            , label = Just "First Name"
+                            , value = model.storeName
+                            , toMsg = StoreFirstName
+                            , isDisabled = False
+                            , error = Components.Error.byFieldName "name" model.errors
+                            }
                         ]
                     , Html.div
                         [-- HA.class [ Tw.flex, Tw.gap_3 ]
@@ -223,26 +228,55 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         StoreFirstName firstName ->
-            ( { model | storeName = firstName }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "name" model.errors
+            in
+            ( { model
+                | storeName = firstName
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         ProfileSubmit session ->
             let
+                imageOrNot : String
                 imageOrNot =
-                    -- Allow user to send a form without new profile pic (but with new name only) - then BE won't proceed with changing it !
+                    -- TODO Allow user to send a form without new profile pic (but with new name only) - then BE won't proceed with changing it !
                     case model.profilePic of
                         Nothing ->
                             ""
 
                         Just imageUrl ->
                             imageUrl
-            in
-            if String.isEmpty model.storeName then
-                ( { model | formState = Error "Name can't be empty" }, Cmd.none )
 
-            else
-                ( { model | formState = Loading }
-                , Api.Profile.submitProfile session { name = model.storeName, profilePic = imageOrNot } ProfileDone
-                )
+                validationConfig : Validation.Config
+                validationConfig =
+                    { validationRules =
+                        [ { fieldName = "name"
+                          , fieldRules = [ Validation.CheckEmptyName ]
+                          , fieldValue = model.storeName
+                          }
+                        ]
+                    , initialErrors = model.errors
+                    }
+
+                potentialErrors : Dict String (List String)
+                potentialErrors =
+                    Validation.checkErrors validationConfig
+            in
+            ( { model | errors = potentialErrors }
+            , if Validation.anyActiveError potentialErrors then
+                Cmd.none
+
+              else
+                Api.Profile.submitProfile
+                    session
+                    { name = model.storeName, profilePic = imageOrNot }
+                    ProfileDone
+            )
 
         ProfileDone (Ok token) ->
             let

@@ -1,9 +1,11 @@
 module ResetPassword exposing (..)
 
 import Api.ResetPassword
+import Components.Element
 import Components.Error
-import Data.User as User
-import Data.Util as Util
+import Components.Misc
+import Data.Validation as Validation
+import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
@@ -15,6 +17,7 @@ type alias Model =
     , storeConfirmPassword : String
     , formState : FormState
     , resetCodeParam : String
+    , errors : Dict String (List String)
     }
 
 
@@ -38,6 +41,7 @@ initialModel =
     , storeConfirmPassword = ""
     , formState = Initial
     , resetCodeParam = ""
+    , errors = Dict.empty
     }
 
 
@@ -61,7 +65,7 @@ view model =
                 Html.div
                     [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
                     ]
-                    [ Util.loadingElement ]
+                    [ Components.Misc.loadingElement ]
 
             Error error ->
                 Html.p
@@ -89,26 +93,26 @@ view model =
             [ Html.div
                 [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ Html.text "Password"
-                , Html.input
-                    [ --  HA.class Gs.inputStyle
-                      HA.type_ "password"
-                    , HE.onInput StorePassword
-                    , HA.value model.storePassword
-                    ]
-                    []
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
                 ]
             , Html.div
                 [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                 ]
-                [ Html.text "Confirm Password"
-                , Html.input
-                    [ -- HA.class Gs.inputStyle
-                      HA.type_ "password"
-                    , HE.onInput StoreConfirmPassword
-                    , HA.value model.storeConfirmPassword
-                    ]
-                    []
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Confirm Password"
+                    , value = model.storeConfirmPassword
+                    , toMsg = StoreConfirmPassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "confirm-password" model.errors
+                    }
                 ]
             , Html.button
                 [ -- HA.class Gs.buttonStyle
@@ -125,24 +129,71 @@ update msg model =
     case msg of
         Submit ->
             let
-                validatedCred : Result String { password : User.Password }
-                validatedCred =
-                    User.validateConfirmPassword { password = model.storePassword, confirmPassword = model.storeConfirmPassword }
-            in
-            case validatedCred of
-                Err error ->
-                    ( { model | formState = Error error }, Cmd.none )
+                validationConfig : Validation.Config
+                validationConfig =
+                    { validationRules =
+                        [ { fieldName = "password"
+                          , fieldRules =
+                                [ Validation.CheckEmptyPassword
+                                , Validation.CheckPasswordTooShort 10
+                                , Validation.CheckPasswordCapitalize
+                                , Validation.CheckPasswordSpecialChar
+                                , Validation.CheckPasswordContainsInt
+                                ]
+                          , fieldValue = model.storePassword
+                          }
+                        , { fieldName = "confirm-password"
+                          , fieldRules =
+                                [ Validation.CheckEmptyPassword
+                                , Validation.CheckPasswordTooShort 10
+                                , Validation.CheckPasswordCapitalize
+                                , Validation.CheckPasswordSpecialChar
+                                , Validation.CheckPasswordContainsInt
+                                , Validation.CheckPasswordMatch model.storePassword
+                                ]
+                          , fieldValue = model.storeConfirmPassword
+                          }
+                        ]
+                    , initialErrors = model.errors
+                    }
 
-                Ok { password } ->
-                    ( { model | formState = Loading }
-                    , Api.ResetPassword.submitResetPassword password model.resetCodeParam Done
-                    )
+                potentialErrors : Dict String (List String)
+                potentialErrors =
+                    Validation.checkErrors validationConfig
+            in
+            ( { model | errors = potentialErrors }
+            , if Validation.anyActiveError potentialErrors then
+                Cmd.none
+
+              else
+                Api.ResetPassword.submitResetPassword model.storeConfirmPassword model.resetCodeParam Done
+            )
 
         StorePassword str ->
-            ( { model | storePassword = str }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "password" model.errors
+            in
+            ( { model
+                | storePassword = str
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         StoreConfirmPassword str ->
-            ( { model | storeConfirmPassword = str }, Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "confirm-password" model.errors
+            in
+            ( { model
+                | storeConfirmPassword = str
+                , errors = resetErrorsPerField
+              }
+            , Cmd.none
+            )
 
         Done (Ok _) ->
             ( { model | formState = Success, storePassword = "", storeConfirmPassword = "" }, Cmd.none )
