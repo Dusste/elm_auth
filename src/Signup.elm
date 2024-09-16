@@ -161,72 +161,77 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Html.div
-        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
-        ]
-        [ Html.h2
-            [--  HA.class [ Tw.text_3xl ]
+        [ HA.class "flex justify-center mt-32" ]
+        [ Html.div
+            [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
+              HA.class "flex flex-col w-[300px]  gap-y-4"
             ]
-            [ Html.text "Signup" ]
-        , case model.formState of
-            Loading ->
-                Html.div
-                    [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
-                    ]
-                    [ Components.Misc.loadingElement ]
+            [ Html.h2
+                [--  HA.class [ Tw.text_3xl ]
+                ]
+                [ Html.text "Signup" ]
+            , case model.formState of
+                Loading ->
+                    Html.div
+                        [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                        ]
+                        [ Components.Misc.loadingElement ]
 
-            Error error ->
-                Html.p
-                    [--  HA.class [ Tw.text_color Tw.red_400 ]
-                    ]
-                    [ Html.text error ]
+                Error error ->
+                    Html.p
+                        [--  HA.class [ Tw.text_color Tw.red_400 ]
+                        ]
+                        [ Html.text error ]
 
-            Initial ->
-                Html.text ""
-        , Html.form
-            [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
-            ]
-            [ Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                Initial ->
+                    Html.text ""
+            , Html.form
+                [ -- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
+                  HA.class "flex flex-col gap-y-4"
                 ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Text
-                    , label = Just "Email"
-                    , value = model.storeEmail
-                    , toMsg = StoreEmail
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "email" model.errors
-                    }
+                [ Html.div
+                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                    ]
+                    [ Components.Element.inputField
+                        { type_ = Components.Element.Text
+                        , label = Just "Email"
+                        , value = model.storeEmail
+                        , toMsg = StoreEmail
+                        , isDisabled = False
+                        , error = Components.Error.byFieldName "email" model.errors
+                        }
+                    ]
+                , Html.div
+                    [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                    ]
+                    [ Components.Element.inputField
+                        { type_ = Components.Element.Password
+                        , label = Just "Password"
+                        , value = model.storePassword
+                        , toMsg = StorePassword
+                        , isDisabled = False
+                        , error = Components.Error.byFieldName "password" model.errors
+                        }
+                    ]
+                , Html.div
+                    [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                    ]
+                    [ Components.Element.inputField
+                        { type_ = Components.Element.Password
+                        , label = Just "Confirm Password"
+                        , value = model.storeConfirmPassword
+                        , toMsg = StoreConfirmPassword
+                        , isDisabled = False
+                        , error = Components.Error.byFieldName "confirm-password" model.errors
+                        }
+                    ]
+                , Components.Element.button
+                    |> Components.Element.withText "Sign up"
+                    |> Components.Element.withMsg SignupSubmit
+                    |> Components.Element.withDisabled False
+                    |> Components.Element.withPrimaryStyle
+                    |> Components.Element.toHtml
                 ]
-            , Html.div
-                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Password"
-                    , value = model.storePassword
-                    , toMsg = StorePassword
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "password" model.errors
-                    }
-                ]
-            , Html.div
-                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Confirm Password"
-                    , value = model.storeConfirmPassword
-                    , toMsg = StoreConfirmPassword
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "confirm-password" model.errors
-                    }
-                ]
-            , Html.button
-                [ -- /HA.class Gs.buttonStyle
-                  HA.type_ "button"
-                , HE.onClick SignupSubmit
-                ]
-                [ Html.text "Sign up" ]
             ]
         ]
 

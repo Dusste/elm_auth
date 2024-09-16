@@ -27,10 +27,10 @@ type Msg
 view : Html Msg
 view =
     Html.div
-        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+        [ HA.class "flex flex-col items-center justify-center h-[100vh]"
         ]
         [ Html.h2
-            []
+            [ HA.class "text-[36px]" ]
             [ Html.text "Hello and welcome to our awesome website !" ]
         , Html.p
             []

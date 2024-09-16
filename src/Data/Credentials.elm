@@ -1,7 +1,7 @@
 module Data.Credentials exposing
     ( ResetCodeParam
     , Session
-    , Token
+    , Token(..)
     , UserDataFromToken
     , UserId
     , addHeader

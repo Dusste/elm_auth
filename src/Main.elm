@@ -73,40 +73,37 @@ type Msg
 
 content : Model -> Html Msg
 content model =
-    Html.div
-        []
-        [ case model.page of
-            LoginPage loginModel ->
-                Login.view loginModel
-                    |> Html.map GotLoginMsg
+    case model.page of
+        LoginPage loginModel ->
+            Login.view loginModel
+                |> Html.map GotLoginMsg
 
-            SignupPage signupModel ->
-                Signup.view signupModel
-                    |> Html.map GotSignupMsg
+        SignupPage signupModel ->
+            Signup.view signupModel
+                |> Html.map GotSignupMsg
 
-            ProfilePage profileModel ->
-                Profile.view profileModel
-                    |> Html.map GotProfileMsg
+        ProfilePage profileModel ->
+            Profile.view profileModel
+                |> Html.map GotProfileMsg
 
-            ForgotPasswordPage fpModal ->
-                ForgotPassword.view fpModal
-                    |> Html.map GotFpMsg
+        ForgotPasswordPage fpModal ->
+            ForgotPassword.view fpModal
+                |> Html.map GotFpMsg
 
-            ResetPasswordPage rPasswordModel ->
-                ResetPassword.view rPasswordModel
-                    |> Html.map GotRpMsg
+        ResetPasswordPage rPasswordModel ->
+            ResetPassword.view rPasswordModel
+                |> Html.map GotRpMsg
 
-            HomePage _ ->
-                Home.view
-                    |> Html.map GotHomeMsg
+        HomePage _ ->
+            Home.view
+                |> Html.map GotHomeMsg
 
-            VerificationPage verificationModel ->
-                Verification.view verificationModel
-                    |> Html.map GotVerificationMsg
+        VerificationPage verificationModel ->
+            Verification.view verificationModel
+                |> Html.map GotVerificationMsg
 
-            NotFoundPage ->
-                Html.p [] [ Html.text "Page not found buddy -_- sorry" ]
-        ]
+        NotFoundPage ->
+            Html.p [] [ Html.text "Page not found buddy -_- sorry" ]
 
 
 app : Model -> Html Msg
@@ -139,7 +136,8 @@ viewFooter =
 viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
     Html.nav
-        [-- Attr.class [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ]
+        [ -- Attr.class [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ]
+          HA.class "flex p-4 justify-between items-center"
         ]
         [ Html.h1
             []
@@ -147,54 +145,15 @@ viewHeader { page, session, openDropdown } =
                 [ HA.href "/" ]
                 [ Html.text "Kickoff project" ]
             ]
-        , case Credentials.fromSessionToToken session of
-            Just token ->
-                viewSessionHeader { page = page, token = token, openDropdown = openDropdown }
+        , Html.div
+            [ HA.class "flex justify-end" ]
+            [ case Credentials.fromSessionToToken session of
+                Just token ->
+                    viewPrivateHeader { page = page, token = token, openDropdown = openDropdown }
 
-            Nothing ->
-                Html.ul
-                    [-- HA.class [ Tw.flex, Tw.justify_between, Tw.gap_4 ]
-                    ]
-                    [ Html.li
-                        [ HA.classList
-                            [ ( "active"
-                              , isActive { link = Home, page = page }
-                              )
-                            ]
-                        ]
-                        [ Html.a
-                            [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                              HA.href "/"
-                            ]
-                            [ Html.text "home" ]
-                        ]
-                    , Html.li
-                        [ HA.classList
-                            [ ( "active"
-                              , isActive { link = Login, page = page }
-                              )
-                            ]
-                        ]
-                        [ Html.a
-                            [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                              HA.href "/login"
-                            ]
-                            [ Html.text "login" ]
-                        ]
-                    , Html.li
-                        [ HA.classList
-                            [ ( "active"
-                              , isActive { link = Signup, page = page }
-                              )
-                            ]
-                        ]
-                        [ Html.a
-                            [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                              HA.href "/signup"
-                            ]
-                            [ Html.text "sign up" ]
-                        ]
-                    ]
+                Nothing ->
+                    viewPublicHeader page
+            ]
         ]
 
 
@@ -215,10 +174,59 @@ viewProfilePic maybeSrc attr =
             Html.text ""
 
 
-viewSessionHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
-viewSessionHeader { page, token, openDropdown } =
+viewPublicHeader : Page -> Html Msg
+viewPublicHeader page =
     Html.ul
-        [-- Attr.class [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ]
+        [ -- HA.class [ Tw.flex, Tw.justify_between, Tw.gap_4 ]
+          HA.class "flex justify-between gap-4"
+        ]
+        [ Html.li
+            [ HA.classList
+                [ ( "active"
+                  , isActive { link = Home, page = page }
+                  )
+                ]
+            ]
+            [ Html.a
+                [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                  HA.href "/"
+                ]
+                [ Html.text "home" ]
+            ]
+        , Html.li
+            [ HA.classList
+                [ ( "active"
+                  , isActive { link = Login, page = page }
+                  )
+                ]
+            ]
+            [ Html.a
+                [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                  HA.href "/login"
+                ]
+                [ Html.text "login" ]
+            ]
+        , Html.li
+            [ HA.classList
+                [ ( "active"
+                  , isActive { link = Signup, page = page }
+                  )
+                ]
+            ]
+            [ Html.a
+                [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
+                  HA.href "/signup"
+                ]
+                [ Html.text "signup" ]
+            ]
+        ]
+
+
+viewPrivateHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
+viewPrivateHeader { page, token, openDropdown } =
+    Html.ul
+        [ -- Attr.class [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ]
+          HA.class "flex justify-between gap-4 items-end"
         ]
         [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
