@@ -2,6 +2,7 @@ module Components.Element exposing
     ( InputFieldType(..)
     , Notification(..)
     , button
+    , hint
     , inputField
     , notification
     , toHtml
@@ -62,10 +63,14 @@ inputField { label, value, toMsg, type_, isDisabled, error } =
         extendedInput : List (Html msg)
         extendedInput =
             if List.isEmpty error then
-                [ inputHtml [ HA.class inputTextStyle ] ]
+                [ inputHtml
+                    [ HA.class inputTextStyle ]
+                ]
 
             else
-                [ [ inputHtml [ HA.class inputTextNegativeStyle ] ]
+                [ [ inputHtml
+                        [ HA.class inputTextNegativeStyle ]
+                  ]
                 , error
                     |> List.map
                         (\error_ ->
@@ -125,42 +130,46 @@ notification notification_ =
         { iconStyle, wrapperStyle, txtValue } =
             case notification_ of
                 Info infoTxt ->
-                    { iconStyle = "font-bold px-2 text-center border-2 border-sky-500 rounded-full mr-2"
+                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-sky-500 rounded-full mr-2"
                     , wrapperStyle = "bg-sky-200 text-sky-500 flex border border-sky-500 rounded items-center p-2"
                     , txtValue = infoTxt
                     }
 
                 Warning warnTxt ->
-                    { iconStyle = "font-bold px-2 text-center border-2 border-yellow-500 rounded-full mr-2"
+                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-yellow-500 rounded-full mr-2"
                     , wrapperStyle = "bg-yellow-200 text-yellow-500 flex border border-yellow-500 rounded items-center p-2"
                     , txtValue = warnTxt
                     }
 
                 Error errDescription ->
-                    { iconStyle = "font-bold px-2 text-center border-2 border-red-500 rounded-full mr-2"
+                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-red-500 rounded-full mr-2"
                     , wrapperStyle = "bg-red-200 text-red-500 flex border border-red-500 rounded items-center p-2"
                     , txtValue = errDescription
                     }
 
                 Success succTxt ->
-                    { iconStyle = "font-bold px-2 text-center border-2 border-green-500 rounded-full mr-2"
+                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-green-500 rounded-full mr-2"
                     , wrapperStyle = "bg-green-200 text-green-500 flex border border-green-500 rounded items-center p-2"
                     , txtValue = succTxt
                     }
     in
     Html.div
         [ HA.class wrapperStyle ]
-        [ Html.span [ HA.class iconStyle ] [ Html.text "!" ]
-        , Html.p [ HA.class "" ] [ Html.text txtValue ]
+        [ Html.span
+            [ HA.class iconStyle ]
+            [ Html.text "!" ]
+        , Html.p
+            []
+            [ Html.text txtValue ]
         ]
 
 
 inputTextStyle =
-    "mt-1 py-1 px-2 border-gray-300 block w-full text-sm focus:border-sky-200 focus:ring-sky-200"
+    "mt-1 py-2 px-3 text-sky-600 border-gray-300 block w-full rounded text-sm focus:border-sky-200 focus:ring-sky-200"
 
 
 inputTextNegativeStyle =
-    "mt-1 py-1 px-2 border-red-500 bg-red-100 block w-full text-sm focus:border-red-300 focus:border-red-300 focus:ring-red-500"
+    "mt-1 py-2 px-3 border-red-500 mb-1 rounded bg-red-100 block w-full text-sm text-red-500 focus:border-red-300 focus:border-red-300 focus:ring-red-500"
 
 
 
@@ -254,21 +263,27 @@ toHtml (Button constraints) =
                 [ Html.text label ]
 
         Msg msg ->
-            Html.span
+            Html.div
                 [ HE.onClick msg, HA.class (styles ++ " cursor-pointer") ]
                 [ Html.text label ]
 
 
+hint txt =
+    Html.div
+        [ HA.class "p-3 bg-orange-300" ]
+        [ Html.text txt ]
+
+
 buttonPrimaryStyle =
-    "justify-self-start flex-start bg-sky-200 border rounded border-sky-300 px-4 py-1 text-sky-500 transition-all hover:bg-sky-300 hover:text-white"
+    "justify-self-start w-fit flex-start bg-sky-300 border rounded border-sky-300 px-4 py-2 text-white transition-all hover:bg-sky-200 hover:text-sky-500"
 
 
 buttonSecondaryStyle =
-    "justify-self-start flex-start bg-white border border-sky-300 rounded px-4 py-1 text-sky-500 transition-all hover:bg-sky-100"
+    "justify-self-start w-fit flex-start bg-white border border-sky-300 rounded px-4 py-2 text-sky-500 transition-all hover:bg-sky-100"
 
 
 buttonNegativeStyle =
-    "justify-self-start flex-start bg-white border border-red-300 px-4 py-1 text-red-500 transition-all hover:bg-red-100"
+    "justify-self-start flex-start bg-white border rounded border-red-300 px-4 py-2 text-red-500 transition-all hover:bg-red-100"
 
 
 buttonLinkStyle =

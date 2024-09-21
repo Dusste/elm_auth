@@ -13,7 +13,7 @@ submitLogin :
     -> Cmd msg
 submitLogin { email, password } toMsg =
     Process.sleep 2000
-        |> Task.map (\_ -> Credentials.Token "@!#!@#!@#21321321")
+        |> Task.map (\_ -> Credentials.Token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpc3ZlcmlmaWVkIjp0cnVlLCJlbWFpbCI6ImRvb3NoYW5zdGV2YW5vdmljQGdtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiZmlyc3RuYW1lIjoiRHVzYW4iLCJ2ZXJpZmljYXRpb25zdHJpbmciOiJTdHJpbmciLCJwcm9maWxlcGljdXJsIjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9waWN0dXJlIn0.rIY06xdknpOj1iGHDib9ZBJqDl2WF8cxvLFvXJUQ-0c")
         |> Task.perform (Ok >> toMsg)
 
 

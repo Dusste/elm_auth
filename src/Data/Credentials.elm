@@ -15,6 +15,8 @@ module Data.Credentials exposing
     , resetCodeParamToString
     , subscriptionChanges
     , tokenDecoder
+    , tokenToAvatar
+    , tokenToId
     , tokenToUserData
     , userIdParser
     , userIdToString
@@ -23,6 +25,7 @@ module Data.Credentials exposing
 import Browser.Navigation as Nav
 import Data.Ports as Ports
 import Data.Verification as Verification
+import Html.Attributes exposing (id)
 import Http
 import Json.Decode
 import Json.Decode.Pipeline
@@ -92,6 +95,26 @@ fromSessionToToken session =
 fromTokenToString : Token -> String
 fromTokenToString (Token string) =
     string
+
+
+tokenToId : Token -> Maybe String
+tokenToId token =
+    tokenToUserData token
+        |> Result.toMaybe
+        |> Maybe.map
+            (\{ id } ->
+                userIdToString id
+            )
+
+
+tokenToAvatar : Token -> Maybe String
+tokenToAvatar token =
+    tokenToUserData token
+        |> Result.toMaybe
+        |> Maybe.andThen
+            (\{ profilepicurl } ->
+                profilepicurl
+            )
 
 
 tokenToUserData : Token -> Result Jwt.JwtError UserDataFromToken

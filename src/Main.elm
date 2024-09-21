@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Browser.Navigation as Nav
 import Data.Credentials as Credentials
+import Data.OutMsg
 import Data.Ports as Ports
 import Data.Verification as Verification
 import ForgotPassword
@@ -25,6 +26,7 @@ import Verification
 
 type alias Model =
     { page : Page
+    , url : Url
     , key : Nav.Key
     , session : Credentials.Session
     , openDropdown : Bool
@@ -63,6 +65,7 @@ type Msg
     | GotFpMsg ForgotPassword.Msg
     | GotRpMsg ResetPassword.Msg
     | GotHomeMsg Home.Msg
+    | NoOp
     | GotVerificationMsg Verification.Msg
     | GotSubscriptionChangeMsg Credentials.Session
     | GetLogout
@@ -109,7 +112,7 @@ content model =
 app : Model -> Html Msg
 app model =
     Html.div
-        [ HE.onClick <| CheckSessionExpired ( model.session, model.time ) ]
+        [ HA.class "w-[1500px] m-auto", HE.onClick <| CheckSessionExpired ( model.session, model.time ) ]
         [ viewHeader model
         , content model
 
@@ -137,7 +140,7 @@ viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
     Html.nav
         [ -- Attr.class [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ]
-          HA.class "flex p-4 justify-between items-center"
+          HA.class "flex mt-4 justify-between items-center"
         ]
         [ Html.h1
             []
@@ -404,7 +407,7 @@ update msg model =
             case model.page of
                 LoginPage loginModel ->
                     let
-                        ( loginModelFromLogin, loginMsgFromLogin ) =
+                        ( loginModelFromLogin, _, loginMsgFromLogin ) =
                             Login.update loginMsg loginModel
                     in
                     ( { model | page = LoginPage loginModelFromLogin }, Cmd.map GotLoginMsg loginMsgFromLogin )
@@ -511,6 +514,9 @@ update msg model =
         OpenDropdown ->
             ( { model | openDropdown = not model.openDropdown }, Cmd.none )
 
+        NoOp ->
+            ( model, Cmd.none )
+
 
 handleLogout : Credentials.Session -> Maybe Time.Posix -> Cmd Msg
 handleLogout session maybeTime =
@@ -552,16 +558,16 @@ urlToPage : Url -> Credentials.Session -> Page
 urlToPage url session =
     case ( Url.Parser.parse matchRoute url, Credentials.fromSessionToToken session ) of
         ( Just Login, Nothing ) ->
-            LoginPage (Tuple.first (Login.init ()))
+            LoginPage (Login.init () |> (\( m, _, _ ) -> m))
 
         ( Just Signup, Nothing ) ->
             SignupPage (Tuple.first (Signup.init ()))
 
-        ( Just (Profile _), Just _ ) ->
-            ProfilePage (Tuple.first (Profile.init session))
+        ( Just (Profile _), Just token ) ->
+            ProfilePage (Tuple.first (Profile.init token))
 
-        ( Just (Verification _), Just _ ) ->
-            VerificationPage (Tuple.first (Verification.init session url.path))
+        ( Just (Verification _), Just token ) ->
+            VerificationPage (Tuple.first (Verification.init token url.path))
 
         ( Just (ResetPassword _), Nothing ) ->
             let
@@ -583,59 +589,109 @@ urlToPage url session =
 initCurrentPage : ( Url, Model, Cmd Msg ) -> ( Model, Cmd Msg )
 initCurrentPage ( url, model, existingCmds ) =
     case model.page of
-        NotFoundPage ->
-            ( { model | page = NotFoundPage }, Cmd.none )
-
         LoginPage _ ->
             let
-                ( pageModel, pageCmds ) =
+                ( pageModel, outMsgs, pageCmds ) =
                     Login.init ()
 
                 -- Because Main doesn’t know anything about the page specific messages, it needs to map them to one of the data constructors from its own Msg type using the Cmd.map function
             in
-            ( { model | page = LoginPage pageModel }, Cmd.map GotLoginMsg pageCmds )
+            ( { model | page = LoginPage pageModel }
+            , Cmd.batch
+                [ Cmd.map GotLoginMsg pageCmds
+                , Data.OutMsg.msgToCmd (outMsgToMsg outMsgs url)
+                ]
+            )
 
         SignupPage _ ->
             let
                 ( pageModel, pageCmds ) =
                     Signup.init ()
             in
-            ( { model | page = SignupPage pageModel }, Cmd.map GotSignupMsg pageCmds )
+            ( { model | page = SignupPage pageModel }
+            , Cmd.map GotSignupMsg pageCmds
+            )
 
         HomePage _ ->
             let
                 ( pageModel, pageCmds ) =
                     Home.init ()
             in
-            ( { model | page = HomePage pageModel }, Cmd.batch [ Cmd.map GotHomeMsg pageCmds, existingCmds ] )
+            ( { model | page = HomePage pageModel }
+            , Cmd.batch [ Cmd.map GotHomeMsg pageCmds, existingCmds ]
+            )
 
         ForgotPasswordPage _ ->
             let
                 ( pageModel, pageCmds ) =
                     ForgotPassword.init ()
             in
-            ( { model | page = ForgotPasswordPage pageModel }, Cmd.batch [ Cmd.map GotFpMsg pageCmds, existingCmds ] )
+            ( { model | page = ForgotPasswordPage pageModel }
+            , Cmd.batch [ Cmd.map GotFpMsg pageCmds, existingCmds ]
+            )
 
         ResetPasswordPage _ ->
             let
                 ( pageModel, pageCmds ) =
                     ResetPassword.init url.path
             in
-            ( { model | page = ResetPasswordPage pageModel }, Cmd.map GotRpMsg pageCmds )
+            ( { model | page = ResetPasswordPage pageModel }
+            , Cmd.map GotRpMsg pageCmds
+            )
 
         VerificationPage _ ->
-            let
-                ( pageModel, pageCmds ) =
-                    Verification.init model.session url.path
-            in
-            ( { model | page = VerificationPage pageModel }, Cmd.map GotVerificationMsg pageCmds )
+            case Credentials.fromSessionToToken model.session of
+                Just token ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Verification.init token url.path
+                    in
+                    ( { model | page = VerificationPage pageModel }
+                    , Cmd.map GotVerificationMsg pageCmds
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         ProfilePage _ ->
-            let
-                ( pageModel, pageCmds ) =
-                    Profile.init model.session
-            in
-            ( { model | page = ProfilePage pageModel }, Cmd.batch [ Cmd.map GotProfileMsg pageCmds, existingCmds ] )
+            case Credentials.fromSessionToToken model.session of
+                Just token ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            Profile.init token
+                    in
+                    ( { model | page = ProfilePage pageModel }
+                    , Cmd.batch [ Cmd.map GotProfileMsg pageCmds, existingCmds ]
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        NotFoundPage ->
+            ( { model | page = NotFoundPage }, Cmd.none )
+
+
+outMsgToMsg : List Data.OutMsg.OutMsg -> Url -> List Msg
+outMsgToMsg outMsgs url =
+    List.map
+        (\outMsg ->
+            case outMsg of
+                Data.OutMsg.RedirectToProfile token ->
+                    let
+                        maybeId =
+                            Credentials.tokenToId token
+                    in
+                    case maybeId of
+                        Just id ->
+                            ChangedUrl
+                                { url
+                                    | path = "/profile/" ++ id
+                                }
+
+                        Nothing ->
+                            NoOp
+        )
+        outMsgs
 
 
 init : Json.Decode.Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -646,6 +702,7 @@ init flags url key =
 
         model =
             { page = urlToPage url session
+            , url = url
             , key = key
             , session = session
             , openDropdown = False

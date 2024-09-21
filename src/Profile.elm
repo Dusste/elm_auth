@@ -23,6 +23,7 @@ type alias Model =
     , profilePic : Maybe String
     , userState : UserState
     , formState : FormState
+    , editMode : Bool
     , errors : Dict String (List String)
     }
 
@@ -35,18 +36,20 @@ type FormState
 
 type UserState
     = NotVerified
-    | Verified Credentials.Session
+    | Verified Credentials.Token
     | Intruder
     | SessionExpired
 
 
 type Msg
     = StoreFirstName String
-    | ProfileSubmit Credentials.Session
+    | ProfileSubmit Credentials.Token
     | ProfileDone (Result Http.Error Credentials.Token)
     | FileRequest
     | FileRequestProceed File
     | FileRead (Result Http.Error String)
+    | CancelEdit
+    | EditMode
 
 
 initialModel : Model
@@ -55,34 +58,28 @@ initialModel =
     , profilePic = Nothing
     , formState = Initial
     , userState = NotVerified
+    , editMode = False
     , errors = Dict.empty
     }
 
 
-init : Credentials.Session -> ( Model, Cmd Msg )
-init session =
-    case Credentials.fromSessionToToken session of
-        Just token ->
-            case Credentials.tokenToUserData token of
-                Ok userDataFromToken ->
-                    ( { initialModel
-                        | storeName = userDataFromToken.firstname
-                        , userState =
-                            if userDataFromToken.isverified then
-                                Verified session
+init : Credentials.Token -> ( Model, Cmd Msg )
+init token =
+    case Credentials.tokenToUserData token of
+        Ok userDataFromToken ->
+            ( { initialModel
+                | storeName = userDataFromToken.firstname
+                , userState =
+                    if userDataFromToken.isverified then
+                        Verified token
 
-                            else
-                                NotVerified
-                      }
-                    , Cmd.none
-                    )
+                    else
+                        NotVerified
+              }
+            , Cmd.none
+            )
 
-                Err _ ->
-                    ( { initialModel | userState = Intruder }
-                    , Cmd.none
-                    )
-
-        Nothing ->
+        Err _ ->
             ( { initialModel | userState = Intruder }
             , Cmd.none
             )
@@ -91,9 +88,10 @@ init session =
 view : Model -> Html Msg
 view model =
     case model.userState of
-        Verified session ->
+        Verified token ->
             Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+                [ -- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+                  HA.class "flex flex-col self-center mt-32 relative w-[400px] gap-y-4"
                 ]
                 [ Html.h2
                     [-- HA.class [ Tw.text_3xl ]
@@ -102,89 +100,107 @@ view model =
                 , case model.formState of
                     Loading ->
                         Html.div
-                            [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
+                            [ HA.class "absolute w-full h-full flex justify-center items-center bg-sky-50 bg-opacity-40"
                             ]
                             [ Components.Misc.loadingElement ]
 
                     Error error ->
                         Html.p
-                            [-- HA.class [ Tw.text_color Tw.red_400 ]
+                            [ HA.class "text-red-500"
                             ]
                             [ Html.text error ]
 
                     Initial ->
                         Html.text ""
-                , Html.form
-                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
-                    ]
-                    [ Html.div
-                        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                        ]
-                        [ Components.Element.inputField
-                            { type_ = Components.Element.Text
-                            , label = Just "First Name"
-                            , value = model.storeName
-                            , toMsg = StoreFirstName
-                            , isDisabled = False
-                            , error = Components.Error.byFieldName "name" model.errors
-                            }
-                        ]
-                    , Html.div
-                        [-- HA.class [ Tw.flex, Tw.gap_3 ]
+                , if model.editMode then
+                    Html.form
+                        [ HA.class "flex flex-col gap-y-4 w-full"
                         ]
                         [ Html.div
-                            [--  HA.class [ Tw.flex, Tw.flex_col ]
+                            [ HA.class "flex flex-col gap-y-4"
                             ]
-                            [ Html.p
-                                [-- HA.class [ Tw.m_0 ]
-                                ]
-                                [ Html.text "Upload an avatar" ]
-                            , Html.p
-                                [-- HA.class [ Tw.m_0, Tw.text_sm, Tw.text_color Tw.gray_400 ]
-                                ]
-                                [ Html.text "(Size limit is 3 mb)" ]
+                            [ Components.Element.inputField
+                                { type_ = Components.Element.Text
+                                , label = Just "First Name"
+                                , value = model.storeName
+                                , toMsg = StoreFirstName
+                                , isDisabled = False
+                                , error = Components.Error.byFieldName "name" model.errors
+                                }
                             ]
-                        , Html.label
-                            [ HA.for "file"
-
-                            -- , HA.class <| Gs.buttonStyle ++ [ Tw.overflow_hidden ]
+                        , Html.div
+                            [ HA.class "flex"
                             ]
-                            [ Html.text "Choose file"
-                            , Html.input
-                                [ -- HA.class [ Tw.w_1, Tw.h_1, Tw.overflow_hidden, Tw.opacity_0, Tw.absolute, Tw.z_0 ]
-                                  HA.id "file"
-                                , HA.type_ "file"
-                                , HE.onClick FileRequest
-                                ]
-                                []
+                            [ Components.Element.button
+                                |> Components.Element.withText "Choose file"
+                                |> Components.Element.withMsg FileRequest
+                                |> Components.Element.withDisabled False
+                                |> Components.Element.withSecondaryStyle
+                                |> Components.Element.toHtml
+                            , Components.Element.notification
+                                (Components.Element.Info "Upload an avatar (Size limit is 3mb)")
                             ]
-                        ]
-                    , case model.profilePic of
-                        Just imageString ->
-                            Html.div
-                                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                                ]
-                                [ Html.text "Your avatar preview"
-                                , Html.img
-                                    [ -- HA.class [ Tw.rounded ],
-                                      HA.src imageString
+                        , case model.profilePic of
+                            Just imageString ->
+                                Html.div
+                                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
                                     ]
-                                    []
-                                ]
+                                    [ Html.text "Your avatar preview"
+                                    , Html.img
+                                        [ -- HA.class [ Tw.rounded ],
+                                          HA.src imageString
+                                        ]
+                                        []
+                                    ]
 
-                        Nothing ->
-                            Html.text ""
-                    , Html.div
-                        [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                        ]
-                        [ Html.button
-                            [ -- HA.class Gs.buttonStyle
-                              HA.type_ "button"
-                            , HE.onClick (ProfileSubmit session)
+                            Nothing ->
+                                Html.text ""
+                        , Html.div
+                            [ HA.class "mt-4 flex gap-x-4" ]
+                            [ Components.Element.button
+                                |> Components.Element.withText "Submit"
+                                |> Components.Element.withMsg (ProfileSubmit token)
+                                |> Components.Element.withDisabled False
+                                |> Components.Element.withPrimaryStyle
+                                |> Components.Element.toHtml
+                            , Components.Element.button
+                                |> Components.Element.withText "Cancel"
+                                |> Components.Element.withMsg CancelEdit
+                                |> Components.Element.withDisabled False
+                                |> Components.Element.withSecondaryStyle
+                                |> Components.Element.toHtml
                             ]
-                            [ Html.text "Submit" ]
                         ]
-                    ]
+
+                  else
+                    Html.div
+                        [ HA.class "mt-4" ]
+                        [ Html.p
+                            [ HA.class "mb-4" ]
+                            [ Html.text "First Name:"
+                            , Html.p
+                                []
+                                [ Html.text model.storeName ]
+                            ]
+                        , case Credentials.tokenToAvatar token of
+                            Just imgSrc ->
+                                Html.p
+                                    [ HA.class "mb-4" ]
+                                    [ Html.text "Your Avatar:"
+                                    , Html.p
+                                        []
+                                        [ Html.img [ HA.src imgSrc ] [] ]
+                                    ]
+
+                            Nothing ->
+                                Html.text ""
+                        , Components.Element.button
+                            |> Components.Element.withText "Edit"
+                            |> Components.Element.withMsg EditMode
+                            |> Components.Element.withDisabled False
+                            |> Components.Element.withSecondaryStyle
+                            |> Components.Element.toHtml
+                        ]
                 ]
 
         NotVerified ->
@@ -240,7 +256,13 @@ update msg model =
             , Cmd.none
             )
 
-        ProfileSubmit session ->
+        EditMode ->
+            ( { model | editMode = model.editMode |> not }, Cmd.none )
+
+        CancelEdit ->
+            ( { model | editMode = False }, Cmd.none )
+
+        ProfileSubmit token ->
             let
                 imageOrNot : String
                 imageOrNot =
@@ -273,7 +295,7 @@ update msg model =
 
               else
                 Api.Profile.submitProfile
-                    session
+                    token
                     { name = model.storeName, profilePic = imageOrNot }
                     ProfileDone
             )

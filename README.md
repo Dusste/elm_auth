@@ -6,7 +6,8 @@
 - Private and Public routes
 - Session via JWT token
 
-###Commands
+###Local development
 
 - elm make src/Main.elm --output=public/app.js
 - start app: npm start
+- tailwind: npm run css:watch

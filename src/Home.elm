@@ -27,7 +27,7 @@ type Msg
 view : Html Msg
 view =
     Html.div
-        [ HA.class "flex flex-col items-center justify-center h-[100vh]"
+        [ HA.class "flex flex-col items-center justify-center mt-64"
         ]
         [ Html.h2
             [ HA.class "text-[36px]" ]

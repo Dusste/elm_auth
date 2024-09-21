@@ -2,7 +2,11 @@
 export default {
   content: ["./src/**/*.elm", "./*.js", "./public/index.html"],
   theme: {
-    extend: {},
+    extend: {
+      height: {
+        128: "32rem",
+      },
+    },
   },
   plugins: [
     require("@tailwindcss/forms")({

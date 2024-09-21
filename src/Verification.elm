@@ -27,7 +27,7 @@ type UserState
 
 
 type Msg
-    = VerifyApiCallStart Credentials.Session
+    = VerifyApiCallStart Credentials.Token
     | VerifyDone (Result Http.Error Credentials.Token)
     | TokenToLS Credentials.Token
 
@@ -37,38 +37,30 @@ type Msg
 -- since we are comparing it with verificatinstring from cookie
 
 
-init : Credentials.Session -> String -> ( Model, Cmd Msg )
-init session verificationParam =
-    case Credentials.fromSessionToToken session of
-        Just token ->
-            case Credentials.tokenToUserData token of
-                Ok resultTokenRecord ->
-                    if verificationParam /= ("/verify-email/" ++ Verification.verificationToString resultTokenRecord.verificationstring) then
-                        ( { userState = VerificationFail }, Cmd.none )
+init : Credentials.Token -> String -> ( Model, Cmd Msg )
+init token verificationParam =
+    case Credentials.tokenToUserData token of
+        Ok resultTokenRecord ->
+            if verificationParam /= ("/verify-email/" ++ Verification.verificationToString resultTokenRecord.verificationstring) then
+                ( { userState = VerificationFail }, Cmd.none )
 
-                    else if not resultTokenRecord.isverified then
-                        ( { userState = VerificationPending }
-                        , Components.Misc.sleepForAWhileThenCall session VerifyApiCallStart
-                        )
+            else if not resultTokenRecord.isverified then
+                ( { userState = VerificationPending }
+                , Components.Misc.sleepForAWhileThenCall token VerifyApiCallStart
+                )
 
-                    else
-                        ( { userState = Verified }, Cmd.none )
+            else
+                ( { userState = Verified }, Cmd.none )
 
-                Err _ ->
-                    ( { userState = Sessionless }, Cmd.none )
-
-        Nothing ->
-            ( { userState = Sessionless
-              }
-            , Cmd.none
-            )
+        Err _ ->
+            ( { userState = Sessionless }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        VerifyApiCallStart session ->
-            ( model, Api.Verification.apiCallToVerify session VerifyDone )
+        VerifyApiCallStart token ->
+            ( model, Api.Verification.apiCallToVerify token VerifyDone )
 
         VerifyDone (Ok token) ->
             ( { model | userState = VerificationDone }

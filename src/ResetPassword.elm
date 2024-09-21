@@ -55,43 +55,39 @@ init resetCodeParam =
 view : Model -> Html Msg
 view model =
     Html.div
-        [-- HA.class[ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
+        [ HA.class "flex justify-center mt-32"
         ]
-        [ Html.h2
-            []
-            [ Html.text "Reset password" ]
-        , case model.formState of
-            Loading ->
-                Html.div
-                    [--  HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
-                    ]
-                    [ Components.Misc.loadingElement ]
+        [ Html.div
+            [ HA.class "flex flex-col w-[300px] gap-y-4" ]
+            [ Html.h2
+                []
+                [ Html.text "Reset password" ]
+            , case model.formState of
+                Loading ->
+                    Components.Misc.loadingElement
 
-            Error error ->
-                Html.p
-                    [-- HA.class [ Tw.text_color Tw.red_400 ]
-                    ]
-                    [ Html.text error ]
+                Error error ->
+                    Html.p
+                        [-- HA.class [ Tw.text_color Tw.red_400 ]
+                        ]
+                        [ Html.text error ]
 
-            Initial ->
-                Html.text ""
+                Initial ->
+                    Html.text ""
 
-            Success ->
-                Html.div
-                    [-- HA.class [ Tw.text_center ]
-                    ]
-                    [ Html.h2
-                        []
-                        [ Html.text "All done !" ]
-                    , Html.p
-                        []
-                        [ Html.text "Your password has been reset. Please login with your new password." ]
-                    ]
-        , Html.form
-            [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
-            ]
-            [ Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                Success ->
+                    Html.div
+                        [-- HA.class [ Tw.text_center ]
+                        ]
+                        [ Html.h2
+                            []
+                            [ Html.text "All done !" ]
+                        , Html.p
+                            []
+                            [ Html.text "Your password has been reset. Please login with your new password." ]
+                        ]
+            , Html.form
+                [ HA.class "flex flex-col gap-y-4"
                 ]
                 [ Components.Element.inputField
                     { type_ = Components.Element.Password
@@ -101,11 +97,7 @@ view model =
                     , isDisabled = False
                     , error = Components.Error.byFieldName "password" model.errors
                     }
-                ]
-            , Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                ]
-                [ Components.Element.inputField
+                , Components.Element.inputField
                     { type_ = Components.Element.Password
                     , label = Just "Confirm Password"
                     , value = model.storeConfirmPassword
@@ -113,13 +105,16 @@ view model =
                     , isDisabled = False
                     , error = Components.Error.byFieldName "confirm-password" model.errors
                     }
+                , Html.div
+                    [ HA.class "mt-4" ]
+                    [ Components.Element.button
+                        |> Components.Element.withText "Submit"
+                        |> Components.Element.withMsg Submit
+                        |> Components.Element.withDisabled False
+                        |> Components.Element.withPrimaryStyle
+                        |> Components.Element.toHtml
+                    ]
                 ]
-            , Html.button
-                [ -- HA.class Gs.buttonStyle
-                  HA.type_ "button"
-                , HE.onClick Submit
-                ]
-                [ Html.text "Submit" ]
             ]
         ]
 

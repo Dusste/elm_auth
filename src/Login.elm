@@ -5,6 +5,7 @@ import Components.Element
 import Components.Error
 import Components.Misc
 import Data.Credentials as Credentials
+import Data.OutMsg
 import Data.Ports as Ports
 import Data.Validation as Validation
 import Dict exposing (Dict)
@@ -45,7 +46,7 @@ type Msg
     | LoginDone (Result Http.Error Credentials.Token)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
 update msg model =
     case msg of
         StoreEmail email ->
@@ -58,6 +59,7 @@ update msg model =
                 | storeEmail = email
                 , errors = resetErrorsPerField
               }
+            , []
             , Cmd.none
             )
 
@@ -71,6 +73,7 @@ update msg model =
                 | storePassword = password
                 , errors = resetErrorsPerField
               }
+            , []
             , Cmd.none
             )
 
@@ -105,6 +108,7 @@ update msg model =
                     Validation.checkErrors validationConfig
             in
             ( { model | errors = potentialErrors }
+            , []
             , if Validation.anyActiveError potentialErrors then
                 Cmd.none
 
@@ -122,11 +126,13 @@ update msg model =
                     Credentials.encodeToken token
             in
             ( { model | formState = Initial }
+            , [ Data.OutMsg.RedirectToProfile token ]
             , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
             )
 
         LoginDone (Err error) ->
             ( { model | formState = Error <| Components.Error.buildErrorMessage error }
+            , []
             , Cmd.none
             )
 
@@ -136,23 +142,18 @@ view model =
     Html.div
         [ HA.class "flex justify-center mt-32" ]
         [ Html.div
-            [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
-              HA.class "flex flex-col w-[300px] gap-y-4"
+            [ HA.class "flex flex-col w-[300px] gap-y-4"
             ]
             [ Html.h2
-                [-- HA.class [ Tw.text_3xl ]
-                ]
+                []
                 [ Html.text "Login" ]
             , case model.formState of
                 Loading ->
-                    Html.div
-                        [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
-                        ]
-                        [ Components.Misc.loadingElement ]
+                    Components.Misc.loadingElement
 
                 Error error ->
                     Html.p
-                        [-- HA.class [ Tw.text_color Tw.red_400 ]
+                        [ HA.class "text-red-500"
                         ]
                         [ Html.text error ]
 
@@ -186,23 +187,26 @@ view model =
                         , error = Components.Error.byFieldName "password" model.errors
                         }
                     ]
-                , Components.Element.button
-                    |> Components.Element.withText "Sign in"
-                    |> Components.Element.withMsg LoginSubmit
-                    |> Components.Element.withDisabled False
-                    |> Components.Element.withPrimaryStyle
-                    |> Components.Element.toHtml
-                , Html.a
-                    [ HA.href "/forgot-password"
+                , Html.div
+                    [ HA.class "mt-4 flex items-center justify-between" ]
+                    [ Components.Element.button
+                        |> Components.Element.withText "Sign in"
+                        |> Components.Element.withMsg LoginSubmit
+                        |> Components.Element.withDisabled False
+                        |> Components.Element.withPrimaryStyle
+                        |> Components.Element.toHtml
+                    , Html.a
+                        [ HA.href "/forgot-password"
 
-                    -- , HA.class [ Tw.mt_5 ]
+                        -- , HA.class [ Tw.mt_5 ]
+                        ]
+                        [ Html.text "Forgot password ?" ]
                     ]
-                    [ Html.text "Forgot password ?" ]
                 ]
             ]
         ]
 
 
-init : () -> ( Model, Cmd Msg )
+init : () -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
 init _ =
-    ( initialModel, Cmd.none )
+    ( initialModel, [], Cmd.none )

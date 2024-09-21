@@ -164,7 +164,7 @@ view model =
         [ HA.class "flex justify-center mt-32" ]
         [ Html.div
             [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
-              HA.class "flex flex-col w-[300px]  gap-y-4"
+              HA.class "flex flex-col w-[300px] gap-y-4"
             ]
             [ Html.h2
                 [--  HA.class [ Tw.text_3xl ]
@@ -172,10 +172,7 @@ view model =
                 [ Html.text "Signup" ]
             , case model.formState of
                 Loading ->
-                    Html.div
-                        [-- HA.class [ Tw.absolute, Tw.w_full, Tw.h_full, Tw.flex, Tw.justify_center, Tw.items_center, Tw.bg_color Tw.sky_50, Tw.bg_opacity_40 ]
-                        ]
-                        [ Components.Misc.loadingElement ]
+                    Components.Misc.loadingElement
 
                 Error error ->
                     Html.p
@@ -186,8 +183,7 @@ view model =
                 Initial ->
                     Html.text ""
             , Html.form
-                [ -- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
-                  HA.class "flex flex-col gap-y-4"
+                [ HA.class "flex flex-col gap-y-4"
                 ]
                 [ Html.div
                     [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
@@ -225,12 +221,15 @@ view model =
                         , error = Components.Error.byFieldName "confirm-password" model.errors
                         }
                     ]
-                , Components.Element.button
-                    |> Components.Element.withText "Sign up"
-                    |> Components.Element.withMsg SignupSubmit
-                    |> Components.Element.withDisabled False
-                    |> Components.Element.withPrimaryStyle
-                    |> Components.Element.toHtml
+                , Html.div
+                    [ HA.class "mt-4" ]
+                    [ Components.Element.button
+                        |> Components.Element.withText "Sign up"
+                        |> Components.Element.withMsg SignupSubmit
+                        |> Components.Element.withDisabled False
+                        |> Components.Element.withPrimaryStyle
+                        |> Components.Element.toHtml
+                    ]
                 ]
             ]
         ]
