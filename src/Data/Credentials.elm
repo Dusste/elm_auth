@@ -1,9 +1,7 @@
 module Data.Credentials exposing
-    ( ResetCodeParam
-    , Session
+    ( Session
     , Token(..)
     , UserDataFromToken
-    , UserId
     , addHeader
     , decodeToSession
     , decodeTokenData
@@ -11,27 +9,21 @@ module Data.Credentials exposing
     , encodeToken
     , fromSessionToToken
     , fromTokenToString
-    , passwordCodeStringParser
-    , resetCodeParamToString
     , subscriptionChanges
     , tokenDecoder
     , tokenToAvatar
     , tokenToId
     , tokenToUserData
-    , userIdParser
-    , userIdToString
     )
 
 import Browser.Navigation as Nav
 import Data.Ports as Ports
-import Data.Verification as Verification
 import Html.Attributes exposing (id)
 import Http
 import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
 import Jwt
-import Url.Parser
 
 
 type Token
@@ -43,41 +35,17 @@ type Session
     | Guest
 
 
-type ResetCodeParam
-    = ResetCodeParam String
-
-
-type UserId
-    = UserId String
-
-
-resetCodeParamToString : ResetCodeParam -> String
-resetCodeParamToString (ResetCodeParam str) =
-    str
-
-
-userIdToString : UserId -> String
-userIdToString (UserId id) =
-    -- TODO need some vaildation ?
-    id
-
-
 encodeImageString : String -> Json.Encode.Value
 encodeImageString imageString =
     Json.Encode.string imageString
 
 
-idDecoder : Json.Decode.Decoder UserId
-idDecoder =
-    Json.Decode.map UserId Json.Decode.string
-
-
 type alias UserDataFromToken =
-    { id : UserId
+    { id : String
     , isverified : Bool
     , email : String
     , firstname : String
-    , verificationstring : Verification.VerificationString
+    , verificationstring : String
     , profilepicurl : Maybe String
     }
 
@@ -103,7 +71,7 @@ tokenToId token =
         |> Result.toMaybe
         |> Maybe.map
             (\{ id } ->
-                userIdToString id
+                id
             )
 
 
@@ -137,11 +105,11 @@ encodeToken (Token token) =
 decodeTokenData : Json.Decode.Decoder UserDataFromToken
 decodeTokenData =
     Json.Decode.succeed UserDataFromToken
-        |> Json.Decode.Pipeline.required "id" idDecoder
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
         |> Json.Decode.Pipeline.required "isverified" Json.Decode.bool
         |> Json.Decode.Pipeline.required "email" Json.Decode.string
         |> Json.Decode.Pipeline.required "firstname" Json.Decode.string
-        |> Json.Decode.Pipeline.required "verificationstring" Verification.verifyStringDecoder
+        |> Json.Decode.Pipeline.required "verificationstring" Json.Decode.string
         |> Json.Decode.Pipeline.optional "profilepicurl"
             (Json.Decode.map
                 (\s ->
@@ -190,17 +158,3 @@ subscriptionChanges toMsg key =
 addHeader : Token -> Http.Header
 addHeader (Token tokenString) =
     Http.header "authorization" ("Token " ++ tokenString)
-
-
-userIdParser : Url.Parser.Parser (UserId -> a) a
-userIdParser =
-    Url.Parser.custom "USERID" <|
-        \userId ->
-            Maybe.map UserId (Just userId)
-
-
-passwordCodeStringParser : Url.Parser.Parser (ResetCodeParam -> a) a
-passwordCodeStringParser =
-    Url.Parser.custom "RESETCODEPARAM" <|
-        \resetPassword ->
-            Maybe.map ResetCodeParam (Just resetPassword)

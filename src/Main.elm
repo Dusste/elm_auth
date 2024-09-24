@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Api.Verification
 import Browser
 import Browser.Navigation as Nav
 import Data.Credentials as Credentials
@@ -11,6 +12,7 @@ import Home
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
+import Http
 import Json.Decode
 import Jwt
 import Login
@@ -48,11 +50,11 @@ type Page
 type Route
     = Login
     | Signup
-    | Profile Credentials.UserId
+    | Profile String
     | ForgotPassword
-    | ResetPassword Credentials.ResetCodeParam
+    | ResetPassword String
     | Home
-    | Verification Verification.VerificationString
+    | Verification String
     | NotFound
 
 
@@ -72,6 +74,8 @@ type Msg
     | OpenDropdown
     | GotTime Time.Posix
     | CheckSessionExpired ( Credentials.Session, Maybe Time.Posix )
+    | RequestToReSendEmail String Credentials.Token
+    | ResendDone (Result Http.Error ())
 
 
 content : Model -> Html Msg
@@ -112,7 +116,9 @@ content model =
 app : Model -> Html Msg
 app model =
     Html.div
-        [ HA.class "w-[1500px] m-auto", HE.onClick <| CheckSessionExpired ( model.session, model.time ) ]
+        [ HA.class "w-[1500px] m-auto"
+        , HE.onClick <| CheckSessionExpired ( model.session, model.time )
+        ]
         [ viewHeader model
         , content model
 
@@ -229,58 +235,51 @@ viewPrivateHeader : { page : Page, token : Credentials.Token, openDropdown : Boo
 viewPrivateHeader { page, token, openDropdown } =
     Html.ul
         [ -- Attr.class [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ]
-          HA.class "flex justify-between gap-4 items-end"
+          HA.class "flex justify-between gap-4 items-end items-center"
         ]
         [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
                 Html.li
-                    [-- HA.class [ Tw.cursor_pointer ]
+                    [ HA.class "cursor-pointer"
                     ]
                     [ Html.div
-                        [-- HA.class [ Tw.relative ]
+                        [ HA.class "relative"
                         ]
-                        [ if String.length resultTokenRecord.firstname > 0 then
-                            Html.div
-                                [ --  HA.class [ Tw.flex, Tw.items_center ]
-                                  HE.onClick OpenDropdown
+                        [ Html.div
+                            [ HA.class "flex items-center"
+                            , HE.onClick OpenDropdown
+                            ]
+                            [ Html.div
+                                [ HA.class "w-10 h-10 overflow-hidden rounded-full"
                                 ]
-                                [ Html.div
-                                    [-- HA.class [ Tw.w_10, Tw.h_10, Tw.overflow_hidden, Tw.rounded_full ]
-                                    ]
-                                    [ viewProfilePic resultTokenRecord.profilepicurl
-                                        [--  HA.class [ Tw.w_10 ]
-                                        ]
-                                    ]
-                                , Html.span
-                                    [-- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl ]
+                                [ viewProfilePic resultTokenRecord.profilepicurl
+                                    [ HA.class "w-10" ]
+                                ]
+                            , if String.length resultTokenRecord.firstname > 0 then
+                                Html.span
+                                    [ HA.class "py-1 px-4"
                                     ]
                                     [ Html.text resultTokenRecord.firstname
                                     , Html.sup
-                                        [--  HA.class [ Tw.ml_1 ]
-                                        ]
+                                        [ HA.class "ml-1" ]
                                         [ Html.text "⌄" ]
                                     ]
-                                ]
 
-                          else
-                            Html.div
-                                [ HE.onClick OpenDropdown ]
-                                [ Html.span
-                                    [-- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl ]
+                              else
+                                Html.span
+                                    [ HA.class "py-1 px-4"
                                     ]
                                     [ Html.text resultTokenRecord.email
                                     , Html.sup
-                                        [-- HA.class [ Tw.ml_1 ]
+                                        [ HA.class "ml-1"
                                         ]
                                         [ Html.text "⌄" ]
                                     ]
-                                , Html.div
-                                    []
-                                    [ viewProfilePic resultTokenRecord.profilepicurl [ HA.width 60 ] ]
-                                ]
+                            ]
                         , Html.ul
-                            [ -- HA.class [ Tw.flex, Tw.absolute, Tw.mt_3, Tw.flex_col, Tw.gap_1, Tw.overflow_hidden, Tw.transition_all, Tw.duration_500, Tw.bg_color Tw.white ]
-                              HA.style "height"
+                            [ HA.class "flex absolute mt-3 flex-col gap-1 overflow-hidden transition-all duration-500 bg-color white"
+                            , HA.style
+                                "height"
                                 (if openDropdown then
                                     "90px"
 
@@ -298,7 +297,7 @@ viewPrivateHeader { page, token, openDropdown } =
                                 ]
                                 [ Html.a
                                     [ -- HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
-                                      HA.href <| "/profile/" ++ Credentials.userIdToString resultTokenRecord.id
+                                      HA.href <| "/profile/" ++ resultTokenRecord.id
                                     ]
                                     [ Html.text "My profile" ]
                                 ]
@@ -398,6 +397,7 @@ update msg model =
 
         ChangedUrl url ->
             let
+                newPage : Page
                 newPage =
                     urlToPage url model.session
             in
@@ -407,10 +407,15 @@ update msg model =
             case model.page of
                 LoginPage loginModel ->
                     let
-                        ( loginModelFromLogin, _, loginMsgFromLogin ) =
+                        ( loginModelFromLogin, outMsgs, loginMsgFromLogin ) =
                             Login.update loginMsg loginModel
                     in
-                    ( { model | page = LoginPage loginModelFromLogin }, Cmd.map GotLoginMsg loginMsgFromLogin )
+                    ( { model | page = LoginPage loginModelFromLogin }
+                    , Cmd.batch
+                        [ Cmd.map GotLoginMsg loginMsgFromLogin
+                        , Data.OutMsg.msgToCmd (outMsgToMsg outMsgs model.url)
+                        ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -419,10 +424,15 @@ update msg model =
             case model.page of
                 ProfilePage profileModel ->
                     let
-                        ( profileModelFromProfile, profileMsgFromProfile ) =
+                        ( profileModelFromProfile, outMsgs, profileMsgFromProfile ) =
                             Profile.update profileMsg profileModel
                     in
-                    ( { model | page = ProfilePage profileModelFromProfile }, Cmd.map GotProfileMsg profileMsgFromProfile )
+                    ( { model | page = ProfilePage profileModelFromProfile }
+                    , Cmd.batch
+                        [ Cmd.map GotProfileMsg profileMsgFromProfile
+                        , Data.OutMsg.msgToCmd (outMsgToMsg outMsgs model.url)
+                        ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -443,10 +453,15 @@ update msg model =
             case model.page of
                 VerificationPage verificationModel ->
                     let
-                        ( verificationModelFromVerification, verificationMsgFromVerification ) =
+                        ( verificationModelFromVerification, outMsgs, verificationMsgFromVerification ) =
                             Verification.update verificationMsg verificationModel
                     in
-                    ( { model | page = VerificationPage verificationModelFromVerification }, Cmd.map GotVerificationMsg verificationMsgFromVerification )
+                    ( { model | page = VerificationPage verificationModelFromVerification }
+                    , Cmd.batch
+                        [ Cmd.map GotVerificationMsg verificationMsgFromVerification
+                        , Data.OutMsg.msgToCmd (outMsgToMsg outMsgs model.url)
+                        ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -493,7 +508,7 @@ update msg model =
                 Just token ->
                     case Credentials.tokenToUserData token of
                         Ok resultTokenRecord ->
-                            Nav.pushUrl model.key ("/profile/" ++ Credentials.userIdToString resultTokenRecord.id)
+                            Nav.pushUrl model.key ("/profile/" ++ resultTokenRecord.id)
 
                         Err _ ->
                             Nav.pushUrl model.key "/login"
@@ -516,6 +531,17 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+        RequestToReSendEmail email token ->
+            ( model, Api.Verification.requestResendEmail email token ResendDone )
+
+        ResendDone result ->
+            case result of
+                Ok _ ->
+                    ( model, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
 
 handleLogout : Credentials.Session -> Maybe Time.Posix -> Cmd Msg
@@ -547,10 +573,10 @@ matchRoute =
         [ Url.Parser.map Home Url.Parser.top
         , Url.Parser.map ForgotPassword (Url.Parser.s "forgot-password")
         , Url.Parser.map Login (Url.Parser.s "login")
-        , Url.Parser.map Profile (Url.Parser.s "profile" </> Credentials.userIdParser)
+        , Url.Parser.map Profile (Url.Parser.s "profile" </> Url.Parser.string)
         , Url.Parser.map Signup (Url.Parser.s "signup")
-        , Url.Parser.map Verification (Url.Parser.s "verify-email" </> Verification.verifictionStringParser)
-        , Url.Parser.map ResetPassword (Url.Parser.s "password-reset" </> Credentials.passwordCodeStringParser)
+        , Url.Parser.map Verification (Url.Parser.s "verify-email" </> Url.Parser.string)
+        , Url.Parser.map ResetPassword (Url.Parser.s "password-reset" </> Url.Parser.string)
         ]
 
 
@@ -558,7 +584,7 @@ urlToPage : Url -> Credentials.Session -> Page
 urlToPage url session =
     case ( Url.Parser.parse matchRoute url, Credentials.fromSessionToToken session ) of
         ( Just Login, Nothing ) ->
-            LoginPage (Login.init () |> (\( m, _, _ ) -> m))
+            LoginPage (Tuple.first (Login.init ()))
 
         ( Just Signup, Nothing ) ->
             SignupPage (Tuple.first (Signup.init ()))
@@ -591,16 +617,13 @@ initCurrentPage ( url, model, existingCmds ) =
     case model.page of
         LoginPage _ ->
             let
-                ( pageModel, outMsgs, pageCmds ) =
+                ( pageModel, pageCmds ) =
                     Login.init ()
 
                 -- Because Main doesn’t know anything about the page specific messages, it needs to map them to one of the data constructors from its own Msg type using the Cmd.map function
             in
             ( { model | page = LoginPage pageModel }
-            , Cmd.batch
-                [ Cmd.map GotLoginMsg pageCmds
-                , Data.OutMsg.msgToCmd (outMsgToMsg outMsgs url)
-                ]
+            , Cmd.map GotLoginMsg pageCmds
             )
 
         SignupPage _ ->
@@ -690,6 +713,9 @@ outMsgToMsg outMsgs url =
 
                         Nothing ->
                             NoOp
+
+                Data.OutMsg.ResendEmail email token ->
+                    RequestToReSendEmail email token
         )
         outMsgs
 

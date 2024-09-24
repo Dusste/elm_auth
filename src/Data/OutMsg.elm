@@ -6,6 +6,7 @@ import Task
 
 type OutMsg
     = RedirectToProfile Credentials.Token
+    | ResendEmail String Credentials.Token
 
 
 msgToCmd : List msg -> Cmd msg

@@ -1,8 +1,10 @@
 module Verification exposing (Model, Msg, init, update, view)
 
 import Api.Verification
+import Components.Element
 import Components.Misc
 import Data.Credentials as Credentials
+import Data.OutMsg
 import Data.Ports as Ports
 import Data.Verification as Verification
 import Html exposing (Html)
@@ -15,6 +17,8 @@ import Task
 
 type alias Model =
     { userState : UserState
+    , email : Maybe String
+    , token : Credentials.Token
     }
 
 
@@ -30,6 +34,7 @@ type Msg
     = VerifyApiCallStart Credentials.Token
     | VerifyDone (Result Http.Error Credentials.Token)
     | TokenToLS Credentials.Token
+    | Resend
 
 
 
@@ -40,30 +45,52 @@ type Msg
 init : Credentials.Token -> String -> ( Model, Cmd Msg )
 init token verificationParam =
     case Credentials.tokenToUserData token of
-        Ok resultTokenRecord ->
-            if verificationParam /= ("/verify-email/" ++ Verification.verificationToString resultTokenRecord.verificationstring) then
-                ( { userState = VerificationFail }, Cmd.none )
+        Ok { isverified, verificationstring, email } ->
+            if verificationParam /= ("/verify-email/" ++ verificationstring) then
+                ( { userState = VerificationFail
+                  , email = Just email
+                  , token = token
+                  }
+                , Cmd.none
+                )
 
-            else if not resultTokenRecord.isverified then
-                ( { userState = VerificationPending }
+            else if not isverified then
+                ( { userState = VerificationPending
+                  , email = Nothing
+                  , token = token
+                  }
                 , Components.Misc.sleepForAWhileThenCall token VerifyApiCallStart
                 )
 
             else
-                ( { userState = Verified }, Cmd.none )
+                ( { userState = Verified
+                  , email = Nothing
+                  , token = token
+                  }
+                , Cmd.none
+                )
 
         Err _ ->
-            ( { userState = Sessionless }, Cmd.none )
+            ( { userState = Sessionless
+              , email = Nothing
+              , token = token
+              }
+            , Cmd.none
+            )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
 update msg model =
     case msg of
         VerifyApiCallStart token ->
-            ( model, Api.Verification.apiCallToVerify token VerifyDone )
+            ( model
+            , []
+            , Api.Verification.apiCallToVerify token VerifyDone
+            )
 
         VerifyDone (Ok token) ->
             ( { model | userState = VerificationDone }
+            , []
             , Process.sleep 5000
                 |> Task.perform (\_ -> TokenToLS token)
             )
@@ -72,21 +99,36 @@ update msg model =
             ( { model
                 | userState = VerificationFail
               }
+            , []
             , Cmd.none
             )
+
+        Resend ->
+            case model.email of
+                Just email ->
+                    ( model
+                    , [ Data.OutMsg.ResendEmail email model.token ]
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, [], Cmd.none )
 
         TokenToLS token ->
             let
                 tokenValue =
                     Credentials.encodeToken token
             in
-            ( model, Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue )
+            ( model
+            , []
+            , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
+            )
 
 
 view : Model -> Html Msg
 view model =
     Html.div
-        [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+        [ HA.class "flex flex-col items-center justify-center mt-64"
         ]
         [ case model.userState of
             VerificationPending ->
@@ -122,6 +164,15 @@ view model =
                     , Html.p
                         []
                         [ Html.text "Try to re-login or refresh the page" ]
+                    , Html.div
+                        [ HA.class "mt-4" ]
+                        [ Components.Element.button
+                            |> Components.Element.withText "Resend email"
+                            |> Components.Element.withMsg Resend
+                            |> Components.Element.withDisabled False
+                            |> Components.Element.withSecondaryStyle
+                            |> Components.Element.toHtml
+                        ]
                     ]
 
             Verified ->

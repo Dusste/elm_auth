@@ -207,6 +207,6 @@ view model =
         ]
 
 
-init : () -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( initialModel, [], Cmd.none )
+    ( initialModel, Cmd.none )

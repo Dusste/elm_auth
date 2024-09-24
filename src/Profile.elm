@@ -5,6 +5,7 @@ import Components.Element
 import Components.Error
 import Components.Misc
 import Data.Credentials as Credentials
+import Data.OutMsg
 import Data.Ports as Ports
 import Data.Validation as Validation
 import Dict exposing (Dict)
@@ -21,6 +22,7 @@ import Task
 type alias Model =
     { storeName : String
     , profilePic : Maybe String
+    , email : Maybe String
     , userState : UserState
     , formState : FormState
     , editMode : Bool
@@ -35,7 +37,7 @@ type FormState
 
 
 type UserState
-    = NotVerified
+    = NotVerified Credentials.Token
     | Verified Credentials.Token
     | Intruder
     | SessionExpired
@@ -50,14 +52,16 @@ type Msg
     | FileRead (Result Http.Error String)
     | CancelEdit
     | EditMode
+    | Resend Credentials.Token
 
 
 initialModel : Model
 initialModel =
     { storeName = ""
     , profilePic = Nothing
+    , email = Nothing
     , formState = Initial
-    , userState = NotVerified
+    , userState = Intruder
     , editMode = False
     , errors = Dict.empty
     }
@@ -66,21 +70,25 @@ initialModel =
 init : Credentials.Token -> ( Model, Cmd Msg )
 init token =
     case Credentials.tokenToUserData token of
-        Ok userDataFromToken ->
+        Ok { firstname, email, isverified } ->
             ( { initialModel
-                | storeName = userDataFromToken.firstname
+                | storeName = firstname
+                , email = Just email
                 , userState =
-                    if userDataFromToken.isverified then
+                    if isverified then
                         Verified token
 
                     else
-                        NotVerified
+                        NotVerified token
               }
             , Cmd.none
             )
 
         Err _ ->
-            ( { initialModel | userState = Intruder }
+            ( { initialModel
+                | userState = Intruder
+                , email = Nothing
+              }
             , Cmd.none
             )
 
@@ -143,12 +151,12 @@ view model =
                         , case model.profilePic of
                             Just imageString ->
                                 Html.div
-                                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
+                                    [ HA.class "flex flex-col gap-3"
                                     ]
                                     [ Html.text "Your avatar preview"
                                     , Html.img
-                                        [ -- HA.class [ Tw.rounded ],
-                                          HA.src imageString
+                                        [ HA.class "rounded w-[100px]"
+                                        , HA.src imageString
                                         ]
                                         []
                                     ]
@@ -182,18 +190,6 @@ view model =
                                 []
                                 [ Html.text model.storeName ]
                             ]
-                        , case Credentials.tokenToAvatar token of
-                            Just imgSrc ->
-                                Html.p
-                                    [ HA.class "mb-4" ]
-                                    [ Html.text "Your Avatar:"
-                                    , Html.p
-                                        []
-                                        [ Html.img [ HA.src imgSrc ] [] ]
-                                    ]
-
-                            Nothing ->
-                                Html.text ""
                         , Components.Element.button
                             |> Components.Element.withText "Edit"
                             |> Components.Element.withMsg EditMode
@@ -203,16 +199,25 @@ view model =
                         ]
                 ]
 
-        NotVerified ->
+        NotVerified token ->
             Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
+                [ HA.class "flex flex-col items-center justify-center mt-64"
                 ]
                 [ Html.h2
                     []
                     [ Html.text "Please verify your email ! " ]
                 , Html.p
                     []
-                    [ Html.text "You can't access your profile until you verify your email" ]
+                    [ Html.text "Haven't got email from us ?" ]
+                , Html.div
+                    [ HA.class "mt-4" ]
+                    [ Components.Element.button
+                        |> Components.Element.withText "Resend email"
+                        |> Components.Element.withMsg (Resend token)
+                        |> Components.Element.withDisabled False
+                        |> Components.Element.withSecondaryStyle
+                        |> Components.Element.toHtml
+                    ]
                 ]
 
         Intruder ->
@@ -240,7 +245,7 @@ view model =
                 ]
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
 update msg model =
     case msg of
         StoreFirstName firstName ->
@@ -253,14 +258,26 @@ update msg model =
                 | storeName = firstName
                 , errors = resetErrorsPerField
               }
+            , []
             , Cmd.none
             )
 
+        Resend token ->
+            case model.email of
+                Just email ->
+                    ( model
+                    , [ Data.OutMsg.ResendEmail email token ]
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, [], Cmd.none )
+
         EditMode ->
-            ( { model | editMode = model.editMode |> not }, Cmd.none )
+            ( { model | editMode = model.editMode |> not }, [], Cmd.none )
 
         CancelEdit ->
-            ( { model | editMode = False }, Cmd.none )
+            ( { model | editMode = False }, [], Cmd.none )
 
         ProfileSubmit token ->
             let
@@ -290,6 +307,7 @@ update msg model =
                     Validation.checkErrors validationConfig
             in
             ( { model | errors = potentialErrors }
+            , []
             , if Validation.anyActiveError potentialErrors then
                 Cmd.none
 
@@ -306,11 +324,13 @@ update msg model =
                     Credentials.encodeToken token
             in
             ( { model | formState = Initial }
+            , []
             , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
             )
 
         ProfileDone (Err error) ->
             ( { model | formState = Error <| Components.Error.buildErrorMessage error }
+            , []
             , case error of
                 Http.BadStatus statusCode ->
                     if statusCode == 401 then
@@ -324,13 +344,13 @@ update msg model =
             )
 
         FileRequest ->
-            ( model, Select.file [ "image/*" ] FileRequestProceed )
+            ( model, [], Select.file [ "image/*" ] FileRequestProceed )
 
         FileRequestProceed file ->
-            ( model, Task.attempt FileRead (File.toUrl file) )
+            ( model, [], Task.attempt FileRead (File.toUrl file) )
 
         FileRead (Ok imageFileString) ->
-            ( { model | profilePic = Just imageFileString }, Cmd.none )
+            ( { model | profilePic = Just imageFileString }, [], Cmd.none )
 
         FileRead (Err error) ->
-            ( { model | formState = Error <| Components.Error.buildErrorMessage error }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage error }, [], Cmd.none )
