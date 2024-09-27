@@ -130,25 +130,25 @@ notification notification_ =
         { iconStyle, wrapperStyle, txtValue } =
             case notification_ of
                 Info infoTxt ->
-                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-sky-500 rounded-full mr-2"
+                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-sky-500 rounded-full mr-2"
                     , wrapperStyle = "bg-sky-200 text-sky-500 flex border border-sky-500 rounded items-center p-2"
                     , txtValue = infoTxt
                     }
 
                 Warning warnTxt ->
-                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-yellow-500 rounded-full mr-2"
+                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-yellow-500 rounded-full mr-2"
                     , wrapperStyle = "bg-yellow-200 text-yellow-500 flex border border-yellow-500 rounded items-center p-2"
                     , txtValue = warnTxt
                     }
 
                 Error errDescription ->
-                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-red-500 rounded-full mr-2"
+                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-red-500 rounded-full mr-2"
                     , wrapperStyle = "bg-red-200 text-red-500 flex border border-red-500 rounded items-center p-2"
                     , txtValue = errDescription
                     }
 
                 Success succTxt ->
-                    { iconStyle = "font-bold w-5 h-5 flex justify-center items-center border-2 border-green-500 rounded-full mr-2"
+                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-green-500 rounded-full mr-2"
                     , wrapperStyle = "bg-green-200 text-green-500 flex border border-green-500 rounded items-center p-2"
                     , txtValue = succTxt
                     }

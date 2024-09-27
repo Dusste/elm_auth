@@ -98,12 +98,10 @@ view model =
     case model.userState of
         Verified token ->
             Html.div
-                [ -- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.sm [ Tw.m_20 ] ]
-                  HA.class "flex flex-col self-center mt-32 relative w-[400px] gap-y-4"
+                [ HA.class "flex flex-col self-center mt-32 relative w-[400px] gap-y-4"
                 ]
                 [ Html.h2
-                    [-- HA.class [ Tw.text_3xl ]
-                    ]
+                    []
                     [ Html.text "Hello" ]
                 , case model.formState of
                     Loading ->
@@ -205,7 +203,7 @@ view model =
                 ]
                 [ Html.h2
                     []
-                    [ Html.text "Please verify your email ! " ]
+                    [ Html.text "In order to access all the features please verify your email ! " ]
                 , Html.p
                     []
                     [ Html.text "Haven't got email from us ?" ]
@@ -222,8 +220,7 @@ view model =
 
         Intruder ->
             Html.div
-                [--  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
-                ]
+                []
                 [ Html.h2
                     []
                     [ Html.text "Hmm seems you are not logged in" ]
@@ -234,8 +231,7 @@ view model =
 
         SessionExpired ->
             Html.div
-                [-- HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Bp.sm [ Tw.m_20 ] ]
-                ]
+                []
                 [ Html.h2
                     []
                     [ Html.text "Your session have expired" ]

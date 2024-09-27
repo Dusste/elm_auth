@@ -107,18 +107,24 @@ update msg model =
                 potentialErrors =
                     Validation.checkErrors validationConfig
             in
-            ( { model | errors = potentialErrors }
-            , []
-            , if Validation.anyActiveError potentialErrors then
-                Cmd.none
+            if Validation.anyActiveError potentialErrors then
+                ( { model | errors = potentialErrors }
+                , []
+                , Cmd.none
+                )
 
-              else
-                Api.Login.submitLogin
+            else
+                ( { model
+                    | errors = potentialErrors
+                    , formState = Loading
+                  }
+                , []
+                , Api.Login.submitLogin
                     { email = model.storeEmail
                     , password = model.storePassword
                     }
                     LoginDone
-            )
+                )
 
         LoginDone (Ok token) ->
             let
@@ -147,61 +153,46 @@ view model =
             [ Html.h2
                 []
                 [ Html.text "Login" ]
-            , case model.formState of
-                Loading ->
-                    Components.Misc.loadingElement
-
-                Error error ->
-                    Html.p
-                        [ HA.class "text-red-500"
-                        ]
-                        [ Html.text error ]
-
-                Initial ->
-                    Html.text ""
             , Html.form
-                [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_5, Tw.text_xl, Tw.w_full, Bp.md [ Tw.w_60 ] ]
-                  HA.class "flex flex-col gap-y-4"
+                [ HA.class "flex flex-col gap-y-4"
                 ]
-                [ Html.div
-                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Text
-                        , label = Just "Email"
-                        , value = model.storeEmail
-                        , toMsg = StoreEmail
-                        , isDisabled = False
-                        , error = Components.Error.byFieldName "email" model.errors
-                        }
-                    ]
-                , Html.div
-                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Password
-                        , label = Just "Password"
-                        , value = model.storePassword
-                        , toMsg = StorePassword
-                        , isDisabled = False
-                        , error = Components.Error.byFieldName "password" model.errors
-                        }
-                    ]
-                , Html.div
-                    [ HA.class "mt-4 flex items-center justify-between" ]
-                    [ Components.Element.button
-                        |> Components.Element.withText "Sign in"
-                        |> Components.Element.withMsg LoginSubmit
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withPrimaryStyle
-                        |> Components.Element.toHtml
-                    , Html.a
-                        [ HA.href "/forgot-password"
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Text
+                    , label = Just "Email"
+                    , value = model.storeEmail
+                    , toMsg = StoreEmail
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "email" model.errors
+                    }
+                , Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
+                , case model.formState of
+                    Loading ->
+                        Components.Misc.loadingElement
 
-                        -- , HA.class [ Tw.mt_5 ]
-                        ]
-                        [ Html.text "Forgot password ?" ]
-                    ]
+                    Error error ->
+                        Components.Element.notification (Components.Element.Error error)
+
+                    Initial ->
+                        Html.div
+                            [ HA.class "mt-4 flex items-center justify-between" ]
+                            [ Components.Element.button
+                                |> Components.Element.withText "Sign in"
+                                |> Components.Element.withMsg LoginSubmit
+                                |> Components.Element.withDisabled False
+                                |> Components.Element.withPrimaryStyle
+                                |> Components.Element.toHtml
+                            , Html.a
+                                [ HA.href "/forgot-password"
+                                ]
+                                [ Html.text "Forgot password ?" ]
+                            ]
                 ]
             ]
         ]

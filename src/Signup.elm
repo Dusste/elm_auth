@@ -131,13 +131,20 @@ update msg model =
                 potentialErrors =
                     Validation.checkErrors validationConfig
             in
-            ( { model | errors = potentialErrors }
-            , if Validation.anyActiveError potentialErrors then
-                Cmd.none
+            if Validation.anyActiveError potentialErrors then
+                ( { model
+                    | errors = potentialErrors
+                  }
+                , Cmd.none
+                )
 
-              else
-                Api.Signup.submitSignup { email = model.storeEmail, password = model.storePassword } SignupDone
-            )
+            else
+                ( { model
+                    | errors = potentialErrors
+                    , formState = Loading
+                  }
+                , Api.Signup.submitSignup { email = model.storeEmail, password = model.storePassword } SignupDone
+                )
 
         SignupDone (Ok token) ->
             let
@@ -163,73 +170,54 @@ view model =
     Html.div
         [ HA.class "flex justify-center mt-32" ]
         [ Html.div
-            [ --  HA.class [ Tw.flex, Tw.flex_col, Tw.items_center, Tw.m_6, Tw.relative, Bp.md [ Tw.m_20 ] ]
-              HA.class "flex flex-col w-[300px] gap-y-4"
+            [ HA.class "flex flex-col w-[300px] gap-y-4"
             ]
             [ Html.h2
-                [--  HA.class [ Tw.text_3xl ]
-                ]
+                []
                 [ Html.text "Signup" ]
-            , case model.formState of
-                Loading ->
-                    Components.Misc.loadingElement
-
-                Error error ->
-                    Html.p
-                        [--  HA.class [ Tw.text_color Tw.red_400 ]
-                        ]
-                        [ Html.text error ]
-
-                Initial ->
-                    Html.text ""
             , Html.form
-                [ HA.class "flex flex-col gap-y-4"
-                ]
-                [ Html.div
-                    [-- HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Text
-                        , label = Just "Email"
-                        , value = model.storeEmail
-                        , toMsg = StoreEmail
-                        , isDisabled = False
-                        , error = Components.Error.byFieldName "email" model.errors
-                        }
-                    ]
-                , Html.div
-                    [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Password
-                        , label = Just "Password"
-                        , value = model.storePassword
-                        , toMsg = StorePassword
-                        , isDisabled = False
-                        , error = Components.Error.byFieldName "password" model.errors
-                        }
-                    ]
-                , Html.div
-                    [--  HA.class [ Tw.flex, Tw.flex_col, Tw.gap_3 ]
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Password
-                        , label = Just "Confirm Password"
-                        , value = model.storeConfirmPassword
-                        , toMsg = StoreConfirmPassword
-                        , isDisabled = False
-                        , error = Components.Error.byFieldName "confirm-password" model.errors
-                        }
-                    ]
-                , Html.div
-                    [ HA.class "mt-4" ]
-                    [ Components.Element.button
-                        |> Components.Element.withText "Sign up"
-                        |> Components.Element.withMsg SignupSubmit
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withPrimaryStyle
-                        |> Components.Element.toHtml
-                    ]
+                [ HA.class "flex flex-col gap-y-4" ]
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Text
+                    , label = Just "Email"
+                    , value = model.storeEmail
+                    , toMsg = StoreEmail
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "email" model.errors
+                    }
+                , Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
+                , Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Confirm Password"
+                    , value = model.storeConfirmPassword
+                    , toMsg = StoreConfirmPassword
+                    , isDisabled = False
+                    , error = Components.Error.byFieldName "confirm-password" model.errors
+                    }
+                , case model.formState of
+                    Loading ->
+                        Components.Misc.loadingElement
+
+                    Error error ->
+                        Components.Element.notification (Components.Element.Error error)
+
+                    Initial ->
+                        Html.div
+                            [ HA.class "mt-4" ]
+                            [ Components.Element.button
+                                |> Components.Element.withText "Sign up"
+                                |> Components.Element.withMsg SignupSubmit
+                                |> Components.Element.withDisabled False
+                                |> Components.Element.withPrimaryStyle
+                                |> Components.Element.toHtml
+                            ]
                 ]
             ]
         ]

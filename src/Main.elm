@@ -3,6 +3,7 @@ module Main exposing (..)
 import Api.Verification
 import Browser
 import Browser.Navigation as Nav
+import Components.SvgIcon
 import Data.Credentials as Credentials
 import Data.OutMsg
 import Data.Ports as Ports
@@ -137,16 +138,14 @@ view model =
 viewFooter : Html Msg
 viewFooter =
     Html.footer
-        [-- Attr.class [ Tw.bg_color Tw.black, Tw.text_color Tw.white, Tw.p_10, Tw.w_full ]
-        ]
+        []
         [ Html.text "This is footer" ]
 
 
 viewHeader : Model -> Html Msg
 viewHeader { page, session, openDropdown } =
     Html.nav
-        [ -- Attr.class [ Tw.flex, Tw.p_5, Tw.justify_between, Tw.items_center ]
-          HA.class "flex mt-4 justify-between items-center"
+        [ HA.class "flex mt-4 justify-between items-center"
         ]
         [ Html.h1
             []
@@ -172,8 +171,7 @@ viewProfilePic maybeSrc attr =
         Just url ->
             Html.img
                 (List.append
-                    [ -- HA.class [ Tw.w_10 ]
-                      HA.src url
+                    [ HA.src url
                     ]
                     attr
                 )
@@ -186,8 +184,7 @@ viewProfilePic maybeSrc attr =
 viewPublicHeader : Page -> Html Msg
 viewPublicHeader page =
     Html.ul
-        [ -- HA.class [ Tw.flex, Tw.justify_between, Tw.gap_4 ]
-          HA.class "flex justify-between gap-4"
+        [ HA.class "flex justify-between gap-4"
         ]
         [ Html.li
             [ HA.classList
@@ -197,8 +194,7 @@ viewPublicHeader page =
                 ]
             ]
             [ Html.a
-                [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                  HA.href "/"
+                [ HA.href "/"
                 ]
                 [ Html.text "home" ]
             ]
@@ -210,8 +206,7 @@ viewPublicHeader page =
                 ]
             ]
             [ Html.a
-                [ -- HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                  HA.href "/login"
+                [ HA.href "/login"
                 ]
                 [ Html.text "login" ]
             ]
@@ -223,8 +218,7 @@ viewPublicHeader page =
                 ]
             ]
             [ Html.a
-                [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                  HA.href "/signup"
+                [ HA.href "/signup"
                 ]
                 [ Html.text "signup" ]
             ]
@@ -234,8 +228,7 @@ viewPublicHeader page =
 viewPrivateHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
 viewPrivateHeader { page, token, openDropdown } =
     Html.ul
-        [ -- Attr.class [ Tw.flex, Tw.justify_between, Tw.gap_4, Tw.items_end ]
-          HA.class "flex justify-between gap-4 items-end items-center"
+        [ HA.class "flex justify-between gap-4 items-end items-center"
         ]
         [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
@@ -246,7 +239,7 @@ viewPrivateHeader { page, token, openDropdown } =
                         [ HA.class "relative"
                         ]
                         [ Html.div
-                            [ HA.class "flex items-center"
+                            [ HA.class "flex items-center gap-x-2"
                             , HE.onClick OpenDropdown
                             ]
                             [ Html.div
@@ -255,33 +248,33 @@ viewPrivateHeader { page, token, openDropdown } =
                                 [ viewProfilePic resultTokenRecord.profilepicurl
                                     [ HA.class "w-10" ]
                                 ]
-                            , if String.length resultTokenRecord.firstname > 0 then
-                                Html.span
-                                    [ HA.class "py-1 px-4"
-                                    ]
-                                    [ Html.text resultTokenRecord.firstname
-                                    , Html.sup
-                                        [ HA.class "ml-1" ]
-                                        [ Html.text "⌄" ]
-                                    ]
+                            , Html.span
+                                []
+                                [ Html.text <|
+                                    if String.length resultTokenRecord.firstname > 0 then
+                                        resultTokenRecord.firstname
 
-                              else
-                                Html.span
-                                    [ HA.class "py-1 px-4"
-                                    ]
-                                    [ Html.text resultTokenRecord.email
-                                    , Html.sup
-                                        [ HA.class "ml-1"
-                                        ]
-                                        [ Html.text "⌄" ]
-                                    ]
+                                    else
+                                        resultTokenRecord.email
+                                ]
+                            , Html.span
+                                [ HA.class <|
+                                    "flex transition-all w-[12px] "
+                                        ++ (if openDropdown then
+                                                "rotate-180"
+
+                                            else
+                                                ""
+                                           )
+                                ]
+                                [ Components.SvgIcon.iconArrowDown ]
                             ]
                         , Html.ul
-                            [ HA.class "flex absolute mt-3 flex-col gap-1 overflow-hidden transition-all duration-500 bg-color white"
+                            [ HA.class "flex absolute mt-3 flex-col gap-1 overflow-hidden duration-500 bg-color white"
                             , HA.style
                                 "height"
                                 (if openDropdown then
-                                    "90px"
+                                    "fit-content"
 
                                  else
                                     "0"
@@ -296,24 +289,29 @@ viewPrivateHeader { page, token, openDropdown } =
                                 , HE.onClick OpenDropdown
                                 ]
                                 [ Html.a
-                                    [ -- HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
-                                      HA.href <| "/profile/" ++ resultTokenRecord.id
+                                    [ HA.href <| "/profile/" ++ resultTokenRecord.id
                                     ]
                                     [ Html.text "My profile" ]
                                 ]
                             , Html.li
                                 [ HE.onClick OpenDropdown ]
                                 [ Html.a
-                                    [--  HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
-                                    ]
+                                    []
                                     [ Html.text "option2" ]
                                 ]
                             , Html.li
                                 [ HE.onClick OpenDropdown ]
                                 [ Html.a
-                                    [-- HA.class [ Tw.flex, Tw.py_1, Tw.px_4, Tw.rounded ]
-                                    ]
+                                    []
                                     [ Html.text "option3" ]
+                                ]
+                            , Html.li
+                                []
+                                [ Html.a
+                                    [ HA.href "/"
+                                    , HE.onClick GetLogout
+                                    ]
+                                    [ Html.text "logout" ]
                                 ]
                             ]
                         ]
@@ -321,15 +319,6 @@ viewPrivateHeader { page, token, openDropdown } =
 
             Err _ ->
                 Html.text ""
-        , Html.li
-            []
-            [ Html.a
-                [ --  HA.class [ Tw.py_1, Tw.px_4, Tw.text_xl, Tw.rounded, Tw.flex ]
-                  HA.href "/"
-                , HE.onClick GetLogout
-                ]
-                [ Html.text "logout" ]
-            ]
         ]
 
 
@@ -593,7 +582,7 @@ urlToPage url session =
             ProfilePage (Tuple.first (Profile.init token))
 
         ( Just (Verification _), Just token ) ->
-            VerificationPage (Tuple.first (Verification.init token url.path))
+            VerificationPage (Tuple.first (Verification.init token url))
 
         ( Just (ResetPassword _), Nothing ) ->
             let
@@ -605,7 +594,7 @@ urlToPage url session =
         ( Just ForgotPassword, Nothing ) ->
             ForgotPasswordPage (Tuple.first (ForgotPassword.init ()))
 
-        ( Just Home, Nothing ) ->
+        ( Just Home, _ ) ->
             HomePage (Tuple.first (Home.init ()))
 
         _ ->
@@ -667,7 +656,7 @@ initCurrentPage ( url, model, existingCmds ) =
                 Just token ->
                     let
                         ( pageModel, pageCmds ) =
-                            Verification.init token url.path
+                            Verification.init token url
                     in
                     ( { model | page = VerificationPage pageModel }
                     , Cmd.map GotVerificationMsg pageCmds

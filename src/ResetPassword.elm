@@ -63,58 +63,61 @@ view model =
                 []
                 [ Html.text "Reset password" ]
             , case model.formState of
-                Loading ->
-                    Components.Misc.loadingElement
-
                 Error error ->
-                    Html.p
-                        [-- HA.class [ Tw.text_color Tw.red_400 ]
-                        ]
-                        [ Html.text error ]
-
-                Initial ->
-                    Html.text ""
+                    Components.Element.notification (Components.Element.Error error)
 
                 Success ->
                     Html.div
-                        [-- HA.class [ Tw.text_center ]
-                        ]
+                        []
                         [ Html.h2
-                            []
+                            [ HA.class "mb-2" ]
                             [ Html.text "All done !" ]
-                        , Html.p
-                            []
-                            [ Html.text "Your password has been reset. Please login with your new password." ]
+                        , Components.Element.notification
+                            (Components.Element.Success "Your password has been reset. Please login with your new password.")
+
+                        -- TODO send out msg to login
+                        -- , Components.Element.button
+                        --     |> Components.Element.withText "Login"
+                        --     |> Components.Element.withMsg Login
+                        --     |> Components.Element.withDisabled False
+                        --     |> Components.Element.withPrimaryStyle
+                        --     |> Components.Element.toHtml
                         ]
-            , Html.form
-                [ HA.class "flex flex-col gap-y-4"
-                ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Password"
-                    , value = model.storePassword
-                    , toMsg = StorePassword
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "password" model.errors
-                    }
-                , Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Confirm Password"
-                    , value = model.storeConfirmPassword
-                    , toMsg = StoreConfirmPassword
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "confirm-password" model.errors
-                    }
-                , Html.div
-                    [ HA.class "mt-4" ]
-                    [ Components.Element.button
-                        |> Components.Element.withText "Submit"
-                        |> Components.Element.withMsg Submit
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withPrimaryStyle
-                        |> Components.Element.toHtml
-                    ]
-                ]
+
+                _ ->
+                    Html.form
+                        [ HA.class "flex flex-col gap-y-4"
+                        ]
+                        [ Components.Element.inputField
+                            { type_ = Components.Element.Password
+                            , label = Just "Password"
+                            , value = model.storePassword
+                            , toMsg = StorePassword
+                            , isDisabled = False
+                            , error = Components.Error.byFieldName "password" model.errors
+                            }
+                        , Components.Element.inputField
+                            { type_ = Components.Element.Password
+                            , label = Just "Confirm Password"
+                            , value = model.storeConfirmPassword
+                            , toMsg = StoreConfirmPassword
+                            , isDisabled = False
+                            , error = Components.Error.byFieldName "confirm-password" model.errors
+                            }
+                        , if model.formState == Loading then
+                            Components.Misc.loadingElement
+
+                          else
+                            Html.div
+                                [ HA.class "mt-4" ]
+                                [ Components.Element.button
+                                    |> Components.Element.withText "Submit"
+                                    |> Components.Element.withMsg Submit
+                                    |> Components.Element.withDisabled False
+                                    |> Components.Element.withPrimaryStyle
+                                    |> Components.Element.toHtml
+                                ]
+                        ]
             ]
         ]
 
@@ -156,13 +159,15 @@ update msg model =
                 potentialErrors =
                     Validation.checkErrors validationConfig
             in
-            ( { model | errors = potentialErrors }
-            , if Validation.anyActiveError potentialErrors then
-                Cmd.none
+            if Validation.anyActiveError potentialErrors then
+                ( { model | errors = potentialErrors }
+                , Cmd.none
+                )
 
-              else
-                Api.ResetPassword.submitResetPassword model.storeConfirmPassword model.resetCodeParam Done
-            )
+            else
+                ( { model | errors = potentialErrors, formState = Loading }
+                , Api.ResetPassword.submitResetPassword model.storeConfirmPassword model.resetCodeParam Done
+                )
 
         StorePassword str ->
             let

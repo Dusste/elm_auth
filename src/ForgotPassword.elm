@@ -58,50 +58,48 @@ view model =
                 []
                 [ text "Forgot Password" ]
             , case model.formState of
-                Loading ->
-                    Components.Misc.loadingElement
-
                 Error error ->
-                    Html.p
-                        [ HA.class "text-red-500"
-                        ]
-                        [ text error ]
-
-                Initial ->
-                    Html.p
-                        []
-                        [ text "Enter your email and we will send you a reset link." ]
+                    Components.Element.notification (Components.Element.Error error)
 
                 Success ->
                     Html.div
                         []
-                        [ Components.Element.notification
+                        [ Html.h2
+                            [ HA.class "mb-2" ]
+                            [ Html.text "All done !" ]
+                        , Components.Element.notification
                             (Components.Element.Success "Submitted successfully !")
                         , Html.p
                             [ HA.class "mt-4" ]
                             [ text "Check your email for rest link." ]
                         ]
-            , Html.form
-                [ HA.class "flex flex-col gap-y-4"
-                ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Text
-                    , label = Just "Email"
-                    , value = model.storeEmail
-                    , toMsg = StoreEmail
-                    , isDisabled = False
-                    , error = Components.Error.byFieldName "email" model.errors
-                    }
-                , Html.div
-                    [ HA.class "mt-4" ]
-                    [ Components.Element.button
-                        |> Components.Element.withText "Submit"
-                        |> Components.Element.withMsg Submit
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withPrimaryStyle
-                        |> Components.Element.toHtml
-                    ]
-                ]
+
+                _ ->
+                    Html.form
+                        [ HA.class "flex flex-col gap-y-4"
+                        ]
+                        [ Components.Element.inputField
+                            { type_ = Components.Element.Text
+                            , label = Just "Email"
+                            , value = model.storeEmail
+                            , toMsg = StoreEmail
+                            , isDisabled = False
+                            , error = Components.Error.byFieldName "email" model.errors
+                            }
+                        , if model.formState == Loading then
+                            Components.Misc.loadingElement
+
+                          else
+                            Html.div
+                                [ HA.class "mt-4" ]
+                                [ Components.Element.button
+                                    |> Components.Element.withText "Submit"
+                                    |> Components.Element.withMsg Submit
+                                    |> Components.Element.withDisabled False
+                                    |> Components.Element.withPrimaryStyle
+                                    |> Components.Element.toHtml
+                                ]
+                        ]
             ]
         ]
 
@@ -129,13 +127,13 @@ update msg model =
                 potentialErrors =
                     Validation.checkErrors validationConfig
             in
-            ( { model | errors = potentialErrors }
-            , if Validation.anyActiveError potentialErrors then
-                Cmd.none
+            if Validation.anyActiveError potentialErrors then
+                ( { model | errors = potentialErrors }, Cmd.none )
 
-              else
-                Api.ForgotPassword.submitForgotPassword model.storeEmail Done
-            )
+            else
+                ( { model | errors = potentialErrors, formState = Loading }
+                , Api.ForgotPassword.submitForgotPassword model.storeEmail Done
+                )
 
         StoreEmail str ->
             let
