@@ -55,69 +55,61 @@ init resetCodeParam =
 view : Model -> Html Msg
 view model =
     Html.div
-        [ HA.class "flex justify-center mt-32"
-        ]
+        [ HA.class "flex justify-center mt-32" ]
         [ Html.div
             [ HA.class "flex flex-col w-[300px] gap-y-4" ]
             [ Html.h2
                 []
                 [ Html.text "Reset password" ]
-            , case model.formState of
-                Error error ->
-                    Components.Element.notification (Components.Element.Error error)
+            , Html.form
+                [ HA.class "flex flex-col gap-y-4" ]
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Password"
+                    , value = model.storePassword
+                    , toMsg = StorePassword
+                    , isDisabled = model.formState == Loading
+                    , error = Components.Error.byFieldName "password" model.errors
+                    }
+                , Components.Element.inputField
+                    { type_ = Components.Element.Password
+                    , label = Just "Confirm Password"
+                    , value = model.storeConfirmPassword
+                    , toMsg = StoreConfirmPassword
+                    , isDisabled = model.formState == Loading
+                    , error = Components.Error.byFieldName "confirm-password" model.errors
+                    }
+                , Components.Element.button
+                    |> Components.Element.withText "Submit"
+                    |> Components.Element.withMsg Submit
+                    |> Components.Element.withDisabled (model.formState == Loading)
+                    |> Components.Element.withPrimaryStyle
+                    |> Components.Element.toHtml
+                , case model.formState of
+                    Initial ->
+                        Html.text ""
 
-                Success ->
-                    Html.div
-                        []
-                        [ Html.h2
-                            [ HA.class "mb-2" ]
-                            [ Html.text "All done !" ]
-                        , Components.Element.notification
-                            (Components.Element.Success "Your password has been reset. Please login with your new password.")
+                    Loading ->
+                        Components.Misc.loadingElement
 
-                        -- TODO send out msg to login
-                        -- , Components.Element.button
-                        --     |> Components.Element.withText "Login"
-                        --     |> Components.Element.withMsg Login
-                        --     |> Components.Element.withDisabled False
-                        --     |> Components.Element.withPrimaryStyle
-                        --     |> Components.Element.toHtml
-                        ]
+                    Error error ->
+                        Components.Element.notification (Components.Element.Error error)
 
-                _ ->
-                    Html.form
-                        [ HA.class "flex flex-col gap-y-4"
-                        ]
-                        [ Components.Element.inputField
-                            { type_ = Components.Element.Password
-                            , label = Just "Password"
-                            , value = model.storePassword
-                            , toMsg = StorePassword
-                            , isDisabled = False
-                            , error = Components.Error.byFieldName "password" model.errors
-                            }
-                        , Components.Element.inputField
-                            { type_ = Components.Element.Password
-                            , label = Just "Confirm Password"
-                            , value = model.storeConfirmPassword
-                            , toMsg = StoreConfirmPassword
-                            , isDisabled = False
-                            , error = Components.Error.byFieldName "confirm-password" model.errors
-                            }
-                        , if model.formState == Loading then
-                            Components.Misc.loadingElement
+                    Success ->
+                        Html.div
+                            []
+                            [ Components.Element.notification
+                                (Components.Element.Success "Your password has been reset. Please login with your new password.")
 
-                          else
-                            Html.div
-                                [ HA.class "mt-4" ]
-                                [ Components.Element.button
-                                    |> Components.Element.withText "Submit"
-                                    |> Components.Element.withMsg Submit
-                                    |> Components.Element.withDisabled False
-                                    |> Components.Element.withPrimaryStyle
-                                    |> Components.Element.toHtml
-                                ]
-                        ]
+                            -- TODO send out msg to login
+                            -- , Components.Element.button
+                            --     |> Components.Element.withText "Login"
+                            --     |> Components.Element.withMsg Login
+                            --     |> Components.Element.withDisabled False
+                            --     |> Components.Element.withPrimaryStyle
+                            --     |> Components.Element.toHtml
+                            ]
+                ]
             ]
         ]
 

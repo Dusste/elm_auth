@@ -124,13 +124,13 @@ view model =
             VerificationPending ->
                 layout
                     "Give us a moment to verify your account !"
-                    "Soon you will have access to a all profile features"
+                    "Soon you'll have access to all features"
                     Components.Misc.loadingElement
 
             VerificationDone ->
                 layout
                     "Thanks for verifying your email ! "
-                    "Now you will be redirected to your profile page and have full access to all app's features"
+                    "Now you'll be redirected to your profile page and have full access to all features"
                     Components.Misc.loadingElement
 
             VerificationFail ->
@@ -184,8 +184,6 @@ layout head description element =
         [ Html.h2
             []
             [ Html.text head ]
-        , Html.p
-            []
-            [ Html.text description ]
+        , Components.Element.notification (Components.Element.Info description)
         , element
         ]

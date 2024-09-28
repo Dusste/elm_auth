@@ -56,50 +56,45 @@ view model =
             [ HA.class "flex flex-col w-[300px] gap-y-4" ]
             [ Html.h2
                 []
-                [ text "Forgot Password" ]
-            , case model.formState of
-                Error error ->
-                    Components.Element.notification (Components.Element.Error error)
+                [ text "Password reset request" ]
+            , Components.Element.notification
+                (Components.Element.Info "Fill in email and we'll make sure you can reset password")
+            , Html.form
+                [ HA.class "flex flex-col gap-y-4" ]
+                [ Components.Element.inputField
+                    { type_ = Components.Element.Text
+                    , label = Just "Email"
+                    , value = model.storeEmail
+                    , toMsg = StoreEmail
+                    , isDisabled = model.formState == Loading
+                    , error = Components.Error.byFieldName "email" model.errors
+                    }
+                , Components.Element.button
+                    |> Components.Element.withText "Submit"
+                    |> Components.Element.withMsg Submit
+                    |> Components.Element.withDisabled (model.formState == Loading)
+                    |> Components.Element.withPrimaryStyle
+                    |> Components.Element.toHtml
+                , case model.formState of
+                    Initial ->
+                        Html.text ""
 
-                Success ->
-                    Html.div
-                        []
-                        [ Html.h2
-                            [ HA.class "mb-2" ]
-                            [ Html.text "All done !" ]
-                        , Components.Element.notification
-                            (Components.Element.Success "Submitted successfully !")
-                        , Html.p
-                            [ HA.class "mt-4" ]
-                            [ text "Check your email for rest link." ]
-                        ]
+                    Loading ->
+                        Components.Misc.loadingElement
 
-                _ ->
-                    Html.form
-                        [ HA.class "flex flex-col gap-y-4"
-                        ]
-                        [ Components.Element.inputField
-                            { type_ = Components.Element.Text
-                            , label = Just "Email"
-                            , value = model.storeEmail
-                            , toMsg = StoreEmail
-                            , isDisabled = False
-                            , error = Components.Error.byFieldName "email" model.errors
-                            }
-                        , if model.formState == Loading then
-                            Components.Misc.loadingElement
+                    Error error ->
+                        Components.Element.notification (Components.Element.Error error)
 
-                          else
-                            Html.div
-                                [ HA.class "mt-4" ]
-                                [ Components.Element.button
-                                    |> Components.Element.withText "Submit"
-                                    |> Components.Element.withMsg Submit
-                                    |> Components.Element.withDisabled False
-                                    |> Components.Element.withPrimaryStyle
-                                    |> Components.Element.toHtml
-                                ]
-                        ]
+                    Success ->
+                        Html.div
+                            []
+                            [ Components.Element.notification
+                                (Components.Element.Success "Submitted successfully !")
+                            , Html.p
+                                []
+                                [ text "Check your email for rest link." ]
+                            ]
+                ]
             ]
         ]
 

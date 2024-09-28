@@ -565,7 +565,7 @@ matchRoute =
         , Url.Parser.map Profile (Url.Parser.s "profile" </> Url.Parser.string)
         , Url.Parser.map Signup (Url.Parser.s "signup")
         , Url.Parser.map Verification (Url.Parser.s "verify-email" </> Url.Parser.string)
-        , Url.Parser.map ResetPassword (Url.Parser.s "password-reset" </> Url.Parser.string)
+        , Url.Parser.map ResetPassword (Url.Parser.s "reset-password" </> Url.Parser.string)
         ]
 
 

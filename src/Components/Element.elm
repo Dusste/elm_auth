@@ -7,6 +7,7 @@ module Components.Element exposing
     , notification
     , toHtml
     , withDisabled
+    , withLinkStyle
     , withMsg
     , withNegativeStyle
     , withPrimaryStyle
@@ -62,7 +63,12 @@ inputField { label, value, toMsg, type_, isDisabled, error } =
     let
         extendedInput : List (Html msg)
         extendedInput =
-            if List.isEmpty error then
+            if isDisabled then
+                [ inputHtml
+                    [ HA.class inputTextDisabledStyle ]
+                ]
+
+            else if List.isEmpty error then
                 [ inputHtml
                     [ HA.class inputTextStyle ]
                 ]
@@ -119,44 +125,57 @@ inputFieldError txt =
     Html.div
         [ HA.class "bg-red-500 text-white flex gap-1 p-1 text-xs items-center" ]
         [ Components.SvgIcon.iconWarning
-        , Html.span [] [ Html.text txt ]
+        , Html.span
+            []
+            [ Html.text txt ]
         ]
+
+
+inputTextStyle : String
+inputTextStyle =
+    "mt-1 py-2 px-3 text-sky-600 border-gray-300 block w-full rounded text-sm focus:border-sky-200 focus:ring-sky-200"
+
+
+inputTextNegativeStyle : String
+inputTextNegativeStyle =
+    "mt-1 py-2 px-3 mb-1 border-red-500 rounded bg-red-100 block w-full text-sm text-red-500 focus:border-red-300 focus:border-red-300 focus:ring-red-500"
+
+
+inputTextDisabledStyle : String
+inputTextDisabledStyle =
+    "mt-1 py-2 px-3 border-gray-500 rounded bg-slate-100 block w-full text-sm text-gray-500 focus:border-gray-300 focus:border-gray-300 focus:ring-gray-500"
 
 
 notification : Notification -> Html msg
 notification notification_ =
     -- TODO add schema for different types of icons, maybe
     let
-        { iconStyle, wrapperStyle, txtValue } =
+        { color, txtValue } =
             case notification_ of
                 Info infoTxt ->
-                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-sky-500 rounded-full mr-2"
-                    , wrapperStyle = "bg-sky-200 text-sky-500 flex border border-sky-500 rounded items-center p-2"
+                    { color = "sky"
                     , txtValue = infoTxt
                     }
 
                 Warning warnTxt ->
-                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-yellow-500 rounded-full mr-2"
-                    , wrapperStyle = "bg-yellow-200 text-yellow-500 flex border border-yellow-500 rounded items-center p-2"
+                    { color = "yellow"
                     , txtValue = warnTxt
                     }
 
                 Error errDescription ->
-                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-red-500 rounded-full mr-2"
-                    , wrapperStyle = "bg-red-200 text-red-500 flex border border-red-500 rounded items-center p-2"
+                    { color = "red"
                     , txtValue = errDescription
                     }
 
                 Success succTxt ->
-                    { iconStyle = "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 border-green-500 rounded-full mr-2"
-                    , wrapperStyle = "bg-green-200 text-green-500 flex border border-green-500 rounded items-center p-2"
+                    { color = "green"
                     , txtValue = succTxt
                     }
     in
     Html.div
-        [ HA.class wrapperStyle ]
+        [ HA.class <| notificationWrapperStyle color ]
         [ Html.span
-            [ HA.class iconStyle ]
+            [ HA.class <| notificationIconStyle color ]
             [ Html.text "!" ]
         , Html.p
             []
@@ -164,12 +183,14 @@ notification notification_ =
         ]
 
 
-inputTextStyle =
-    "mt-1 py-2 px-3 text-sky-600 border-gray-300 block w-full rounded text-sm focus:border-sky-200 focus:ring-sky-200"
+notificationIconStyle : String -> String
+notificationIconStyle color =
+    "font-bold min-w-[20px] h-5 flex justify-center items-center border-2 rounded-full mr-2 border-" ++ color ++ "-500"
 
 
-inputTextNegativeStyle =
-    "mt-1 py-2 px-3 border-red-500 mb-1 rounded bg-red-100 block w-full text-sm text-red-500 focus:border-red-300 focus:border-red-300 focus:ring-red-500"
+notificationWrapperStyle : String -> String
+notificationWrapperStyle color =
+    "leading-4 flex border rounded items-center p-2 rounded items-center p-2 border-" ++ color ++ "-500 bg-" ++ color ++ "-200 text-" ++ color ++ "-500"
 
 
 
@@ -177,9 +198,9 @@ inputTextNegativeStyle =
    * Button Example:
       Element.button
          |> Element.withText "I am button"
-         |> Element.withMsg MyMsg `or` |> Element.withUrl "some/url"
+         |> Element.withMsg MyMsg `or` Element.withUrl "some/url"
          |> Element.withDisabled False
-         |> Element.withPrimaryStyle `or` |> Element.withSecondaryStyle
+         |> Element.withPrimaryStyle `or` Element.withSecondaryStyle
          |> Element.toHtml
 
 -}
@@ -241,6 +262,13 @@ withSecondaryStyle (Button constraints) =
     Button { constraints | styles = buttonSecondaryStyle }
 
 
+withLinkStyle :
+    Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
+    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
+withLinkStyle (Button constraints) =
+    Button { constraints | styles = buttonLinkStyle }
+
+
 withNegativeStyle :
     Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
     -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
@@ -253,7 +281,7 @@ toHtml :
     -> Html msg
 toHtml (Button constraints) =
     let
-        { label, action, styles } =
+        { label, action, styles, disabled } =
             constraints
     in
     case action of
@@ -264,31 +292,45 @@ toHtml (Button constraints) =
 
         Msg msg ->
             Html.div
-                [ HE.onClick msg, HA.class (styles ++ " cursor-pointer") ]
+                [ HE.onClick msg
+                , HA.class <|
+                    if disabled then
+                        buttonDisabledStyle
+
+                    else
+                        styles ++ " cursor-pointer"
+                , HA.disabled disabled
+                ]
                 [ Html.text label ]
 
 
+hint : String -> Html msg
 hint txt =
     Html.div
         [ HA.class "p-3 bg-orange-300" ]
         [ Html.text txt ]
 
 
+buttonPrimaryStyle : String
 buttonPrimaryStyle =
-    "justify-self-start w-fit flex-start bg-sky-300 border rounded border-sky-300 px-4 py-2 text-white transition-all hover:bg-sky-200 hover:text-sky-500"
+    "justify-self-start w-fit flex-start bg-sky-400 border rounded border-sky-400 px-4 py-2 text-white transition-all hover:bg-sky-600 hover:border-sky-600"
 
 
+buttonSecondaryStyle : String
 buttonSecondaryStyle =
     "justify-self-start w-fit flex-start bg-white border border-sky-300 rounded px-4 py-2 text-sky-500 transition-all hover:bg-sky-100"
 
 
+buttonNegativeStyle : String
 buttonNegativeStyle =
-    "justify-self-start flex-start bg-white border rounded border-red-300 px-4 py-2 text-red-500 transition-all hover:bg-red-100"
+    "justify-self-start w-fit flex-start bg-white border rounded border-red-300 px-4 py-2 text-red-500 transition-all hover:bg-red-100"
 
 
+buttonDisabledStyle : String
+buttonDisabledStyle =
+    "justify-self-start w-fit flex-start bg-gray-200 border rounded border-gray-300 px-4 py-2 text-gray-300 transition-all hover:bg-gray-100"
+
+
+buttonLinkStyle : String
 buttonLinkStyle =
-    "py-2 cursor-pointer text-sky-500"
-
-
-buttonLinkDisabledStyle =
-    "py-2 cursor-not-allowed text-gray-500"
+    "justify-self-start w-fit text-gray-950 transition-all hover:text-gray-500"
