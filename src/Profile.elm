@@ -26,6 +26,7 @@ type alias Model =
     , userState : UserState
     , formState : FormState
     , editMode : Bool
+    , memoName : String
     , errors : Dict String (List String)
     }
 
@@ -34,6 +35,7 @@ type FormState
     = Initial
     | Loading
     | Error String
+    | Success String
 
 
 type UserState
@@ -60,6 +62,7 @@ initialModel =
     { storeName = ""
     , profilePic = Nothing
     , email = Nothing
+    , memoName = ""
     , formState = Initial
     , userState = Intruder
     , editMode = False
@@ -102,30 +105,14 @@ view model =
                 ]
                 [ Html.h2
                     []
-                    [ Html.text "Hello" ]
-                , case model.formState of
-                    Loading ->
-                        Html.div
-                            [ HA.class "absolute w-full h-full flex justify-center items-center bg-sky-50 bg-opacity-40"
-                            ]
-                            [ Components.Misc.loadingElement ]
-
-                    Error error ->
-                        Html.p
-                            [ HA.class "text-red-500"
-                            ]
-                            [ Html.text error ]
-
-                    Initial ->
-                        Html.text ""
+                    [ Html.text "Your data" ]
                 , if model.editMode then
                     -- TODO make something similar to layoutForm
                     Html.form
-                        [ HA.class "flex flex-col gap-y-4 w-full"
+                        [ HA.class "flex flex-col gap-y-4 w-full mt-4"
                         ]
                         [ Html.div
-                            [ HA.class "flex flex-col gap-y-4"
-                            ]
+                            [ HA.class "flex flex-col gap-y-4" ]
                             [ Components.Element.inputField
                                 { type_ = Components.Element.Text
                                 , label = Just "First Name"
@@ -135,18 +122,20 @@ view model =
                                 , error = Components.Error.byFieldName "name" model.errors
                                 }
                             ]
+                        , Html.h2
+                            []
+                            [ Html.text "Upload avatar" ]
                         , Html.div
-                            [ HA.class "flex"
-                            ]
+                            [ HA.class "flex" ]
                             [ Components.Element.button
                                 |> Components.Element.withText "Choose file"
                                 |> Components.Element.withMsg FileRequest
-                                |> Components.Element.withDisabled False
+                                |> Components.Element.withDisabled (model.formState == Loading)
                                 |> Components.Element.withSecondaryStyle
                                 |> Components.Element.toHtml
-                            , Components.Element.notification
-                                (Components.Element.Info "Upload an avatar (Size limit is 3mb)")
                             ]
+                        , Components.Element.notification
+                            (Components.Element.Info "Size limit is 3mb")
                         , case model.profilePic of
                             Just imageString ->
                                 Html.div
@@ -163,11 +152,11 @@ view model =
                             Nothing ->
                                 Html.text ""
                         , Html.div
-                            [ HA.class "mt-4 flex gap-x-4" ]
+                            [ HA.class "flex gap-x-4" ]
                             [ Components.Element.button
                                 |> Components.Element.withText "Submit"
                                 |> Components.Element.withMsg (ProfileSubmit token)
-                                |> Components.Element.withDisabled False
+                                |> Components.Element.withDisabled (model.formState == Loading)
                                 |> Components.Element.withPrimaryStyle
                                 |> Components.Element.toHtml
                             , Components.Element.button
@@ -177,6 +166,19 @@ view model =
                                 |> Components.Element.withSecondaryStyle
                                 |> Components.Element.toHtml
                             ]
+                        , case model.formState of
+                            Initial ->
+                                Html.text ""
+
+                            Loading ->
+                                Components.Misc.loadingElement
+
+                            Error error ->
+                                Components.Element.notification (Components.Element.Error error)
+
+                            Success str ->
+                                Components.Element.notification
+                                    (Components.Element.Success str)
                         ]
 
                   else
@@ -184,15 +186,15 @@ view model =
                         [ HA.class "mt-4" ]
                         [ Html.p
                             [ HA.class "mb-4" ]
-                            [ Html.text "First Name:"
+                            [ Html.text "First Name"
                             , Html.p
-                                []
+                                [ HA.class "py-2 mt-1 px-3 border rounded text-sm border-gray-100" ]
                                 [ Html.text model.storeName ]
                             ]
                         , Components.Element.button
                             |> Components.Element.withText "Edit"
                             |> Components.Element.withMsg EditMode
-                            |> Components.Element.withDisabled False
+                            |> Components.Element.withDisabled (model.formState == Loading)
                             |> Components.Element.withSecondaryStyle
                             |> Components.Element.toHtml
                         ]
@@ -271,10 +273,28 @@ update msg model =
                     ( model, [], Cmd.none )
 
         EditMode ->
-            ( { model | editMode = model.editMode |> not }, [], Cmd.none )
+            let
+                resetErrorsPerField : Dict String (List String)
+                resetErrorsPerField =
+                    Validation.resetErrorsPerField "name" model.errors
+            in
+            ( { model
+                | editMode = model.editMode |> not
+                , memoName = model.storeName
+                , errors = resetErrorsPerField
+              }
+            , []
+            , Cmd.none
+            )
 
         CancelEdit ->
-            ( { model | editMode = False }, [], Cmd.none )
+            ( { model
+                | editMode = False
+                , storeName = model.memoName
+              }
+            , []
+            , Cmd.none
+            )
 
         ProfileSubmit token ->
             let
@@ -303,24 +323,40 @@ update msg model =
                 potentialErrors =
                     Validation.checkErrors validationConfig
             in
-            ( { model | errors = potentialErrors }
-            , []
-            , if Validation.anyActiveError potentialErrors then
-                Cmd.none
+            {-
+               TODO validation on Profile page is not core of the app,
+               its suppose to be changed and adjusted to specific use case,
+               this example (name and avatar) is just a showcase
+            -}
+            if Validation.anyActiveError potentialErrors then
+                ( { model | errors = potentialErrors }
+                , []
+                , Cmd.none
+                )
+                -- else if model.profilePic == Nothing || model.storeName == model.memoName then
+                --     ( { model | errors = Dict.insert "name" [ "State was unchanged" ] potentialErrors }
+                --     , []
+                --     , Cmd.none
+                --     )
 
-              else
-                Api.Profile.submitProfile
+            else
+                ( { model
+                    | errors = potentialErrors
+                    , formState = Loading
+                  }
+                , []
+                , Api.Profile.submitProfile
                     token
                     { name = model.storeName, profilePic = imageOrNot }
                     ProfileDone
-            )
+                )
 
         ProfileDone (Ok token) ->
             let
                 tokenValue =
                     Credentials.encodeToken token
             in
-            ( { model | formState = Initial }
+            ( { model | formState = Success "Informations were updated" }
             , []
             , Ports.storeSession <| Just <| Json.Encode.encode 0 tokenValue
             )

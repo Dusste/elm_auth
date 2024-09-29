@@ -87,7 +87,7 @@ checkMatch str1 str2 =
     trim1 == trim2
 
 
-{-| (Still) Uncomplete email check
+{-| (Still) Incomplete email check
 -}
 isValidEmail : String -> Bool
 isValidEmail input =

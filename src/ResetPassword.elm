@@ -89,19 +89,16 @@ view model =
                 Components.Element.notification (Components.Element.Error error)
 
             Success ->
-                Html.div
-                    []
-                    [ Components.Element.notification
-                        (Components.Element.Success "Your password has been reset. Please login with your new password.")
+                Components.Element.notification
+                    (Components.Element.Success "Your password has been reset. Please login with your new password.")
 
-                    -- TODO send out msg to login
-                    -- , Components.Element.button
-                    --     |> Components.Element.withText "Login"
-                    --     |> Components.Element.withMsg Login
-                    --     |> Components.Element.withDisabled False
-                    --     |> Components.Element.withPrimaryStyle
-                    --     |> Components.Element.toHtml
-                    ]
+        -- TODO send out msg to login
+        -- , Components.Element.button
+        --     |> Components.Element.withText "Login"
+        --     |> Components.Element.withMsg Login
+        --     |> Components.Element.withDisabled False
+        --     |> Components.Element.withPrimaryStyle
+        --     |> Components.Element.toHtml
         ]
 
 
@@ -179,7 +176,15 @@ update msg model =
             )
 
         Done (Ok _) ->
-            ( { model | formState = Success, storePassword = "", storeConfirmPassword = "" }, Cmd.none )
+            ( { model
+                | formState = Success
+                , storePassword = ""
+                , storeConfirmPassword = ""
+              }
+            , Cmd.none
+            )
 
         Done (Err err) ->
-            ( { model | formState = Error <| Components.Error.buildErrorMessage err }, Cmd.none )
+            ( { model | formState = Error <| Components.Error.buildErrorMessage err }
+            , Cmd.none
+            )
