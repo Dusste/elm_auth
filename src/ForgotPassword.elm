@@ -49,53 +49,43 @@ init _ =
 
 view : Model -> Html Msg
 view model =
-    Html.div
-        [ HA.class "flex justify-center mt-32"
-        ]
-        [ Html.div
-            [ HA.class "flex flex-col w-[300px] gap-y-4" ]
-            [ Html.h2
-                []
-                [ text "Password reset request" ]
-            , Components.Element.notification
-                (Components.Element.Info "Fill in email and we'll make sure you can reset password")
-            , Html.form
-                [ HA.class "flex flex-col gap-y-4" ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Text
-                    , label = Just "Email"
-                    , value = model.storeEmail
-                    , toMsg = StoreEmail
-                    , isDisabled = model.formState == Loading
-                    , error = Components.Error.byFieldName "email" model.errors
-                    }
-                , Components.Element.button
-                    |> Components.Element.withText "Submit"
-                    |> Components.Element.withMsg Submit
-                    |> Components.Element.withDisabled (model.formState == Loading)
-                    |> Components.Element.withPrimaryStyle
-                    |> Components.Element.toHtml
-                , case model.formState of
-                    Initial ->
-                        Html.text ""
+    Components.Element.formLayout
+        "Password reset request"
+        [ Components.Element.notification
+            (Components.Element.Info "Fill in email and we'll make sure you can reset password")
+        , Components.Element.inputField
+            { type_ = Components.Element.Text
+            , label = Just "Email"
+            , value = model.storeEmail
+            , toMsg = StoreEmail
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "email" model.errors
+            }
+        , Components.Element.button
+            |> Components.Element.withText "Submit"
+            |> Components.Element.withMsg Submit
+            |> Components.Element.withDisabled (model.formState == Loading)
+            |> Components.Element.withPrimaryStyle
+            |> Components.Element.toHtml
+        , case model.formState of
+            Initial ->
+                Html.text ""
 
-                    Loading ->
-                        Components.Misc.loadingElement
+            Loading ->
+                Components.Misc.loadingElement
 
-                    Error error ->
-                        Components.Element.notification (Components.Element.Error error)
+            Error error ->
+                Components.Element.notification (Components.Element.Error error)
 
-                    Success ->
-                        Html.div
-                            []
-                            [ Components.Element.notification
-                                (Components.Element.Success "Submitted successfully !")
-                            , Html.p
-                                []
-                                [ text "Check your email for rest link." ]
-                            ]
-                ]
-            ]
+            Success ->
+                Html.div
+                    []
+                    [ Components.Element.notification
+                        (Components.Element.Success "Submitted successfully !")
+                    , Html.p
+                        []
+                        [ text "Check your email for rest link." ]
+                    ]
         ]
 
 

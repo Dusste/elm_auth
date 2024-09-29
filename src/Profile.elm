@@ -119,6 +119,7 @@ view model =
                     Initial ->
                         Html.text ""
                 , if model.editMode then
+                    -- TODO make something similar to layoutForm
                     Html.form
                         [ HA.class "flex flex-col gap-y-4 w-full"
                         ]

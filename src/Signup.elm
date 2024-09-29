@@ -167,56 +167,47 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.div
-        [ HA.class "flex justify-center mt-32" ]
-        [ Html.div
-            [ HA.class "flex flex-col w-[300px] gap-y-4" ]
-            [ Html.h2
-                []
-                [ Html.text "Signup" ]
-            , Html.form
-                [ HA.class "flex flex-col gap-y-4" ]
-                [ Components.Element.inputField
-                    { type_ = Components.Element.Text
-                    , label = Just "Email"
-                    , value = model.storeEmail
-                    , toMsg = StoreEmail
-                    , isDisabled = model.formState == Loading
-                    , error = Components.Error.byFieldName "email" model.errors
-                    }
-                , Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Password"
-                    , value = model.storePassword
-                    , toMsg = StorePassword
-                    , isDisabled = model.formState == Loading
-                    , error = Components.Error.byFieldName "password" model.errors
-                    }
-                , Components.Element.inputField
-                    { type_ = Components.Element.Password
-                    , label = Just "Confirm Password"
-                    , value = model.storeConfirmPassword
-                    , toMsg = StoreConfirmPassword
-                    , isDisabled = model.formState == Loading
-                    , error = Components.Error.byFieldName "confirm-password" model.errors
-                    }
-                , Components.Element.button
-                    |> Components.Element.withText "Sign up"
-                    |> Components.Element.withMsg SignupSubmit
-                    |> Components.Element.withDisabled (model.formState == Loading)
-                    |> Components.Element.withPrimaryStyle
-                    |> Components.Element.toHtml
-                , case model.formState of
-                    Initial ->
-                        Html.text ""
+    Components.Element.formLayout
+        "Signup"
+        [ Components.Element.inputField
+            { type_ = Components.Element.Text
+            , label = Just "Email"
+            , value = model.storeEmail
+            , toMsg = StoreEmail
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "email" model.errors
+            }
+        , Components.Element.inputField
+            { type_ = Components.Element.Password
+            , label = Just "Password"
+            , value = model.storePassword
+            , toMsg = StorePassword
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "password" model.errors
+            }
+        , Components.Element.inputField
+            { type_ = Components.Element.Password
+            , label = Just "Confirm Password"
+            , value = model.storeConfirmPassword
+            , toMsg = StoreConfirmPassword
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "confirm-password" model.errors
+            }
+        , Components.Element.button
+            |> Components.Element.withText "Sign up"
+            |> Components.Element.withMsg SignupSubmit
+            |> Components.Element.withDisabled (model.formState == Loading)
+            |> Components.Element.withPrimaryStyle
+            |> Components.Element.toHtml
+        , case model.formState of
+            Initial ->
+                Html.text ""
 
-                    Loading ->
-                        Components.Misc.loadingElement
+            Loading ->
+                Components.Misc.loadingElement
 
-                    Error error ->
-                        Components.Element.notification (Components.Element.Error error)
-                ]
-            ]
+            Error error ->
+                Components.Element.notification (Components.Element.Error error)
         ]
 
 

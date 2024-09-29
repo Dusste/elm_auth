@@ -2,6 +2,8 @@ module Components.Element exposing
     ( InputFieldType(..)
     , Notification(..)
     , button
+    , buttonLinkStyle
+    , formLayout
     , hint
     , inputField
     , notification
@@ -50,7 +52,7 @@ type Button constraints msg
         }
 
 
-inputField :
+type alias InputFieldProps msg =
     { label : Maybe String
     , value : String
     , toMsg : String -> msg
@@ -58,7 +60,28 @@ inputField :
     , isDisabled : Bool
     , error : List String
     }
-    -> Html msg
+
+
+formLayout : String -> List (Html msg) -> Html msg
+formLayout head elements =
+    Html.div
+        [ HA.class "flex justify-center mt-32" ]
+        [ Html.div
+            [ HA.class "flex flex-col w-[380px] py-[2px] rounded items-center bg-gradient-to-l from-sky-200" ]
+            [ Html.div
+                [ HA.class "flex flex-col w-[376px] rounded gap-y-4 bg-white py-10 px-8" ]
+                [ Html.h2
+                    []
+                    [ Html.text head ]
+                , Html.form
+                    [ HA.class "flex flex-col gap-y-4" ]
+                    elements
+                ]
+            ]
+        ]
+
+
+inputField : InputFieldProps msg -> Html msg
 inputField { label, value, toMsg, type_, isDisabled, error } =
     let
         extendedInput : List (Html msg)

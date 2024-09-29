@@ -21,4 +21,9 @@ export default {
       });
     },
   ],
+  safelist: [
+    { pattern: /^bg-(red|green|yellow|sky)-200$/ },
+    { pattern: /^border-(red|green|yellow|sky)-500$/ },
+    { pattern: /^text-(red|green|yellow|sky)-500$/ },
+  ],
 };

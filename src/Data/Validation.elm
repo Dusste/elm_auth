@@ -58,11 +58,11 @@ validationToErrorMsg validation =
         CheckPasswordCapitalize _ ->
             "Password must contain at least one capitalized letter"
 
-        CheckPasswordSpecialChar _ ->
-            "Password must contain at least one special character"
-
         CheckPasswordContainsInt _ ->
             "Password must contain at least one number"
+
+        CheckPasswordSpecialChar _ ->
+            "Password must contain at least one special character"
 
         CheckPasswordMatch _ _ ->
             "Passwors doesn't match"
@@ -81,7 +81,7 @@ checkErrors { validationRules, initialErrors } =
                     |> List.concat
             )
             []
-        |> List.foldr
+        |> List.foldl
             (\( fieldName, toValidation, fieldValue ) sumErrors ->
                 updateError fieldName sumErrors (toValidation fieldValue)
             )

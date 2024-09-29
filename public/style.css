@@ -27,10 +27,10 @@ a:hover {
 .active a:before {
     content: "";
     position: absolute;
-    bottom: -5px;
-    height: 1px;
+    bottom: -7px;
+    height: 2px;
     width: 100%;
-    background-color: #7dd3fc;
+    background-image: linear-gradient(to right, #7dd3fc, transparent);
 }
 
 ul {

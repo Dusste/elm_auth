@@ -3,6 +3,7 @@ module Main exposing (..)
 import Api.Verification
 import Browser
 import Browser.Navigation as Nav
+import Components.Element
 import Components.SvgIcon
 import Data.Credentials as Credentials
 import Data.OutMsg
@@ -193,10 +194,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Html.a
-                [ HA.href "/"
-                ]
-                [ Html.text "home" ]
+            [ Components.Element.button
+                |> Components.Element.withText "home"
+                |> Components.Element.withUrl "/"
+                |> Components.Element.withDisabled False
+                |> Components.Element.withLinkStyle
+                |> Components.Element.toHtml
             ]
         , Html.li
             [ HA.classList
@@ -205,10 +208,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Html.a
-                [ HA.href "/login"
-                ]
-                [ Html.text "login" ]
+            [ Components.Element.button
+                |> Components.Element.withText "login"
+                |> Components.Element.withUrl "/login"
+                |> Components.Element.withDisabled False
+                |> Components.Element.withLinkStyle
+                |> Components.Element.toHtml
             ]
         , Html.li
             [ HA.classList
@@ -217,10 +222,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Html.a
-                [ HA.href "/signup"
-                ]
-                [ Html.text "signup" ]
+            [ Components.Element.button
+                |> Components.Element.withText "signup"
+                |> Components.Element.withUrl "/signup"
+                |> Components.Element.withDisabled False
+                |> Components.Element.withLinkStyle
+                |> Components.Element.toHtml
             ]
         ]
 

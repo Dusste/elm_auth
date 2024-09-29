@@ -145,61 +145,48 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.div
-        [ HA.class "flex justify-center mt-32" ]
-        [ Html.div
-            [ HA.class "flex flex-col w-[380px] py-1 rounded items-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" ]
-            [ Html.div
-                [ HA.class "flex flex-col w-[372px] rounded gap-y-4 bg-white py-10 px-8" ]
-                [ Html.h2
-                    []
-                    [ Html.text "Login" ]
-                , Html.form
-                    [ HA.class "flex flex-col gap-y-4"
-                    ]
-                    [ Components.Element.inputField
-                        { type_ = Components.Element.Text
-                        , label = Just "Email"
-                        , value = model.storeEmail
-                        , toMsg = StoreEmail
-                        , isDisabled = model.formState == Loading
-                        , error = Components.Error.byFieldName "email" model.errors
-                        }
-                    , Components.Element.inputField
-                        { type_ = Components.Element.Password
-                        , label = Just "Password"
-                        , value = model.storePassword
-                        , toMsg = StorePassword
-                        , isDisabled = model.formState == Loading
-                        , error = Components.Error.byFieldName "password" model.errors
-                        }
-                    , Html.div
-                        [ HA.class "flex justify-between items-center" ]
-                        [ Components.Element.button
-                            |> Components.Element.withText "Sign in"
-                            |> Components.Element.withMsg LoginSubmit
-                            |> Components.Element.withDisabled (model.formState == Loading)
-                            |> Components.Element.withPrimaryStyle
-                            |> Components.Element.toHtml
-                        , Components.Element.button
-                            |> Components.Element.withText "Forgot password ?"
-                            |> Components.Element.withUrl "/forgot-password"
-                            |> Components.Element.withDisabled (model.formState == Loading)
-                            |> Components.Element.withLinkStyle
-                            |> Components.Element.toHtml
-                        ]
-                    , case model.formState of
-                        Initial ->
-                            Html.text ""
-
-                        Loading ->
-                            Components.Misc.loadingElement
-
-                        Error error ->
-                            Components.Element.notification (Components.Element.Error error)
-                    ]
-                ]
+    Components.Element.formLayout
+        "Login"
+        [ Components.Element.inputField
+            { type_ = Components.Element.Text
+            , label = Just "Email"
+            , value = model.storeEmail
+            , toMsg = StoreEmail
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "email" model.errors
+            }
+        , Components.Element.inputField
+            { type_ = Components.Element.Password
+            , label = Just "Password"
+            , value = model.storePassword
+            , toMsg = StorePassword
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "password" model.errors
+            }
+        , Html.div
+            [ HA.class "flex justify-between items-center" ]
+            [ Components.Element.button
+                |> Components.Element.withText "Sign in"
+                |> Components.Element.withMsg LoginSubmit
+                |> Components.Element.withDisabled (model.formState == Loading)
+                |> Components.Element.withPrimaryStyle
+                |> Components.Element.toHtml
+            , Components.Element.button
+                |> Components.Element.withText "Forgot password ?"
+                |> Components.Element.withUrl "/forgot-password"
+                |> Components.Element.withDisabled (model.formState == Loading)
+                |> Components.Element.withLinkStyle
+                |> Components.Element.toHtml
             ]
+        , case model.formState of
+            Initial ->
+                Html.text ""
+
+            Loading ->
+                Components.Misc.loadingElement
+
+            Error error ->
+                Components.Element.notification (Components.Element.Error error)
         ]
 
 
