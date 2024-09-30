@@ -14,27 +14,6 @@
 
   <body>
     <pre id="elm"></pre>
-    <script>
-      const app = Elm.Main.init({ flags: localStorage.session || null });
-
-      app.ports.storeSession.subscribe(function (session) {
-        localStorage.session = session;
-
-        // Report that the new session was stored succesfully.
-        setTimeout(function () {
-          app.ports.onSessionChange.send(session);
-        }, 0);
-      });
-
-      window.addEventListener(
-        "storage",
-        function (event) {
-          if (event.storageArea === localStorage && event.key === "session") {
-            app.ports.onSessionChange.send(event.newValue);
-          }
-        },
-        false
-      );
-    </script>
+    <script src="/public/index.js"></script>
   </body>
 </html>

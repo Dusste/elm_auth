@@ -9,7 +9,8 @@ module Data.Credentials exposing
     , encodeToken
     , fromSessionToToken
     , fromTokenToString
-    , subscriptionChanges
+    , subscribeReportClick
+    , subscribeSessionChange
     , tokenDecoder
     , tokenToAvatar
     , tokenToId
@@ -24,6 +25,7 @@ import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
 import Jwt
+import Maybe.Extra
 
 
 type Token
@@ -133,8 +135,8 @@ decodeTokenData =
 -}
 
 
-decodeToSession : Nav.Key -> Json.Encode.Value -> Session
-decodeToSession key value =
+decodeToSession : Json.Encode.Value -> Session
+decodeToSession value =
     -- It's stored in localStorage as a JSON String;
     -- first decode the Value as a String, then
     -- decode that String as JSON.
@@ -150,9 +152,21 @@ decodeToSession key value =
             Guest
 
 
-subscriptionChanges : (Session -> msg) -> Nav.Key -> Sub msg
-subscriptionChanges toMsg key =
-    Ports.onSessionChange (\val -> toMsg (decodeToSession key val))
+decodeToClick : Json.Encode.Value -> Bool
+decodeToClick value =
+    Json.Decode.decodeValue Json.Decode.bool value
+        |> Result.toMaybe
+        |> Maybe.Extra.isJust
+
+
+subscribeSessionChange : (Session -> msg) -> Sub msg
+subscribeSessionChange toMsg =
+    Ports.onSessionChange (\val -> toMsg (decodeToSession val))
+
+
+subscribeReportClick : (Bool -> msg) -> Sub msg
+subscribeReportClick toMsg =
+    Ports.reportClick (\val -> toMsg (decodeToClick val))
 
 
 addHeader : Token -> Http.Header

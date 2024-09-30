@@ -14,6 +14,7 @@ import Home
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
+import Html.Events.Extra as HEE
 import Http
 import Json.Decode
 import Jwt
@@ -75,9 +76,9 @@ type Msg
     | GetLogout
     | OpenDropdown
     | GotTime Time.Posix
-    | CheckSessionExpired ( Credentials.Session, Maybe Time.Posix )
     | RequestToReSendEmail String Credentials.Token
     | ResendDone (Result Http.Error ())
+    | GotRootClick Bool
 
 
 content : Model -> Html Msg
@@ -119,7 +120,6 @@ app : Model -> Html Msg
 app model =
     Html.div
         [ HA.class "w-[1500px] m-auto"
-        , HE.onClick <| CheckSessionExpired ( model.session, model.time )
         ]
         [ viewHeader model
         , content model
@@ -158,7 +158,11 @@ viewHeader { page, session, openDropdown } =
             [ HA.class "flex justify-end" ]
             [ case Credentials.fromSessionToToken session of
                 Just token ->
-                    viewPrivateHeader { page = page, token = token, openDropdown = openDropdown }
+                    viewPrivateHeader
+                        { page = page
+                        , token = token
+                        , openDropdown = openDropdown
+                        }
 
                 Nothing ->
                     viewPublicHeader page
@@ -172,8 +176,7 @@ viewProfilePic maybeSrc attr =
         Just url ->
             Html.img
                 (List.append
-                    [ HA.src url
-                    ]
+                    [ HA.src url ]
                     attr
                 )
                 []
@@ -235,8 +238,7 @@ viewPublicHeader page =
 viewPrivateHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
 viewPrivateHeader { page, token, openDropdown } =
     Html.ul
-        [ HA.class "flex justify-between gap-4 items-end items-center"
-        ]
+        [ HA.class "flex justify-between gap-4 items-end items-center" ]
         [ case Credentials.tokenToUserData token of
             Ok resultTokenRecord ->
                 Html.li
@@ -247,7 +249,7 @@ viewPrivateHeader { page, token, openDropdown } =
                         ]
                         [ Html.div
                             [ HA.class "flex items-center gap-x-2"
-                            , HE.onClick OpenDropdown
+                            , HEE.onClickStopPropagation OpenDropdown
                             ]
                             [ Html.div
                                 [ HA.class "w-10 h-10 overflow-hidden rounded-full"
@@ -276,56 +278,56 @@ viewPrivateHeader { page, token, openDropdown } =
                                 ]
                                 [ Components.SvgIcon.iconArrowDown ]
                             ]
-                        , Html.ul
-                            [ HA.class "flex absolute mt-3 flex-col gap-1 overflow-hidden duration-500 bg-color white"
-                            , HA.style
-                                "height"
-                                (if openDropdown then
-                                    "fit-content"
-
-                                 else
-                                    "0"
-                                )
-                            ]
-                            [ Html.li
-                                [ HA.classList
-                                    [ ( "active"
-                                      , isActive { link = Profile resultTokenRecord.id, page = page }
-                                      )
-                                    ]
-                                , HE.onClick OpenDropdown
-                                ]
-                                [ Html.a
-                                    [ HA.href <| "/profile/" ++ resultTokenRecord.id
-                                    ]
-                                    [ Html.text "My profile" ]
-                                ]
-                            , Html.li
-                                [ HE.onClick OpenDropdown ]
-                                [ Html.a
-                                    []
-                                    [ Html.text "option2" ]
-                                ]
-                            , Html.li
-                                [ HE.onClick OpenDropdown ]
-                                [ Html.a
-                                    []
-                                    [ Html.text "option3" ]
-                                ]
-                            , Html.li
-                                []
-                                [ Html.a
-                                    [ HA.href "/"
-                                    , HE.onClick GetLogout
-                                    ]
-                                    [ Html.text "logout" ]
-                                ]
-                            ]
+                        , viewDropdown openDropdown resultTokenRecord.id
                         ]
                     ]
 
             Err _ ->
                 Html.text ""
+        ]
+
+
+viewDropdown : Bool -> String -> Html Msg
+viewDropdown openDropdown id =
+    Html.ul
+        [ HA.class <|
+            "flex absolute mt-3 flex-col rounded w-[150px] border border-gray-200 gap-1 overflow-hidden transition-all duration-300 "
+                ++ (if openDropdown then
+                        "h-[140px]"
+
+                    else
+                        "h-[0px] border-none"
+                   )
+        ]
+        [ Html.li
+            []
+            [ Html.a
+                [ HA.class "px-2 py-1 flex hover:bg-sky-50"
+                , HA.href <| "/profile/" ++ id
+                ]
+                [ Html.text "My profile" ]
+            ]
+        , Html.li
+            []
+            [ Html.a
+                [ HA.class "px-2 py-1 flex hover:bg-sky-100" ]
+                [ Html.text "option2" ]
+            ]
+        , Html.li
+            []
+            [ Html.a
+                [ HA.class "px-2 py-1 flex hover:bg-sky-100" ]
+                [ Html.text "option3" ]
+            ]
+        , Html.li
+            []
+            [ Html.a
+                [ HA.class "px-2 py-1 flex hover:bg-sky-100"
+                , HA.href "/"
+                , HE.onClick GetLogout
+                ]
+                [ Html.text "logout" ]
+            ]
         ]
 
 
@@ -390,6 +392,11 @@ update msg model =
                     ( model
                     , Nav.pushUrl model.key (Url.toString url)
                     )
+
+        GotRootClick _ ->
+            ( { model | openDropdown = False }
+            , checkLogout model.session model.time
+            )
 
         ChangedUrl url ->
             let
@@ -513,9 +520,6 @@ update msg model =
                     Nav.pushUrl model.key "/login"
             )
 
-        CheckSessionExpired ( session, maybeTime ) ->
-            ( model, handleLogout session maybeTime )
-
         GetLogout ->
             ( model, Ports.logout )
 
@@ -540,8 +544,8 @@ update msg model =
                     ( model, Cmd.none )
 
 
-handleLogout : Credentials.Session -> Maybe Time.Posix -> Cmd Msg
-handleLogout session maybeTime =
+checkLogout : Credentials.Session -> Maybe Time.Posix -> Cmd Msg
+checkLogout session maybeTime =
     case ( Credentials.fromSessionToToken session, maybeTime ) of
         ( Just token, Just time ) ->
             let
@@ -720,7 +724,7 @@ init : Json.Decode.Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
         session =
-            Credentials.decodeToSession key flags
+            Credentials.decodeToSession flags
 
         model =
             { page = urlToPage url session
@@ -736,7 +740,10 @@ init flags url key =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Credentials.subscriptionChanges GotSubscriptionChangeMsg model.key
+    Sub.batch
+        [ Credentials.subscribeSessionChange GotSubscriptionChangeMsg
+        , Credentials.subscribeReportClick GotRootClick
+        ]
 
 
 main : Program Json.Decode.Value Model Msg
