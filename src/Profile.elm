@@ -4,6 +4,7 @@ import Api.Profile
 import Components.Element
 import Components.Error
 import Components.Misc
+import Components.SvgIcon
 import Data.Credentials as Credentials
 import Data.OutMsg
 import Data.Ports as Ports
@@ -132,6 +133,7 @@ view model =
                                 |> Components.Element.withMsg FileRequest
                                 |> Components.Element.withDisabled (model.formState == Loading)
                                 |> Components.Element.withSecondaryStyle
+                                |> Components.Element.withIcon Components.SvgIcon.upload
                                 |> Components.Element.toHtml
                             ]
                         , Components.Element.notification

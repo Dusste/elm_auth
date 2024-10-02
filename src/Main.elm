@@ -159,8 +159,7 @@ viewHeader { page, session, openDropdown } =
             [ case Credentials.fromSessionToToken session of
                 Just token ->
                     viewPrivateHeader
-                        { page = page
-                        , token = token
+                        { token = token
                         , openDropdown = openDropdown
                         }
 
@@ -182,7 +181,9 @@ viewProfilePic maybeSrc attr =
                 []
 
         Nothing ->
-            Html.text ""
+            Html.div
+                [ HA.class "rounded-full border overflow-hidden text-sky-400" ]
+                [ Components.SvgIcon.defaultUser ]
 
 
 viewPublicHeader : Page -> Html Msg
@@ -235,8 +236,8 @@ viewPublicHeader page =
         ]
 
 
-viewPrivateHeader : { page : Page, token : Credentials.Token, openDropdown : Bool } -> Html Msg
-viewPrivateHeader { page, token, openDropdown } =
+viewPrivateHeader : { token : Credentials.Token, openDropdown : Bool } -> Html Msg
+viewPrivateHeader { token, openDropdown } =
     Html.ul
         [ HA.class "flex justify-between gap-4 items-end items-center" ]
         [ case Credentials.tokenToUserData token of
@@ -252,7 +253,7 @@ viewPrivateHeader { page, token, openDropdown } =
                             , HEE.onClickStopPropagation OpenDropdown
                             ]
                             [ Html.div
-                                [ HA.class "w-10 h-10 overflow-hidden rounded-full"
+                                [ HA.class "w-[40px] h-[40px] overflow-hidden rounded-full"
                                 ]
                                 [ viewProfilePic resultTokenRecord.profilepicurl
                                     [ HA.class "w-10" ]
@@ -276,7 +277,7 @@ viewPrivateHeader { page, token, openDropdown } =
                                                 ""
                                            )
                                 ]
-                                [ Components.SvgIcon.iconArrowDown ]
+                                [ Components.SvgIcon.arrowDown ]
                             ]
                         , viewDropdown openDropdown resultTokenRecord.id
                         ]
@@ -291,12 +292,12 @@ viewDropdown : Bool -> String -> Html Msg
 viewDropdown openDropdown id =
     Html.ul
         [ HA.class <|
-            "flex absolute mt-3 flex-col rounded w-[150px] border border-gray-200 gap-1 overflow-hidden transition-all duration-300 "
+            "flex absolute mt-3 flex-col rounded w-[150px] border border-gray-200 overflow-hidden transition-all duration-300 "
                 ++ (if openDropdown then
-                        "h-[140px]"
+                        "h-[130px]"
 
                     else
-                        "h-[0px] border-none"
+                        "h-[0px] border-transparent"
                    )
         ]
         [ Html.li

@@ -9,6 +9,7 @@ module Components.Element exposing
     , notification
     , toHtml
     , withDisabled
+    , withIcon
     , withLinkStyle
     , withMsg
     , withNegativeStyle
@@ -22,6 +23,7 @@ import Components.SvgIcon
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
+import Svg
 
 
 type InputFieldType
@@ -49,6 +51,7 @@ type Button constraints msg
         , action : Action msg
         , styles : String
         , disabled : Bool
+        , icon : Maybe (Svg.Svg msg)
         }
 
 
@@ -147,7 +150,7 @@ inputFieldError : String -> Html msg
 inputFieldError txt =
     Html.div
         [ HA.class "bg-red-500 text-white flex gap-1 p-1 text-xs items-center" ]
-        [ Components.SvgIcon.iconWarning
+        [ Components.SvgIcon.warning
         , Html.span
             []
             [ Html.text txt ]
@@ -236,6 +239,7 @@ button =
         , action = Url "/"
         , styles = buttonPrimaryStyle
         , disabled = False
+        , icon = Nothing
         }
 
 
@@ -299,12 +303,23 @@ withNegativeStyle (Button constraints) =
     Button { constraints | styles = buttonNegativeStyle }
 
 
+withIcon :
+    Svg.Svg msg
+    ->
+        Button
+            { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : () }
+            msg
+    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
+withIcon icon (Button constraints) =
+    Button { constraints | icon = Just icon }
+
+
 toHtml :
     Button { constraints | needsClosure : () } msg
     -> Html msg
 toHtml (Button constraints) =
     let
-        { label, action, styles, disabled } =
+        { label, action, styles, disabled, icon } =
             constraints
     in
     case action of
@@ -324,7 +339,17 @@ toHtml (Button constraints) =
                         styles ++ " cursor-pointer"
                 , HA.disabled disabled
                 ]
-                [ Html.text label ]
+                [ case icon of
+                    Just icon_ ->
+                        Html.div
+                            [ HA.class "flex gap-x-1" ]
+                            [ Html.div [ HA.class "w-[20px]" ] [ icon_ ]
+                            , Html.text label
+                            ]
+
+                    Nothing ->
+                        Html.text label
+                ]
 
 
 hint : String -> Html msg
