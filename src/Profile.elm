@@ -17,6 +17,7 @@ import Html.Attributes as HA
 import Html.Events as HE
 import Http
 import Json.Encode
+import ResetPassword
 import Task
 
 
@@ -29,6 +30,7 @@ type alias Model =
     , editMode : Bool
     , memoName : String
     , errors : Dict String (List String)
+    , resetPasswordModel : ResetPassword.Model
     }
 
 
@@ -56,6 +58,7 @@ type Msg
     | CancelEdit
     | EditMode
     | Resend Credentials.Token
+    | GotRpMsg ResetPassword.Msg
 
 
 initialModel : Model
@@ -68,6 +71,7 @@ initialModel =
     , userState = Intruder
     , editMode = False
     , errors = Dict.empty
+    , resetPasswordModel = ResetPassword.initialModel
     }
 
 
@@ -102,110 +106,38 @@ view model =
     case model.userState of
         Verified token ->
             Html.div
-                [ HA.class "flex flex-col self-center mt-32 relative w-[400px] gap-y-4"
-                ]
-                [ Html.h2
-                    []
-                    [ Html.text "Your data" ]
-                , if model.editMode then
-                    -- TODO make something similar to layoutForm
-                    Html.form
-                        [ HA.class "flex flex-col gap-y-4 w-full mt-4"
-                        ]
-                        [ Html.div
-                            [ HA.class "flex flex-col gap-y-4" ]
-                            [ Components.Element.inputField
-                                { type_ = Components.Element.Text
-                                , label = Just "First Name"
-                                , value = model.storeName
-                                , toMsg = StoreFirstName
-                                , isDisabled = False
-                                , error = Components.Error.byFieldName "name" model.errors
-                                }
-                            ]
-                        , Html.h2
-                            []
-                            [ Html.text "Upload avatar" ]
-                        , Html.div
-                            [ HA.class "flex" ]
-                            [ Components.Element.button
-                                |> Components.Element.withText "Choose file"
-                                |> Components.Element.withMsg FileRequest
-                                |> Components.Element.withDisabled (model.formState == Loading)
-                                |> Components.Element.withSecondaryStyle
-                                |> Components.Element.withIcon Components.SvgIcon.upload
-                                |> Components.Element.toHtml
-                            ]
-                        , Components.Element.notification
-                            (Components.Element.Info "Size limit is 3mb")
-                        , case model.profilePic of
-                            Just imageString ->
-                                Html.div
-                                    [ HA.class "flex flex-col gap-3"
-                                    ]
-                                    [ Html.text "Your avatar preview"
-                                    , Html.img
-                                        [ HA.class "rounded w-[100px]"
-                                        , HA.src imageString
-                                        ]
-                                        []
-                                    ]
+                [ HA.class "flex justify-center items-start" ]
+                [ Components.Element.formLayout
+                    "Your data"
+                    [ if model.editMode then
+                        viewEditMode model token
 
-                            Nothing ->
-                                Html.text ""
-                        , Html.div
-                            [ HA.class "flex gap-x-4" ]
-                            [ Components.Element.button
-                                |> Components.Element.withText "Submit"
-                                |> Components.Element.withMsg (ProfileSubmit token)
-                                |> Components.Element.withDisabled (model.formState == Loading)
-                                |> Components.Element.withPrimaryStyle
-                                |> Components.Element.toHtml
+                      else
+                        Html.div
+                            [ HA.class "mt-4" ]
+                            [ Html.p
+                                [ HA.class "mb-4" ]
+                                [ Html.text "First Name"
+                                , Html.p
+                                    [ HA.class "py-2 mt-1 px-3 border rounded text-sm border-gray-100" ]
+                                    [ Html.text model.storeName ]
+                                ]
                             , Components.Element.button
-                                |> Components.Element.withText "Cancel"
-                                |> Components.Element.withMsg CancelEdit
-                                |> Components.Element.withDisabled False
+                                |> Components.Element.withText "Edit"
+                                |> Components.Element.withMsg EditMode
+                                |> Components.Element.withDisabled (model.formState == Loading)
                                 |> Components.Element.withSecondaryStyle
                                 |> Components.Element.toHtml
                             ]
-                        , case model.formState of
-                            Initial ->
-                                Html.text ""
-
-                            Loading ->
-                                Components.Misc.loadingElement
-
-                            Error error ->
-                                Components.Element.notification (Components.Element.Error error)
-
-                            Success str ->
-                                Components.Element.notification
-                                    (Components.Element.Success str)
-                        ]
-
-                  else
-                    Html.div
-                        [ HA.class "mt-4" ]
-                        [ Html.p
-                            [ HA.class "mb-4" ]
-                            [ Html.text "First Name"
-                            , Html.p
-                                [ HA.class "py-2 mt-1 px-3 border rounded text-sm border-gray-100" ]
-                                [ Html.text model.storeName ]
-                            ]
-                        , Components.Element.button
-                            |> Components.Element.withText "Edit"
-                            |> Components.Element.withMsg EditMode
-                            |> Components.Element.withDisabled (model.formState == Loading)
-                            |> Components.Element.withSecondaryStyle
-                            |> Components.Element.toHtml
-                        ]
+                    ]
+                , Html.div
+                    []
+                    [ ResetPassword.view model.resetPasswordModel |> Html.map GotRpMsg ]
                 ]
 
         NotVerified token ->
             Html.div
-                [ HA.class "flex flex-col items-center justify-center mt-64"
-                ]
+                [ HA.class "flex flex-col items-center justify-center mt-64" ]
                 [ Html.h2
                     []
                     [ Html.text "In order to access all the features please verify your email ! " ]
@@ -244,6 +176,82 @@ view model =
                     []
                     [ Html.text "Please login again" ]
                 ]
+
+
+viewEditMode : Model -> Credentials.Token -> Html Msg
+viewEditMode model token =
+    Html.form
+        [ HA.class "flex flex-col gap-y-4 w-full mt-4" ]
+        [ Html.div
+            [ HA.class "flex flex-col gap-y-4" ]
+            [ Components.Element.inputField
+                { type_ = Components.Element.Text
+                , label = Just "First Name"
+                , value = model.storeName
+                , toMsg = StoreFirstName
+                , isDisabled = False
+                , error = Components.Error.byFieldName "name" model.errors
+                }
+            ]
+        , Html.h2
+            []
+            [ Html.text "Upload avatar" ]
+        , Html.div
+            [ HA.class "flex" ]
+            [ Components.Element.button
+                |> Components.Element.withText "Choose file"
+                |> Components.Element.withMsg FileRequest
+                |> Components.Element.withDisabled (model.formState == Loading)
+                |> Components.Element.withSecondaryStyle
+                |> Components.Element.withIcon Components.SvgIcon.upload
+                |> Components.Element.toHtml
+            ]
+        , Components.Element.notification
+            (Components.Element.Info "Size limit is 3mb")
+        , case model.profilePic of
+            Just imageString ->
+                Html.div
+                    [ HA.class "flex flex-col gap-3"
+                    ]
+                    [ Html.text "Your avatar preview"
+                    , Html.img
+                        [ HA.class "rounded w-[100px]"
+                        , HA.src imageString
+                        ]
+                        []
+                    ]
+
+            Nothing ->
+                Html.text ""
+        , Html.div
+            [ HA.class "flex gap-x-4" ]
+            [ Components.Element.button
+                |> Components.Element.withText "Submit"
+                |> Components.Element.withMsg (ProfileSubmit token)
+                |> Components.Element.withDisabled (model.formState == Loading)
+                |> Components.Element.withPrimaryStyle
+                |> Components.Element.toHtml
+            , Components.Element.button
+                |> Components.Element.withText "Cancel"
+                |> Components.Element.withMsg CancelEdit
+                |> Components.Element.withDisabled False
+                |> Components.Element.withSecondaryStyle
+                |> Components.Element.toHtml
+            ]
+        , case model.formState of
+            Initial ->
+                Html.text ""
+
+            Loading ->
+                Components.Misc.loadingElement
+
+            Error error ->
+                Components.Element.notification (Components.Element.Error error)
+
+            Success str ->
+                Components.Element.notification
+                    (Components.Element.Success str)
+        ]
 
 
 update : Msg -> Model -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
@@ -389,3 +397,10 @@ update msg model =
 
         FileRead (Err error) ->
             ( { model | formState = Error <| Components.Error.buildErrorMessage error }, [], Cmd.none )
+
+        GotRpMsg rpMsg ->
+            let
+                ( rpModelFromRp, rpMsgFromRp ) =
+                    ResetPassword.update rpMsg model.resetPasswordModel
+            in
+            ( { model | resetPasswordModel = rpModelFromRp }, [], Cmd.map GotRpMsg rpMsgFromRp )

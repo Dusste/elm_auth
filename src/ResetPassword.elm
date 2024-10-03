@@ -122,13 +122,7 @@ update msg model =
                           }
                         , { fieldName = "confirm-password"
                           , fieldRules =
-                                [ Validation.CheckEmptyPassword
-                                , Validation.CheckPasswordTooShort 10
-                                , Validation.CheckPasswordCapitalize
-                                , Validation.CheckPasswordSpecialChar
-                                , Validation.CheckPasswordContainsInt
-                                , Validation.CheckPasswordMatch model.storePassword
-                                ]
+                                [ Validation.CheckPasswordMatch model.storePassword ]
                           , fieldValue = model.storeConfirmPassword
                           }
                         ]

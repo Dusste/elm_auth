@@ -66,7 +66,7 @@ type alias InputFieldProps msg =
 
 
 formLayout : String -> List (Html msg) -> Html msg
-formLayout head elements =
+formLayout head children =
     Html.div
         [ HA.class "flex justify-center mt-32" ]
         [ Html.div
@@ -78,7 +78,7 @@ formLayout head elements =
                     [ Html.text head ]
                 , Html.form
                     [ HA.class "flex flex-col gap-y-4" ]
-                    elements
+                    children
                 ]
             ]
         ]
