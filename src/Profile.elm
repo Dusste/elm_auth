@@ -108,13 +108,13 @@ view model =
             Html.div
                 [ HA.class "flex justify-center items-start" ]
                 [ Components.Element.formLayout
-                    "Your data"
+                    "Personal data"
                     [ if model.editMode then
                         viewEditMode model token
 
                       else
                         Html.div
-                            [ HA.class "mt-4" ]
+                            []
                             [ Html.p
                                 [ HA.class "mb-4" ]
                                 [ Html.text "First Name"
@@ -180,19 +180,16 @@ view model =
 
 viewEditMode : Model -> Credentials.Token -> Html Msg
 viewEditMode model token =
-    Html.form
-        [ HA.class "flex flex-col gap-y-4 w-full mt-4" ]
-        [ Html.div
-            [ HA.class "flex flex-col gap-y-4" ]
-            [ Components.Element.inputField
-                { type_ = Components.Element.Text
-                , label = Just "First Name"
-                , value = model.storeName
-                , toMsg = StoreFirstName
-                , isDisabled = False
-                , error = Components.Error.byFieldName "name" model.errors
-                }
-            ]
+    Html.div
+        [ HA.class "flex flex-col gap-y-4" ]
+        [ Components.Element.inputField
+            { type_ = Components.Element.Text
+            , label = Just "First Name"
+            , value = model.storeName
+            , toMsg = StoreFirstName
+            , isDisabled = model.formState == Loading
+            , error = Components.Error.byFieldName "name" model.errors
+            }
         , Html.h2
             []
             [ Html.text "Upload avatar" ]
@@ -234,7 +231,7 @@ viewEditMode model token =
             , Components.Element.button
                 |> Components.Element.withText "Cancel"
                 |> Components.Element.withMsg CancelEdit
-                |> Components.Element.withDisabled False
+                |> Components.Element.withDisabled (model.formState == Loading)
                 |> Components.Element.withSecondaryStyle
                 |> Components.Element.toHtml
             ]

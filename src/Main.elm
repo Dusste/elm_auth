@@ -508,8 +508,11 @@ update msg model =
 
         GotSubscriptionChangeMsg session ->
             ( { model | session = session }
-            , case Credentials.fromSessionToToken session of
-                Just token ->
+            , case ( Credentials.fromSessionToToken session, model.page ) of
+                ( Just _, ProfilePage _ ) ->
+                    Cmd.none
+
+                ( Just token, _ ) ->
                     case Credentials.tokenToUserData token of
                         Ok resultTokenRecord ->
                             Nav.pushUrl model.key ("/profile/" ++ resultTokenRecord.id)
@@ -517,7 +520,7 @@ update msg model =
                         Err _ ->
                             Nav.pushUrl model.key "/login"
 
-                Nothing ->
+                ( Nothing, _ ) ->
                     Nav.pushUrl model.key "/login"
             )
 

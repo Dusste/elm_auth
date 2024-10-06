@@ -90,7 +90,7 @@ view model =
 
             Success ->
                 Components.Element.notification
-                    (Components.Element.Success "Your password has been reset. Please login with your new password.")
+                    (Components.Element.Success "Your password has been reset")
 
         -- TODO send out msg to login
         -- , Components.Element.button
