@@ -1,8 +1,10 @@
 module ForgotPassword exposing (..)
 
 import Api.ForgotPassword
+import Components.Button
 import Components.Element
 import Components.Error
+import Components.InputField
 import Components.Misc
 import Data.Validation as Validation
 import Dict exposing (Dict)
@@ -53,20 +55,20 @@ view model =
         "Password reset request"
         [ Components.Element.notification
             (Components.Element.Info "Fill in email and we'll make sure you can reset password")
-        , Components.Element.inputField
-            { type_ = Components.Element.Text
-            , label = Just "Email"
-            , value = model.storeEmail
-            , toMsg = StoreEmail
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "email" model.errors
-            }
-        , Components.Element.button
-            |> Components.Element.withText "Submit"
-            |> Components.Element.withMsg Submit
-            |> Components.Element.withDisabled (model.formState == Loading)
-            |> Components.Element.withPrimaryStyle
-            |> Components.Element.toHtml
+        , Components.InputField.view
+            |> Components.InputField.withValue model.storeEmail
+            |> Components.InputField.withMsg StoreEmail
+            |> Components.InputField.withType Components.InputField.Text
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "email" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Email")
+            |> Components.InputField.toHtml
+        , Components.Button.view
+            |> Components.Button.withText "Submit"
+            |> Components.Button.withMsg Submit
+            |> Components.Button.withDisabled (model.formState == Loading)
+            |> Components.Button.withPrimaryStyle
+            |> Components.Button.toHtml
         , case model.formState of
             Initial ->
                 Html.text ""

@@ -3,6 +3,7 @@ module Main exposing (..)
 import Api.Verification
 import Browser
 import Browser.Navigation as Nav
+import Components.Button
 import Components.Element
 import Components.SvgIcon
 import Data.Credentials as Credentials
@@ -198,12 +199,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Components.Element.button
-                |> Components.Element.withText "home"
-                |> Components.Element.withUrl "/"
-                |> Components.Element.withDisabled False
-                |> Components.Element.withLinkStyle
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "home"
+                |> Components.Button.withUrl "/"
+                |> Components.Button.withDisabled False
+                |> Components.Button.withLinkStyle
+                |> Components.Button.toHtml
             ]
         , Html.li
             [ HA.classList
@@ -212,12 +213,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Components.Element.button
-                |> Components.Element.withText "login"
-                |> Components.Element.withUrl "/login"
-                |> Components.Element.withDisabled False
-                |> Components.Element.withLinkStyle
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "login"
+                |> Components.Button.withUrl "/login"
+                |> Components.Button.withDisabled False
+                |> Components.Button.withLinkStyle
+                |> Components.Button.toHtml
             ]
         , Html.li
             [ HA.classList
@@ -226,12 +227,12 @@ viewPublicHeader page =
                   )
                 ]
             ]
-            [ Components.Element.button
-                |> Components.Element.withText "signup"
-                |> Components.Element.withUrl "/signup"
-                |> Components.Element.withDisabled False
-                |> Components.Element.withLinkStyle
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "signup"
+                |> Components.Button.withUrl "/signup"
+                |> Components.Button.withDisabled False
+                |> Components.Button.withLinkStyle
+                |> Components.Button.toHtml
             ]
         ]
 

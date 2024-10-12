@@ -1,8 +1,10 @@
 module Profile exposing (..)
 
 import Api.Profile
+import Components.Button
 import Components.Element
 import Components.Error
+import Components.InputField
 import Components.Misc
 import Components.SvgIcon
 import Data.Credentials as Credentials
@@ -122,12 +124,12 @@ view model =
                                     [ HA.class "py-2 mt-1 px-3 border rounded text-sm border-gray-100" ]
                                     [ Html.text model.storeName ]
                                 ]
-                            , Components.Element.button
-                                |> Components.Element.withText "Edit"
-                                |> Components.Element.withMsg EditMode
-                                |> Components.Element.withDisabled (model.formState == Loading)
-                                |> Components.Element.withSecondaryStyle
-                                |> Components.Element.toHtml
+                            , Components.Button.view
+                                |> Components.Button.withText "Edit"
+                                |> Components.Button.withMsg EditMode
+                                |> Components.Button.withDisabled (model.formState == Loading)
+                                |> Components.Button.withSecondaryStyle
+                                |> Components.Button.toHtml
                             ]
                     ]
                 , Html.div
@@ -146,12 +148,12 @@ view model =
                     [ Html.text "Haven't got email from us ?" ]
                 , Html.div
                     [ HA.class "mt-4" ]
-                    [ Components.Element.button
-                        |> Components.Element.withText "Resend email"
-                        |> Components.Element.withMsg (Resend token)
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withSecondaryStyle
-                        |> Components.Element.toHtml
+                    [ Components.Button.view
+                        |> Components.Button.withText "Resend email"
+                        |> Components.Button.withMsg (Resend token)
+                        |> Components.Button.withDisabled False
+                        |> Components.Button.withSecondaryStyle
+                        |> Components.Button.toHtml
                     ]
                 ]
 
@@ -182,26 +184,26 @@ viewEditMode : Model -> Credentials.Token -> Html Msg
 viewEditMode model token =
     Html.div
         [ HA.class "flex flex-col gap-y-4" ]
-        [ Components.Element.inputField
-            { type_ = Components.Element.Text
-            , label = Just "First Name"
-            , value = model.storeName
-            , toMsg = StoreFirstName
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "name" model.errors
-            }
+        [ Components.InputField.view
+            |> Components.InputField.withValue model.storeName
+            |> Components.InputField.withMsg StoreFirstName
+            |> Components.InputField.withType Components.InputField.Text
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "name" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "First Name")
+            |> Components.InputField.toHtml
         , Html.h2
             []
             [ Html.text "Upload avatar" ]
         , Html.div
             [ HA.class "flex" ]
-            [ Components.Element.button
-                |> Components.Element.withText "Choose file"
-                |> Components.Element.withMsg FileRequest
-                |> Components.Element.withDisabled (model.formState == Loading)
-                |> Components.Element.withSecondaryStyle
-                |> Components.Element.withIcon Components.SvgIcon.upload
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "Choose file"
+                |> Components.Button.withMsg FileRequest
+                |> Components.Button.withDisabled (model.formState == Loading)
+                |> Components.Button.withSecondaryStyle
+                |> Components.Button.withIcon Components.SvgIcon.upload
+                |> Components.Button.toHtml
             ]
         , Components.Element.notification
             (Components.Element.Info "Size limit is 3mb")
@@ -222,18 +224,18 @@ viewEditMode model token =
                 Html.text ""
         , Html.div
             [ HA.class "flex gap-x-4" ]
-            [ Components.Element.button
-                |> Components.Element.withText "Submit"
-                |> Components.Element.withMsg (ProfileSubmit token)
-                |> Components.Element.withDisabled (model.formState == Loading)
-                |> Components.Element.withPrimaryStyle
-                |> Components.Element.toHtml
-            , Components.Element.button
-                |> Components.Element.withText "Cancel"
-                |> Components.Element.withMsg CancelEdit
-                |> Components.Element.withDisabled (model.formState == Loading)
-                |> Components.Element.withSecondaryStyle
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "Submit"
+                |> Components.Button.withMsg (ProfileSubmit token)
+                |> Components.Button.withDisabled (model.formState == Loading)
+                |> Components.Button.withPrimaryStyle
+                |> Components.Button.toHtml
+            , Components.Button.view
+                |> Components.Button.withText "Cancel"
+                |> Components.Button.withMsg CancelEdit
+                |> Components.Button.withDisabled (model.formState == Loading)
+                |> Components.Button.withSecondaryStyle
+                |> Components.Button.toHtml
             ]
         , case model.formState of
             Initial ->

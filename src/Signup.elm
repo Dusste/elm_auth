@@ -1,8 +1,10 @@
 module Signup exposing (Model, Msg, init, update, view)
 
 import Api.Signup
+import Components.Button
 import Components.Element
 import Components.Error
+import Components.InputField
 import Components.Misc
 import Data.Credentials as Credentials
 import Data.Ports as Ports
@@ -13,6 +15,7 @@ import Html.Attributes as HA
 import Html.Events as HE
 import Http
 import Json.Encode
+import List.Extra
 
 
 type alias Model =
@@ -21,6 +24,7 @@ type alias Model =
     , storeConfirmPassword : String
     , formState : FormState
     , errors : Dict String (List String)
+    , showPasswords : List ( String, Bool )
     }
 
 
@@ -31,6 +35,7 @@ initialModel =
     , storeConfirmPassword = ""
     , formState = Initial
     , errors = Dict.empty
+    , showPasswords = []
     }
 
 
@@ -46,6 +51,7 @@ type Msg
     | StoreConfirmPassword String
     | SignupSubmit
     | SignupDone (Result Http.Error Credentials.Token)
+    | ShowPassword String Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -159,41 +165,66 @@ update msg model =
             , Cmd.none
             )
 
+        ShowPassword id shouldShow ->
+            ( { model | showPasswords = ( id, shouldShow ) :: model.showPasswords }
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
+    let
+        shouldShowPassword : String -> Bool
+        shouldShowPassword field =
+            model.showPasswords
+                |> List.Extra.find (\( id_, _ ) -> field == id_)
+                |> Maybe.map Tuple.second
+                >> Maybe.withDefault False
+    in
     Components.Element.formLayout
         "Signup"
-        [ Components.Element.inputField
-            { type_ = Components.Element.Text
-            , label = Just "Email"
-            , value = model.storeEmail
-            , toMsg = StoreEmail
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "email" model.errors
-            }
-        , Components.Element.inputField
-            { type_ = Components.Element.Password
-            , label = Just "Password"
-            , value = model.storePassword
-            , toMsg = StorePassword
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "password" model.errors
-            }
-        , Components.Element.inputField
-            { type_ = Components.Element.Password
-            , label = Just "Confirm Password"
-            , value = model.storeConfirmPassword
-            , toMsg = StoreConfirmPassword
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "confirm-password" model.errors
-            }
-        , Components.Element.button
-            |> Components.Element.withText "Sign up"
-            |> Components.Element.withMsg SignupSubmit
-            |> Components.Element.withDisabled (model.formState == Loading)
-            |> Components.Element.withPrimaryStyle
-            |> Components.Element.toHtml
+        [ Components.InputField.view
+            |> Components.InputField.withValue model.storeEmail
+            |> Components.InputField.withMsg StoreEmail
+            |> Components.InputField.withType Components.InputField.Text
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "email" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Email")
+            |> Components.InputField.toHtml
+        , Components.InputField.view
+            |> Components.InputField.withValue model.storePassword
+            |> Components.InputField.withMsg StorePassword
+            |> Components.InputField.withType
+                (Components.InputField.Password
+                    ( "password"
+                    , shouldShowPassword "password"
+                    , ShowPassword
+                    )
+                )
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "password" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Password")
+            |> Components.InputField.toHtml
+        , Components.InputField.view
+            |> Components.InputField.withValue model.storeConfirmPassword
+            |> Components.InputField.withMsg StoreConfirmPassword
+            |> Components.InputField.withType
+                (Components.InputField.Password
+                    ( "confirm-password"
+                    , shouldShowPassword "confirm-password"
+                    , ShowPassword
+                    )
+                )
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "confirm-password" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Confirm Password")
+            |> Components.InputField.toHtml
+        , Components.Button.view
+            |> Components.Button.withText "Sign up"
+            |> Components.Button.withMsg SignupSubmit
+            |> Components.Button.withDisabled (model.formState == Loading)
+            |> Components.Button.withPrimaryStyle
+            |> Components.Button.toHtml
         , case model.formState of
             Initial ->
                 Html.text ""

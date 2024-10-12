@@ -1,6 +1,7 @@
 module Verification exposing (Model, Msg, init, update, view)
 
 import Api.Verification
+import Components.Button
 import Components.Element
 import Components.Misc
 import Data.Credentials as Credentials
@@ -139,12 +140,12 @@ view model =
                     "Try to re-login or refresh the page"
                     (Html.div
                         [ HA.class "mt-4" ]
-                        [ Components.Element.button
-                            |> Components.Element.withText "Resend email"
-                            |> Components.Element.withMsg Resend
-                            |> Components.Element.withDisabled False
-                            |> Components.Element.withSecondaryStyle
-                            |> Components.Element.toHtml
+                        [ Components.Button.view
+                            |> Components.Button.withText "Resend email"
+                            |> Components.Button.withMsg Resend
+                            |> Components.Button.withDisabled False
+                            |> Components.Button.withSecondaryStyle
+                            |> Components.Button.toHtml
                         ]
                     )
 
@@ -154,12 +155,12 @@ view model =
                     "Please proceed to you profile"
                     (Html.div
                         [ HA.class "mt-4" ]
-                        [ Components.Element.button
-                            |> Components.Element.withText "View profile"
-                            |> Components.Element.withMsg RedirectToProfile
-                            |> Components.Element.withDisabled False
-                            |> Components.Element.withSecondaryStyle
-                            |> Components.Element.toHtml
+                        [ Components.Button.view
+                            |> Components.Button.withText "View profile"
+                            |> Components.Button.withMsg RedirectToProfile
+                            |> Components.Button.withDisabled False
+                            |> Components.Button.withSecondaryStyle
+                            |> Components.Button.toHtml
                         ]
                     )
 
@@ -167,12 +168,12 @@ view model =
                 layout
                     "You are not logged in !"
                     "Please proceed to login"
-                    (Components.Element.button
-                        |> Components.Element.withText "Resend email"
-                        |> Components.Element.withMsg Resend
-                        |> Components.Element.withDisabled False
-                        |> Components.Element.withSecondaryStyle
-                        |> Components.Element.toHtml
+                    (Components.Button.view
+                        |> Components.Button.withText "Resend email"
+                        |> Components.Button.withMsg Resend
+                        |> Components.Button.withDisabled False
+                        |> Components.Button.withSecondaryStyle
+                        |> Components.Button.toHtml
                     )
         ]
 

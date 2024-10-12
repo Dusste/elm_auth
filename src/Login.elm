@@ -1,8 +1,10 @@
 module Login exposing (Model, Msg, init, update, view)
 
 import Api.Login
+import Components.Button
 import Components.Element
 import Components.Error
+import Components.InputField
 import Components.Misc
 import Data.Credentials as Credentials
 import Data.OutMsg
@@ -21,6 +23,7 @@ type alias Model =
     , storePassword : String
     , formState : FormState
     , errors : Dict String (List String)
+    , showPassword : ( String, Bool )
     }
 
 
@@ -30,6 +33,7 @@ initialModel =
     , storePassword = ""
     , formState = Initial
     , errors = Dict.empty
+    , showPassword = ( "password", False )
     }
 
 
@@ -44,6 +48,7 @@ type Msg
     | StorePassword String
     | LoginSubmit
     | LoginDone (Result Http.Error Credentials.Token)
+    | ShowPassword String Bool
 
 
 update : Msg -> Model -> ( Model, List Data.OutMsg.OutMsg, Cmd Msg )
@@ -142,41 +147,53 @@ update msg model =
             , Cmd.none
             )
 
+        ShowPassword id shouldShow ->
+            ( { model | showPassword = ( id, shouldShow ) }
+            , []
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
     Components.Element.formLayout
         "Login"
-        [ Components.Element.inputField
-            { type_ = Components.Element.Text
-            , label = Just "Email"
-            , value = model.storeEmail
-            , toMsg = StoreEmail
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "email" model.errors
-            }
-        , Components.Element.inputField
-            { type_ = Components.Element.Password
-            , label = Just "Password"
-            , value = model.storePassword
-            , toMsg = StorePassword
-            , isDisabled = model.formState == Loading
-            , error = Components.Error.byFieldName "password" model.errors
-            }
+        [ Components.InputField.view
+            |> Components.InputField.withValue model.storeEmail
+            |> Components.InputField.withMsg StoreEmail
+            |> Components.InputField.withType Components.InputField.Text
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "email" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Email")
+            |> Components.InputField.toHtml
+        , Components.InputField.view
+            |> Components.InputField.withValue model.storePassword
+            |> Components.InputField.withMsg StorePassword
+            |> Components.InputField.withType
+                (Components.InputField.Password
+                    ( "password"
+                    , model.showPassword |> Tuple.second
+                    , ShowPassword
+                    )
+                )
+            |> Components.InputField.withDisable (model.formState == Loading)
+            |> Components.InputField.withError (Components.Error.byFieldName "password" model.errors)
+            |> Components.InputField.withExtraText (Components.InputField.Label "Password")
+            |> Components.InputField.toHtml
         , Html.div
             [ HA.class "flex justify-between items-center" ]
-            [ Components.Element.button
-                |> Components.Element.withText "Sign in"
-                |> Components.Element.withMsg LoginSubmit
-                |> Components.Element.withDisabled (model.formState == Loading)
-                |> Components.Element.withPrimaryStyle
-                |> Components.Element.toHtml
-            , Components.Element.button
-                |> Components.Element.withText "Forgot password ?"
-                |> Components.Element.withUrl "/forgot-password"
-                |> Components.Element.withDisabled (model.formState == Loading)
-                |> Components.Element.withLinkStyle
-                |> Components.Element.toHtml
+            [ Components.Button.view
+                |> Components.Button.withText "Sign in"
+                |> Components.Button.withMsg LoginSubmit
+                |> Components.Button.withDisabled (model.formState == Loading)
+                |> Components.Button.withPrimaryStyle
+                |> Components.Button.toHtml
+            , Components.Button.view
+                |> Components.Button.withText "Forgot password ?"
+                |> Components.Button.withUrl "/forgot-password"
+                |> Components.Button.withDisabled (model.formState == Loading)
+                |> Components.Button.withLinkStyle
+                |> Components.Button.toHtml
             ]
         , case model.formState of
             Initial ->

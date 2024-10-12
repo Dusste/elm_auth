@@ -1,32 +1,19 @@
 module Components.Element exposing
     ( InputFieldType(..)
     , Notification(..)
-    , button
-    , buttonLinkStyle
     , formLayout
-    , hint
+      -- , hint
     , inputField
     , notification
-    , toHtml
-    , withDisabled
-    , withIcon
-    , withLinkStyle
-    , withMsg
-    , withNegativeStyle
-    , withPrimaryStyle
-    , withSecondaryStyle
-    , withText
-    , withUrl
     )
 
 import Components.SvgIcon
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
-import Svg
 
 
-type InputFieldType
+type InputFieldType msg
     = Text
     | Decimal
     | Integer
@@ -40,26 +27,11 @@ type Notification
     | Success String
 
 
-type Action msg
-    = Url String
-    | Msg msg
-
-
-type Button constraints msg
-    = Button
-        { label : String
-        , action : Action msg
-        , styles : String
-        , disabled : Bool
-        , icon : Maybe (Svg.Svg msg)
-        }
-
-
 type alias InputFieldProps msg =
     { label : Maybe String
     , value : String
     , toMsg : String -> msg
-    , type_ : InputFieldType
+    , type_ : InputFieldType msg
     , isDisabled : Bool
     , error : List String
     }
@@ -111,25 +83,28 @@ inputField { label, value, toMsg, type_, isDisabled, error } =
                 ]
                     |> List.concat
 
+        inputHtml : List (Html.Attribute msg) -> Html msg
         inputHtml attributes =
             Html.input
-                ([ case type_ of
-                    Text ->
-                        HA.type_ "text"
+                (List.concat
+                    [ case type_ of
+                        Text ->
+                            [ HA.type_ "text" ]
 
-                    Decimal ->
-                        HA.type_ "number"
+                        Decimal ->
+                            [ HA.type_ "number" ]
 
-                    Integer ->
-                        HA.type_ "number"
+                        Integer ->
+                            [ HA.type_ "number" ]
 
-                    Password ->
-                        HA.type_ "password"
-                 , HA.disabled isDisabled
-                 , HA.value value
-                 , HE.onInput toMsg
-                 ]
-                    ++ attributes
+                        Password ->
+                            [ HA.type_ "password" ]
+                    , [ HA.disabled isDisabled
+                      , HA.value value
+                      , HE.onInput toMsg
+                      ]
+                        ++ attributes
+                    ]
                 )
                 []
     in
@@ -220,165 +195,8 @@ notificationWrapperStyle color =
 
 
 
-{-
-   * Button Example:
-      Element.button
-         |> Element.withText "I am button"
-         |> Element.withMsg MyMsg `or` Element.withUrl "some/url"
-         |> Element.withDisabled False
-         |> Element.withPrimaryStyle `or` Element.withSecondaryStyle
-         |> Element.toHtml
-
--}
-
-
-button : Button { needsText : () } msg
-button =
-    Button
-        { label = ""
-        , action = Url "/"
-        , styles = buttonPrimaryStyle
-        , disabled = False
-        , icon = Nothing
-        }
-
-
-withText :
-    String
-    -> Button { needsText : () } msg
-    -> Button { hasText : (), needsInteractivity : () } msg
-withText str (Button constraints) =
-    Button { constraints | label = str }
-
-
-withMsg :
-    msg
-    -> Button { constraints | hasText : (), needsInteractivity : () } msg
-    -> Button { constraints | hasText : (), hasInteractivity : (), needsDisableState : () } msg
-withMsg message (Button constraints) =
-    Button { constraints | action = Msg message }
-
-
-withUrl :
-    String
-    -> Button { constraints | hasText : (), needsInteractivity : () } msg
-    -> Button { constraints | hasText : (), hasInteractivity : (), needsDisableState : () } msg
-withUrl url (Button constraints) =
-    Button { constraints | action = Url url }
-
-
-withDisabled :
-    Bool
-    -> Button { constraints | hasText : (), hasInteractivity : (), needsDisableState : () } msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
-withDisabled bool (Button constraints) =
-    Button { constraints | disabled = bool }
-
-
-withPrimaryStyle :
-    Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
-withPrimaryStyle (Button constraints) =
-    Button { constraints | styles = buttonPrimaryStyle }
-
-
-withSecondaryStyle :
-    Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
-withSecondaryStyle (Button constraints) =
-    Button { constraints | styles = buttonSecondaryStyle }
-
-
-withLinkStyle :
-    Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
-withLinkStyle (Button constraints) =
-    Button { constraints | styles = buttonLinkStyle }
-
-
-withNegativeStyle :
-    Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), needsStyle : () } msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
-withNegativeStyle (Button constraints) =
-    Button { constraints | styles = buttonNegativeStyle }
-
-
-withIcon :
-    Svg.Svg msg
-    ->
-        Button
-            { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : () }
-            msg
-    -> Button { constraints | hasInteractivity : (), hasText : (), hasDisableState : (), hasStyle : (), needsClosure : () } msg
-withIcon icon (Button constraints) =
-    Button { constraints | icon = Just icon }
-
-
-toHtml :
-    Button { constraints | needsClosure : () } msg
-    -> Html msg
-toHtml (Button constraints) =
-    let
-        { label, action, styles, disabled, icon } =
-            constraints
-    in
-    case action of
-        Url url ->
-            Html.a
-                [ HA.href url, HA.class styles ]
-                [ Html.text label ]
-
-        Msg msg ->
-            Html.div
-                [ HE.onClick msg
-                , HA.class <|
-                    if disabled then
-                        buttonDisabledStyle
-
-                    else
-                        styles ++ " cursor-pointer"
-                , HA.disabled disabled
-                ]
-                [ case icon of
-                    Just icon_ ->
-                        Html.div
-                            [ HA.class "flex gap-x-1" ]
-                            [ Html.div [ HA.class "w-[20px]" ] [ icon_ ]
-                            , Html.text label
-                            ]
-
-                    Nothing ->
-                        Html.text label
-                ]
-
-
-hint : String -> Html msg
-hint txt =
-    Html.div
-        [ HA.class "p-3 bg-orange-300" ]
-        [ Html.text txt ]
-
-
-buttonPrimaryStyle : String
-buttonPrimaryStyle =
-    "justify-self-start w-fit flex-start bg-sky-400 border rounded border-sky-400 px-4 py-2 text-white transition-all hover:bg-sky-600 hover:border-sky-600"
-
-
-buttonSecondaryStyle : String
-buttonSecondaryStyle =
-    "justify-self-start w-fit flex-start bg-white border border-sky-300 rounded px-4 py-2 text-sky-500 transition-all hover:bg-sky-100"
-
-
-buttonNegativeStyle : String
-buttonNegativeStyle =
-    "justify-self-start w-fit flex-start bg-white border rounded border-red-300 px-4 py-2 text-red-500 transition-all hover:bg-red-100"
-
-
-buttonDisabledStyle : String
-buttonDisabledStyle =
-    "justify-self-start w-fit flex-start bg-gray-200 border rounded border-gray-300 px-4 py-2 text-gray-300 transition-all hover:bg-gray-100"
-
-
-buttonLinkStyle : String
-buttonLinkStyle =
-    "justify-self-start w-fit text-gray-950 transition-all hover:text-gray-500"
+-- hint : String -> Html msg
+-- hint txt =
+--     Html.div
+--         [ HA.class "p-3 bg-orange-300" ]
+--         [ Html.text txt ]
