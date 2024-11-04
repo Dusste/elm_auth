@@ -2,12 +2,9 @@ module Components.Element exposing
     ( InputFieldType(..)
     , Notification(..)
     , formLayout
-      -- , hint
-    , inputField
     , notification
     )
 
-import Components.SvgIcon
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events as HE
@@ -27,16 +24,6 @@ type Notification
     | Success String
 
 
-type alias InputFieldProps msg =
-    { label : Maybe String
-    , value : String
-    , toMsg : String -> msg
-    , type_ : InputFieldType msg
-    , isDisabled : Bool
-    , error : List String
-    }
-
-
 formLayout : String -> List (Html msg) -> Html msg
 formLayout head children =
     Html.div
@@ -54,97 +41,6 @@ formLayout head children =
                 ]
             ]
         ]
-
-
-inputField : InputFieldProps msg -> Html msg
-inputField { label, value, toMsg, type_, isDisabled, error } =
-    let
-        extendedInput : List (Html msg)
-        extendedInput =
-            if isDisabled then
-                [ inputHtml
-                    [ HA.class inputTextDisabledStyle ]
-                ]
-
-            else if List.isEmpty error then
-                [ inputHtml
-                    [ HA.class inputTextStyle ]
-                ]
-
-            else
-                [ [ inputHtml
-                        [ HA.class inputTextNegativeStyle ]
-                  ]
-                , error
-                    |> List.map
-                        (\error_ ->
-                            inputFieldError error_
-                        )
-                ]
-                    |> List.concat
-
-        inputHtml : List (Html.Attribute msg) -> Html msg
-        inputHtml attributes =
-            Html.input
-                (List.concat
-                    [ case type_ of
-                        Text ->
-                            [ HA.type_ "text" ]
-
-                        Decimal ->
-                            [ HA.type_ "number" ]
-
-                        Integer ->
-                            [ HA.type_ "number" ]
-
-                        Password ->
-                            [ HA.type_ "password" ]
-                    , [ HA.disabled isDisabled
-                      , HA.value value
-                      , HE.onInput toMsg
-                      ]
-                        ++ attributes
-                    ]
-                )
-                []
-    in
-    case label of
-        Just label_ ->
-            Html.label [ HA.class "block" ]
-                (List.concat
-                    [ [ Html.text label_ ]
-                    , extendedInput
-                    ]
-                )
-
-        Nothing ->
-            Html.label [] extendedInput
-
-
-inputFieldError : String -> Html msg
-inputFieldError txt =
-    Html.div
-        [ HA.class "bg-red-500 text-white flex gap-1 p-1 text-xs items-center" ]
-        [ Components.SvgIcon.warning
-        , Html.span
-            []
-            [ Html.text txt ]
-        ]
-
-
-inputTextStyle : String
-inputTextStyle =
-    "mt-1 py-2 px-3 text-sky-600 border-gray-300 block w-full rounded text-sm focus:border-sky-200 focus:ring-sky-200"
-
-
-inputTextNegativeStyle : String
-inputTextNegativeStyle =
-    "mt-1 py-2 px-3 mb-1 border-red-500 rounded bg-red-100 block w-full text-sm text-red-500 focus:border-red-300 focus:border-red-300 focus:ring-red-500"
-
-
-inputTextDisabledStyle : String
-inputTextDisabledStyle =
-    "mt-1 py-2 px-3 border-gray-500 rounded bg-slate-100 block w-full text-sm text-gray-500 focus:border-gray-300 focus:border-gray-300 focus:ring-gray-500"
 
 
 notification : Notification -> Html msg
@@ -192,11 +88,3 @@ notificationIconStyle color =
 notificationWrapperStyle : String -> String
 notificationWrapperStyle color =
     "leading-4 flex border rounded items-center p-2 rounded items-center p-2 border-" ++ color ++ "-500 bg-" ++ color ++ "-200 text-" ++ color ++ "-500"
-
-
-
--- hint : String -> Html msg
--- hint txt =
---     Html.div
---         [ HA.class "p-3 bg-orange-300" ]
---         [ Html.text txt ]

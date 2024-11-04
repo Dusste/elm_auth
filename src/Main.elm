@@ -304,7 +304,7 @@ viewDropdown openDropdown id =
         [ Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex hover:bg-sky-50"
+                [ HA.class "px-2 py-1 flex bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]"
                 , HA.href <| "/profile/" ++ id
                 ]
                 [ Html.text "My profile" ]
@@ -312,19 +312,19 @@ viewDropdown openDropdown id =
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex hover:bg-sky-100" ]
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]" ]
                 [ Html.text "option2" ]
             ]
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex hover:bg-sky-100" ]
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]" ]
                 [ Html.text "option3" ]
             ]
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex hover:bg-sky-100"
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]"
                 , HA.href "/"
                 , HE.onClick GetLogout
                 ]

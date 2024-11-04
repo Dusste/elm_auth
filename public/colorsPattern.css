@@ -1,0 +1,33 @@
+@import './baseColors.css';
+
+/*
+    You can override color patterns here inline
+    or
+    by running script: ./generate_colors_pattern.sh
+    [you will get prompted for each value]
+
+*/
+
+@layer colorConfig {
+    :root {
+        --primary-text: var(--DEFAULT-primary-text);
+        --primary-text-h: var(--DEFAULT-primary-text-h);
+        --secondary-text: var(--DEFAULT-secondary-text);
+        --link-c: var(--DEFAULT-link-c);
+        --bg-primary-button: var(--DEFAULT-bg-primary-button);
+        --primary-button-b: var(--DEFAULT-primary-button-b);
+        --bg-primary-button-h: var(--DEFAULT-bg-primary-button-h);
+        --txt-primary-button: var(--DEFAULT-txt-primary-button);
+        --bg-secondary-button: var(--DEFAULT-bg-secondary-button);
+        --bg-secondary-button-h: var(--DEFAULT-bg-secondary-button-h);
+        --secondary-button-b: var(--DEFAULT-bg-secondary-button-h);
+        --txt-secondary-button: var(--DEFAULT-txt-secondary-button);
+        --txt-input: var(--DEFAULT-txt-input);
+        --txt-input-b: var(--DEFAULT-txt-input-b);
+        --bg-input: var(--DEFAULT-bg-input);
+        --input-f: var(--DEFAULT-input-f);
+        --ph-input: var(--DEFAULT-ph-input);
+        --bg-dropdown-item: var(--DEFAULT-bg-dropdown-item);
+        --bg-dropdown-item-h: var(--DEFAULT-bg-dropdown-item-h);
+    }
+}

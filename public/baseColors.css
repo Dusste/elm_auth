@@ -1,0 +1,43 @@
+:root {
+    /*primary text color - text-gray-950 */
+    --DEFAULT-primary-text: #030712;
+    /*primary text hover -  text-gray-500 */
+    --DEFAULT-primary-text-h: #6b7280;
+    /* secondary text color */
+    --DEFAULT-secondary-text: #ffffff;
+    /* link color */
+    --DEFAULT-link-c: #000000;
+    /* ----------------------- */
+    /* primary button background color - bg-sky-400 */
+    --DEFAULT-bg-primary-button: #38bdf8;
+    /* primary button border color - bg-sky-400 */
+    --DEFAULT-primary-button-b: #38bdf8;
+    /* primary button hover background - bg-sky-600 */
+    --DEFAULT-bg-primary-button-h: #0284c7;
+    /* prmiary button text color - text-white */
+    --DEFAULT-txt-primary-button: #ffffff;
+    /* ----------------------- */
+    /* secondary button background - bg-white */
+    --DEFAULT-bg-secondary-button: #ffffff;
+    /* secondary button background hover color - bg-sky-100 */
+    --DEFAULT-bg-secondary-button-h: #e0f2fe;
+    /* secondary button border color - border-sky-300 */
+    --DEFAULT-secondary-button-b: #7dd3fc;
+    /* secondary button text - text-sky-500 */
+    --DEFAULT-txt-secondary-button: #0ea5e9;
+    /* ----------------------- */
+    /* input text color - text-sky-600 */
+    --DEFAULT-txt-input: #0284c7;
+    /* input text border color - border-gray-300 */
+    --DEFAULT-txt-input-b: #d1d5db;
+    /* input background - bg-white */
+    --DEFAULT-bg-input: #ffffff;
+    /* input focus - ring-sky-200 */
+    --DEFAULT-input-f: #bae6fd;
+    /* input placeholder - text-gray-950 */
+    --DEFAULT-ph-input: #030712;
+    /* dropdown item - white */
+    --DEFAULT-bg-dropdown-item: #ffffff;
+    /* dropdown item hover - bg-sky-100 */
+    --DEFAULT-bg-dropdown-item-h: #e0f2fe;
+}

@@ -9,17 +9,31 @@ body {
     padding: 0;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif, sans-serif;
     background: #ffffff;
-    color: #000000;
+    color: --primary-text;
 }
 
 a {
-    text-decoration: none;
-    color: inherit;
-    transition: color 400ms, ease-in-out;
+    color: link-c;
 }
 
-a:hover {
-    color: #777777;
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: primary-text;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 :hover {
+    color: primary-text-h
 }
 
 .active a {
@@ -39,9 +53,4 @@ ul {
     list-style: none;
     margin: 0;
     padding: 0;
-}
-
-.customHeight {
-    height: calc(100vh - 250px);
-    overflow-y: scroll;
 }

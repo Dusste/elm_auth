@@ -1,3 +1,9 @@
+{-
+   All credit for the ‘phantom builder pattern’ term goes to
+   Jeroen Engels, who first shared it on an Incremental Elm livestream.
+-}
+
+
 module Components.Button exposing
     ( buttonLinkStyle
     , toHtml
@@ -169,12 +175,12 @@ toHtml (Button constraints) =
 
 buttonPrimaryStyle : String
 buttonPrimaryStyle =
-    "justify-self-start w-fit flex-start bg-sky-400 border rounded border-sky-400 px-4 py-2 text-white transition-all hover:bg-sky-600 hover:border-sky-600"
+    "justify-self-start w-fit flex-start bg-[color:--bg-primary-button] border rounded border-[color:--primary-button-b] px-4 py-2 text-[color:--txt-primary-button] transition-all hover:bg-[color:--bg-primary-button-h] hover:border-[color:--bg-primary-button-h]"
 
 
 buttonSecondaryStyle : String
 buttonSecondaryStyle =
-    "justify-self-start w-fit flex-start bg-white border border-sky-300 rounded px-4 py-2 text-sky-500 transition-all hover:bg-sky-100"
+    "justify-self-start w-fit flex-start bg-[color:--bg-secondary-button] border border-[color:--secondary-button-b] rounded px-4 py-2 text-[color:--txt-secondary-button] transition-all hover:bg-[color:--bg-secondary-button-h]"
 
 
 buttonNegativeStyle : String

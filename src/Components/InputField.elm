@@ -1,3 +1,9 @@
+{-
+   All credit for the ‘phantom builder pattern’ term goes to
+   Jeroen Engels, who first shared it on an Incremental Elm livestream.
+-}
+
+
 module Components.InputField exposing
     ( InputFieldType(..)
     , PlaceholderLabel(..)
@@ -28,7 +34,6 @@ import Html.Events as HE
         |> Components.InputField.withError (Components.Error.byFieldName "email" model.errors)
         |> Components.InputField.withExtraText (Components.InputField.Label "Email")
         |> Components.InputField.toHtml
-
 -}
 
 
@@ -269,7 +274,7 @@ inputFieldError txt =
 
 inputTextStyle : String
 inputTextStyle =
-    "mt-1 py-2 px-3 text-sky-600 border-gray-300 block w-full rounded text-sm focus:border-sky-200 focus:ring-sky-200 pr-[32px] placeholder:text-gray-950"
+    "mt-1 py-2 px-3 text-[color:--txt-input] border-[color:--txt-input-b] block w-full rounded bg-[color:--bg-input] text-sm focus:border-[color:--input-f] focus:ring-[color:--input-f] pr-[32px] placeholder:text-[color:--ph-input]"
 
 
 inputTextNegativeStyle : String
