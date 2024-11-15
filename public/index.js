@@ -30,12 +30,11 @@ document.documentElement.addEventListener("click", (e) => {
 window.addEventListener(
   "storage",
   (event) => {
-    console.log(event);
     if (event.storageArea === localStorage && event.key === "session") {
       app.ports.onSessionChange.send(event.newValue);
     }
     if (event.storageArea === localStorage && event.key === "darkMode") {
-      app.ports.onDarkMode.send(event.newValue);
+      app.ports.isDarkModeLS.send(event.newValue === "1");
     }
   },
   false

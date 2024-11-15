@@ -117,7 +117,9 @@ content model =
                 |> Html.map GotVerificationMsg
 
         NotFoundPage ->
-            Html.p [] [ Html.text "Page not found buddy -_- sorry" ]
+            Html.div
+                [ HA.class "h-[100vh] text-size text-4xl flex items-center justify-center" ]
+                [ Html.p [ HA.class "dark:text-white" ] [ Html.text "Page not found buddy ¯\\_(ツ)_/¯ sorry" ] ]
 
 
 app : Model -> Html Msg
