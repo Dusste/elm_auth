@@ -1,6 +1,7 @@
 {
   "name": "elm_auth",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "start": "elm-live --port=9090 --pushstate --start-page=./public/index.html src/Main.elm -- --debug --output=public/app.js",
     "css:watch": "npx tailwindcss -i ./public/tailwind.css -o static/tailwind.build.css --watch"

@@ -9,6 +9,7 @@ import Components.SvgIcon
 import Data.Credentials as Credentials
 import Data.OutMsg
 import Data.Ports as Ports
+import Data.Util as Util
 import Data.Verification as Verification
 import ForgotPassword
 import Home
@@ -759,6 +760,7 @@ subscriptions model =
     Sub.batch
         [ Credentials.subscribeSessionChange GotSubscriptionChangeMsg
         , Credentials.subscribeReportClick GotRootClick
+        , Ports.isDarkModeLS (Util.decodeDarkMode >> ChangeDarkMode)
         ]
 
 

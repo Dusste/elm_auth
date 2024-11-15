@@ -5,10 +5,12 @@ module Data.Util exposing
     , checkLength
     , checkMatch
     , checkSpecChar
+    , decodeDarkMode
     , isValidEmail
     )
 
-import Html exposing (Html)
+import Json.Decode
+import Json.Encode
 import Regex
 import String.Extra
 
@@ -115,3 +117,10 @@ isValidEmail input =
 
         _ ->
             False
+
+
+decodeDarkMode : Json.Encode.Value -> Bool
+decodeDarkMode val =
+    Json.Decode.decodeValue Json.Decode.bool val
+        |> Result.toMaybe
+        |> Maybe.withDefault False
