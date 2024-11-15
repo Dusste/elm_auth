@@ -37,6 +37,7 @@ type alias Model =
     , session : Credentials.Session
     , openDropdown : Bool
     , time : Maybe Time.Posix
+    , isDark : Bool
     }
 
 
@@ -80,6 +81,7 @@ type Msg
     | RequestToReSendEmail String Credentials.Token
     | ResendDone (Result Http.Error ())
     | GotRootClick Bool
+    | ChangeDarkMode Bool
 
 
 content : Model -> Html Msg
@@ -120,7 +122,7 @@ content model =
 app : Model -> Html Msg
 app model =
     Html.div
-        [ HA.class "w-[1500px] m-auto"
+        [ HA.class "w-[1500px] m-auto dark:bg-black"
         ]
         [ viewHeader model
         , content model
@@ -145,18 +147,18 @@ viewFooter =
 
 
 viewHeader : Model -> Html Msg
-viewHeader { page, session, openDropdown } =
+viewHeader { page, session, openDropdown, isDark } =
     Html.nav
         [ HA.class "flex mt-4 justify-between items-center"
         ]
         [ Html.h1
             []
             [ Html.a
-                [ HA.href "/" ]
+                [ HA.href "/", HA.class "dark:text-white dark:hover:text-gray-200" ]
                 [ Html.text "Kickoff project" ]
             ]
         , Html.div
-            [ HA.class "flex justify-end" ]
+            [ HA.class "flex justify-end divide-x gap-4 divide-gray-200" ]
             [ case Credentials.fromSessionToToken session of
                 Just token ->
                     viewPrivateHeader
@@ -166,6 +168,9 @@ viewHeader { page, session, openDropdown } =
 
                 Nothing ->
                     viewPublicHeader page
+            , Html.div
+                [ HA.class "flex" ]
+                [ Components.Element.switch ChangeDarkMode isDark ]
             ]
         ]
 
@@ -190,7 +195,7 @@ viewProfilePic maybeSrc attr =
 viewPublicHeader : Page -> Html Msg
 viewPublicHeader page =
     Html.ul
-        [ HA.class "flex justify-between gap-4"
+        [ HA.class "flex justify-between gap-4 items-center"
         ]
         [ Html.li
             [ HA.classList
@@ -260,7 +265,7 @@ viewPrivateHeader { token, openDropdown } =
                                     [ HA.class "w-10" ]
                                 ]
                             , Html.span
-                                []
+                                [ HA.class "text-gray-950 dark:text-white" ]
                                 [ Html.text <|
                                     if String.length resultTokenRecord.firstname > 0 then
                                         resultTokenRecord.firstname
@@ -270,7 +275,7 @@ viewPrivateHeader { token, openDropdown } =
                                 ]
                             , Html.span
                                 [ HA.class <|
-                                    "flex transition-all w-[12px] "
+                                    "flex transition-all w-[12px] text-gray-950 dark:text-white "
                                         ++ (if openDropdown then
                                                 "rotate-180"
 
@@ -293,7 +298,7 @@ viewDropdown : Bool -> String -> Html Msg
 viewDropdown openDropdown id =
     Html.ul
         [ HA.class <|
-            "flex absolute mt-3 flex-col rounded w-[150px] border border-gray-200 overflow-hidden transition-all duration-300 "
+            "flex absolute mt-3 flex-col rounded w-[150px] border border-gray-200 dark:border-transparent overflow-hidden transition-all duration-300 "
                 ++ (if openDropdown then
                         "h-[130px]"
 
@@ -304,7 +309,7 @@ viewDropdown openDropdown id =
         [ Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]"
+                [ HA.class "px-2 py-1 flex bg-[color:--bg-dropdown-item] dark:bg-slate-700 dark:text-white hover:bg-[color:--bg-dropdown-item-h]"
                 , HA.href <| "/profile/" ++ id
                 ]
                 [ Html.text "My profile" ]
@@ -312,19 +317,19 @@ viewDropdown openDropdown id =
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]" ]
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] dark:bg-slate-700 dark:text-white hover:bg-[color:--bg-dropdown-item-h]" ]
                 [ Html.text "option2" ]
             ]
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]" ]
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] dark:bg-slate-700 dark:text-white hover:bg-[color:--bg-dropdown-item-h]" ]
                 [ Html.text "option3" ]
             ]
         , Html.li
             []
             [ Html.a
-                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] hover:bg-[color:--bg-dropdown-item-h]"
+                [ HA.class "px-2 py-1 flex  bg-[color:--bg-dropdown-item] dark:bg-slate-700 dark:text-white hover:bg-[color:--bg-dropdown-item-h]"
                 , HA.href "/"
                 , HE.onClick GetLogout
                 ]
@@ -398,6 +403,11 @@ update msg model =
         GotRootClick _ ->
             ( { model | openDropdown = False }
             , checkLogout model.session model.time
+            )
+
+        ChangeDarkMode isDark ->
+            ( { model | isDark = isDark }
+            , Ports.sendDarkMode isDark
             )
 
         ChangedUrl url ->
@@ -738,6 +748,7 @@ init flags url key =
             , session = session
             , openDropdown = False
             , time = Nothing
+            , isDark = False
             }
     in
     initCurrentPage ( url, model, Task.perform GotTime Time.now )

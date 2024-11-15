@@ -30,10 +30,10 @@ view =
         [ HA.class "flex flex-col items-center justify-center mt-64"
         ]
         [ Html.h2
-            [ HA.class "text-[36px]" ]
+            [ HA.class "text-[36px] dark:text-white" ]
             [ Html.text "Hello and welcome to our awesome website !" ]
         , Html.p
-            []
+            [ HA.class "dark:text-white" ]
             [ Html.text "which is still under construction" ]
         ]
 

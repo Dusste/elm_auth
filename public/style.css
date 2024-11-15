@@ -9,11 +9,26 @@ body {
     padding: 0;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif, sans-serif;
     background: #ffffff;
-    color: --primary-text;
+    color: var(--primary-text);
+}
+
+::selection {
+    color: unset;
+    background: none;
+}
+
+/* For Mozilla Firefox */
+::-moz-selection {
+    color: none;
+    background: none;
 }
 
 a {
-    color: link-c;
+    color: var(--link-c);
+}
+
+a:hover {
+    color: var(--link-h);
 }
 
 p,
@@ -23,17 +38,7 @@ h3,
 h4,
 h5,
 h6 {
-    color: primary-text;
-}
-
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 :hover {
-    color: primary-text-h
+    color: var(--primary-text);
 }
 
 .active a {

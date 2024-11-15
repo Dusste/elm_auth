@@ -214,7 +214,7 @@ toHtml (InputField constraints) =
     case label of
         Label label_ ->
             Html.label
-                [ HA.class "block relative" ]
+                [ HA.class "block relative text-[color:--primary-text] dark:text-white" ]
                 (List.concat
                     [ [ Html.text label_ ]
                     , extendedInput
@@ -252,13 +252,13 @@ labelShowPassword toMsg id shouldShow =
                             eyeClosedStyle
                        )
             ]
-            [ Components.SvgIcon.eye ]
+            [ Components.SvgIcon.eye "#d1d5db" ]
         ]
 
 
 eyeClosedStyle : String
 eyeClosedStyle =
-    "before:content-[''] before:block before:absolute before:w-[25px] before:h-[1px] before:bg-sky-500 before:rotate-[45deg] before:top-[12px] before:cursor-pointer"
+    "before:content-[''] before:block before:absolute before:w-[25px] before:h-[1px] before:bg-sky-300 before:rotate-[45deg] before:top-[12px] before:cursor-pointer"
 
 
 inputFieldError : String -> Html msg
@@ -274,7 +274,7 @@ inputFieldError txt =
 
 inputTextStyle : String
 inputTextStyle =
-    "mt-1 py-2 px-3 text-[color:--txt-input] border-[color:--txt-input-b] block w-full rounded bg-[color:--bg-input] text-sm focus:border-[color:--input-f] focus:ring-[color:--input-f] pr-[32px] placeholder:text-[color:--ph-input]"
+    "mt-1 py-2 px-3 text-[color:--txt-input] dark:text-white border-[color:--txt-input-b] block w-full rounded bg-[color:--bg-input] dark:bg-slate-700 text-sm focus:border-[color:--input-f] focus:ring-[color:--input-f] pr-[32px] placeholder:text-[color:--ph-input]"
 
 
 inputTextNegativeStyle : String
@@ -284,4 +284,4 @@ inputTextNegativeStyle =
 
 inputTextDisabledStyle : String
 inputTextDisabledStyle =
-    "mt-1 py-2 px-3 border-gray-500 rounded bg-slate-100 block w-full text-sm text-gray-500 focus:border-gray-300 focus:border-gray-300 focus:ring-gray-500"
+    "mt-1 py-2 px-3 border-gray-500 rounded bg-slate-100 dark:text-white dark:bg-slate-700 block w-full text-sm text-gray-500 focus:border-gray-300 focus:border-gray-300 focus:ring-gray-500"

@@ -29,9 +29,9 @@ arrowDown =
     Svg.svg
         [ HA.viewBox "0 -4.5 20 20" ]
         [ Svg.g
-            [ HA.stroke "none", HA.strokeWidth "1", HA.fill "none", HA.fillRule "evenodd" ]
+            [ HA.stroke "none", HA.strokeWidth "1", HA.fill "currentColor", HA.fillRule "evenodd" ]
             [ Svg.g
-                [ HA.transform "translate(-180.000000, -6684.000000)", HA.fill "#000000" ]
+                [ HA.transform "translate(-180.000000, -6684.000000)", HA.fill "currentColor" ]
                 [ Svg.g
                     [ HA.transform "translate(56.000000, 160.000000)" ]
                     [ Svg.path
@@ -43,10 +43,15 @@ arrowDown =
         ]
 
 
-eye : Html.Html msg
-eye =
+eye : String -> Html.Html msg
+eye overrideColor =
     Svg.svg
-        [ HA.fill "currentColor"
+        [ HA.fill <|
+            if overrideColor == "" then
+                "currentColor"
+
+            else
+                overrideColor
         , HA.viewBox "0 0 442.04 442.04"
         , HA.xmlSpace "preserve"
         ]

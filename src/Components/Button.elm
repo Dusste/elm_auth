@@ -195,4 +195,4 @@ buttonDisabledStyle =
 
 buttonLinkStyle : String
 buttonLinkStyle =
-    "justify-self-start w-fit text-gray-950 transition-all hover:text-gray-500"
+    "justify-self-start w-fit text-gray-950 dark:text-white transition-all hover:text-gray-500 dark:hover:text-gray-300"

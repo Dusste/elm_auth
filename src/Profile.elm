@@ -118,10 +118,10 @@ view model =
                         Html.div
                             []
                             [ Html.p
-                                [ HA.class "mb-4" ]
+                                [ HA.class "mb-4 text-gray-950 dark:text-white" ]
                                 [ Html.text "First Name"
                                 , Html.p
-                                    [ HA.class "py-2 mt-1 px-3 border rounded text-sm border-gray-100" ]
+                                    [ HA.class "py-2 mt-1 px-3 border dark:bg-slate-700 dark:text-white rounded text-sm border-gray-100" ]
                                     [ Html.text model.storeName ]
                                 ]
                             , Components.Button.view
@@ -141,10 +141,10 @@ view model =
             Html.div
                 [ HA.class "flex flex-col items-center justify-center mt-64" ]
                 [ Html.h2
-                    []
+                    [ HA.class "text-gray-950 dark:text-white" ]
                     [ Html.text "In order to access all the features please verify your email ! " ]
                 , Html.p
-                    []
+                    [ HA.class "text-gray-950 dark:text-white" ]
                     [ Html.text "Haven't got email from us ?" ]
                 , Html.div
                     [ HA.class "mt-4" ]
